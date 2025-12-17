@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Onboarding - Método Anticonceptivo</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f53d7a",
+                        "background-light": "#f8f5f6",
+                        "background-dark": "#221016",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#181113] dark:text-gray-100 min-h-screen flex flex-col antialiased selection:bg-primary selection:text-white">
+<!-- Top Navigation -->
+<header class="flex items-center justify-between p-4 sticky top-0 z-10 bg-background-light dark:bg-background-dark">
+<button class="flex size-10 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-[#181113] dark:text-white">
+<span class="material-symbols-outlined" style="font-size: 24px;">arrow_back_ios_new</span>
+</button>
+<div class="flex flex-col items-center">
+<span class="text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wide uppercase">Paso 3 de 5</span>
+</div>
+<button class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors">
+            Omitir
+        </button>
+</header>
+<!-- Progress Bar -->
+<div class="px-6 pb-2 w-full">
+<div class="flex w-full gap-2">
+<div class="h-1.5 flex-1 rounded-full bg-primary"></div>
+<div class="h-1.5 flex-1 rounded-full bg-primary"></div>
+<div class="h-1.5 flex-1 rounded-full bg-primary"></div>
+<div class="h-1.5 flex-1 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+<div class="h-1.5 flex-1 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+</div>
+</div>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col px-6 pt-4 pb-24 max-w-lg mx-auto w-full">
+<!-- Text Section -->
+<div class="mb-8">
+<h1 class="text-[#181113] dark:text-white text-3xl font-bold leading-tight mb-3">
+                ¿Usas algún método anticonceptivo?
+            </h1>
+<p class="text-gray-600 dark:text-gray-300 text-base font-normal leading-relaxed">
+                Esto nos ayuda a mejorar tus predicciones y personalizar tu experiencia.
+            </p>
+</div>
+<!-- Options Grid -->
+<div class="grid grid-cols-2 gap-4">
+<!-- Option: Ninguno -->
+<label class="group relative flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-white dark:bg-[#2d1b22] shadow-sm border-2 border-transparent hover:border-primary/30 cursor-pointer transition-all active:scale-95">
+<input class="peer sr-only" name="contraceptive" type="radio"/>
+<div class="size-12 rounded-full bg-gray-100 dark:bg-[#3d2b32] flex items-center justify-center text-gray-600 dark:text-gray-300 group-hover:text-primary transition-colors peer-checked:bg-primary/10 peer-checked:text-primary">
+<span class="material-symbols-outlined" style="font-size: 28px;">block</span>
+</div>
+<span class="text-sm font-medium text-center text-[#181113] dark:text-gray-100 peer-checked:text-primary">Ninguno</span>
+<div class="absolute inset-0 rounded-2xl border-2 border-primary opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></div>
+</label>
+<!-- Option: Condón -->
+<label class="group relative flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-white dark:bg-[#2d1b22] shadow-sm border-2 border-transparent hover:border-primary/30 cursor-pointer transition-all active:scale-95">
+<input class="peer sr-only" name="contraceptive" type="radio"/>
+<div class="size-12 rounded-full bg-gray-100 dark:bg-[#3d2b32] flex items-center justify-center text-gray-600 dark:text-gray-300 group-hover:text-primary transition-colors peer-checked:bg-primary/10 peer-checked:text-primary">
+<span class="material-symbols-outlined" style="font-size: 28px;">health_and_safety</span>
+</div>
+<span class="text-sm font-medium text-center text-[#181113] dark:text-gray-100 peer-checked:text-primary">Condón</span>
+<div class="absolute inset-0 rounded-2xl border-2 border-primary opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></div>
+</label>
+<!-- Option: Pastillas (Selected State Demo) -->
+<label class="group relative flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-white dark:bg-[#2d1b22] shadow-sm border-2 border-transparent hover:border-primary/30 cursor-pointer transition-all active:scale-95">
+<input checked="" class="peer sr-only" name="contraceptive" type="radio"/>
+<div class="size-12 rounded-full bg-gray-100 dark:bg-[#3d2b32] flex items-center justify-center text-gray-600 dark:text-gray-300 group-hover:text-primary transition-colors peer-checked:bg-primary/10 peer-checked:text-primary">
+<span class="material-symbols-outlined" style="font-size: 28px;">pill</span>
+</div>
+<span class="text-sm font-medium text-center text-[#181113] dark:text-gray-100 peer-checked:text-primary">Pastillas</span>
+<div class="absolute inset-0 rounded-2xl border-2 border-primary opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></div>
+<div class="absolute top-3 right-3 text-primary opacity-0 peer-checked:opacity-100 transition-opacity">
+<span class="material-symbols-outlined filled" style="font-size: 20px; font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</label>
+<!-- Option: Inyección -->
+<label class="group relative flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-white dark:bg-[#2d1b22] shadow-sm border-2 border-transparent hover:border-primary/30 cursor-pointer transition-all active:scale-95">
+<input class="peer sr-only" name="contraceptive" type="radio"/>
+<div class="size-12 rounded-full bg-gray-100 dark:bg-[#3d2b32] flex items-center justify-center text-gray-600 dark:text-gray-300 group-hover:text-primary transition-colors peer-checked:bg-primary/10 peer-checked:text-primary">
+<span class="material-symbols-outlined" style="font-size: 28px;">vaccines</span>
+</div>
+<span class="text-sm font-medium text-center text-[#181113] dark:text-gray-100 peer-checked:text-primary">Inyección</span>
+<div class="absolute inset-0 rounded-2xl border-2 border-primary opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></div>
+</label>
+<!-- Option: Implante -->
+<label class="group relative flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-white dark:bg-[#2d1b22] shadow-sm border-2 border-transparent hover:border-primary/30 cursor-pointer transition-all active:scale-95">
+<input class="peer sr-only" name="contraceptive" type="radio"/>
+<div class="size-12 rounded-full bg-gray-100 dark:bg-[#3d2b32] flex items-center justify-center text-gray-600 dark:text-gray-300 group-hover:text-primary transition-colors peer-checked:bg-primary/10 peer-checked:text-primary">
+<span class="material-symbols-outlined rotate-90" style="font-size: 28px;">straighten</span>
+</div>
+<span class="text-sm font-medium text-center text-[#181113] dark:text-gray-100 peer-checked:text-primary">Implante</span>
+<div class="absolute inset-0 rounded-2xl border-2 border-primary opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></div>
+</label>
+<!-- Option: DIU hormonal -->
+<label class="group relative flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-white dark:bg-[#2d1b22] shadow-sm border-2 border-transparent hover:border-primary/30 cursor-pointer transition-all active:scale-95">
+<input class="peer sr-only" name="contraceptive" type="radio"/>
+<div class="size-12 rounded-full bg-gray-100 dark:bg-[#3d2b32] flex items-center justify-center text-gray-600 dark:text-gray-300 group-hover:text-primary transition-colors peer-checked:bg-primary/10 peer-checked:text-primary">
+<span class="material-symbols-outlined" style="font-size: 28px;">anchor</span>
+</div>
+<span class="text-sm font-medium text-center text-[#181113] dark:text-gray-100 peer-checked:text-primary">DIU hormonal</span>
+<div class="absolute inset-0 rounded-2xl border-2 border-primary opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></div>
+</label>
+<!-- Option: DIU de cobre -->
+<label class="group relative flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-white dark:bg-[#2d1b22] shadow-sm border-2 border-transparent hover:border-primary/30 cursor-pointer transition-all active:scale-95">
+<input class="peer sr-only" name="contraceptive" type="radio"/>
+<div class="size-12 rounded-full bg-gray-100 dark:bg-[#3d2b32] flex items-center justify-center text-gray-600 dark:text-gray-300 group-hover:text-primary transition-colors peer-checked:bg-primary/10 peer-checked:text-primary">
+<span class="material-symbols-outlined" style="font-size: 28px; font-variation-settings: 'FILL' 0;">anchor</span>
+</div>
+<span class="text-sm font-medium text-center text-[#181113] dark:text-gray-100 peer-checked:text-primary">DIU de cobre</span>
+<div class="absolute inset-0 rounded-2xl border-2 border-primary opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></div>
+</label>
+<!-- Option: Otro -->
+<label class="group relative flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-white dark:bg-[#2d1b22] shadow-sm border-2 border-transparent hover:border-primary/30 cursor-pointer transition-all active:scale-95">
+<input class="peer sr-only" name="contraceptive" type="radio"/>
+<div class="size-12 rounded-full bg-gray-100 dark:bg-[#3d2b32] flex items-center justify-center text-gray-600 dark:text-gray-300 group-hover:text-primary transition-colors peer-checked:bg-primary/10 peer-checked:text-primary">
+<span class="material-symbols-outlined" style="font-size: 28px;">add</span>
+</div>
+<span class="text-sm font-medium text-center text-[#181113] dark:text-gray-100 peer-checked:text-primary">Otro</span>
+<div class="absolute inset-0 rounded-2xl border-2 border-primary opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></div>
+</label>
+</div>
+</main>
+<!-- Footer Action -->
+<footer class="fixed bottom-0 left-0 w-full p-4 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-gray-100 dark:border-gray-800 z-20">
+<div class="max-w-lg mx-auto">
+<button class="w-full h-14 bg-primary hover:bg-primary/90 text-white text-lg font-semibold rounded-2xl shadow-lg shadow-primary/30 transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
+                Continuar
+                <span class="material-symbols-outlined" style="font-size: 20px;">arrow_forward</span>
+</button>
+</div>
+</footer>
+</body></html>

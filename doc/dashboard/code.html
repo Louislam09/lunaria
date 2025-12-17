@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cycle Tracker Dashboard</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Spline Sans -->
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#256af4",
+              "background-light": "#f5f6f8",
+              "background-dark": "#101622",
+            },
+            fontFamily: {
+              "display": ["Spline Sans", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "1.5rem", "xl": "2rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Hide scrollbar for clean mobile look */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#111318] dark:text-white overflow-x-hidden selection:bg-primary/30">
+<div class="relative flex h-full min-h-screen w-full flex-col max-w-md mx-auto bg-white dark:bg-[#101622] shadow-2xl overflow-hidden pb-20">
+<!-- Top App Bar -->
+<header class="flex items-center bg-white dark:bg-[#101622] p-4 pb-2 justify-between sticky top-0 z-20">
+<div class="flex flex-col">
+<span class="text-sm text-[#606e8a] dark:text-gray-400 font-medium">Buenos días</span>
+<h2 class="text-[#111318] dark:text-white text-2xl font-bold leading-tight tracking-[-0.015em]">Hola, María</h2>
+</div>
+<div class="flex items-center justify-end gap-3">
+<button class="flex items-center justify-center rounded-full h-10 w-10 bg-background-light dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined text-[#111318] dark:text-white" style="font-size: 24px;">notifications</span>
+</button>
+<button class="flex items-center justify-center overflow-hidden rounded-full h-10 w-10 bg-background-light dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+<div class="h-full w-full bg-cover bg-center" data-alt="User profile picture placeholder" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAN6IrQ_FpbYLpB4Usi_IRFDz-jqCFglsJmCLRaWMXZNIpdGZkAGLIZOdN2DoX8QRSVfk206Zu57M_TwasxtCmJW2l17m2IkaRyXZQuXclAIh6oBeqsuHP8Z5Iz3v-s4e3ktrVmnvbLXqNezeNjLiW4AKoOgu3pWM8y-SCbQDhPS84KiCrcmxOul4wliFLLJAC3cNSNIjOE9riaJkGZi0a2nkJmIISwRpUsMq4RYmHP0_HldgRG9RIBxyT7KhFHBHFSB89wa0kSCDc');"></div>
+</button>
+</div>
+</header>
+<!-- Main Content Scroll Area -->
+<main class="flex-1 overflow-y-auto no-scrollbar px-4 pt-2 pb-6">
+<!-- Hero Card: Next Period -->
+<section class="mt-4">
+<div class="flex flex-col items-center justify-center rounded-[2.5rem] bg-white dark:bg-[#1a2230] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-gray-100 dark:border-gray-800 relative overflow-hidden group">
+<!-- Background decorative blobs -->
+<div class="absolute -top-10 -right-10 w-32 h-32 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors duration-500"></div>
+<div class="absolute -bottom-10 -left-10 w-32 h-32 bg-pink-500/5 rounded-full blur-2xl group-hover:bg-pink-500/10 transition-colors duration-500"></div>
+<div class="relative z-10 flex flex-col items-center text-center">
+<span class="text-[#606e8a] dark:text-gray-400 text-sm font-medium uppercase tracking-wider mb-4">Próximo periodo</span>
+<!-- Circular Progress / Countdown Visualization -->
+<div class="relative flex items-center justify-center w-48 h-48 mb-4">
+<!-- Background Circle -->
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 100 100">
+<circle class="text-gray-100 dark:text-gray-700" cx="50" cy="50" fill="none" r="42" stroke="currentColor" stroke-width="6"></circle>
+<!-- Progress Circle (approx 80%) -->
+<circle class="text-primary" cx="50" cy="50" fill="none" r="42" stroke="currentColor" stroke-dasharray="264" stroke-dashoffset="60" stroke-linecap="round" stroke-width="6"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-6xl font-bold text-[#111318] dark:text-white tracking-tighter">5</span>
+<span class="text-sm font-medium text-[#606e8a] dark:text-gray-400 mt-1">días</span>
+</div>
+</div>
+<div class="flex flex-col gap-1 items-center">
+<p class="text-[#111318] dark:text-white text-lg font-bold">Jueves, 24 de Octubre</p>
+<p class="text-primary text-sm font-medium bg-primary/10 px-3 py-1 rounded-full">Predicción regular</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Action Panel: Current Phase -->
+<section class="mt-6">
+<div class="flex flex-col gap-4 p-5 rounded-[2rem] bg-primary/5 border border-primary/10 dark:bg-[#1a2230] dark:border-gray-800">
+<div class="flex items-start justify-between">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-primary filled text-[20px]">water_drop</span>
+<p class="text-primary text-sm font-bold uppercase tracking-wide">Estado Actual</p>
+</div>
+<h3 class="text-[#111318] dark:text-white text-2xl font-bold leading-tight">Fase Lútea</h3>
+<p class="text-[#606e8a] dark:text-gray-400 text-base font-normal leading-normal mt-1">Día 19 del ciclo. Tu energía puede empezar a disminuir ligeramente.</p>
+</div>
+</div>
+<button class="w-full cursor-pointer flex items-center justify-center gap-2 rounded-full h-12 bg-primary hover:bg-blue-600 transition-colors text-white text-base font-bold shadow-lg shadow-blue-500/20 active:scale-[0.98]">
+<span class="material-symbols-outlined text-[20px]">edit_note</span>
+<span>Registrar síntomas</span>
+</button>
+</div>
+</section>
+<!-- Risk Card & Stats Row -->
+<section class="mt-6 grid grid-cols-2 gap-4">
+<!-- Pregnancy Risk Card -->
+<div class="col-span-2 flex items-center justify-between gap-4 p-5 rounded-[2rem] bg-white dark:bg-[#1a2230] shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100 dark:border-gray-800">
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-gray-400 dark:text-gray-500 text-[20px]">child_care</span>
+<p class="text-[#111318] dark:text-white text-base font-bold">Riesgo de embarazo</p>
+</div>
+<div class="inline-flex self-start items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-bold">
+<span class="w-2 h-2 rounded-full bg-green-500"></span>
+                            Bajo
+                        </div>
+</div>
+<!-- Abstract visual for risk -->
+<div class="w-16 h-16 rounded-full bg-green-50 dark:bg-green-900/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-green-500 text-[32px]">shield</span>
+</div>
+</div>
+</section>
+<!-- Section Header: Daily Insights -->
+<section class="mt-8 mb-4">
+<div class="flex items-center justify-between px-2">
+<h3 class="text-[#111318] dark:text-white text-xl font-bold leading-tight">Resumen de hoy</h3>
+<a class="text-primary text-sm font-semibold hover:underline" href="#">Ver todo</a>
+</div>
+</section>
+<!-- Horizontal Scroll Cards (Insights) -->
+<section class="flex gap-4 overflow-x-auto no-scrollbar pb-4 -mx-4 px-4">
+<!-- Insight 1 -->
+<div class="flex-shrink-0 w-64 p-4 rounded-[1.5rem] bg-white dark:bg-[#1a2230] border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col gap-3">
+<div class="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center text-orange-600 dark:text-orange-400">
+<span class="material-symbols-outlined">wb_sunny</span>
+</div>
+<div>
+<h4 class="font-bold text-[#111318] dark:text-white">Estado de ánimo</h4>
+<p class="text-sm text-[#606e8a] dark:text-gray-400 mt-1">Es normal sentirse más introspectiva hoy.</p>
+</div>
+</div>
+<!-- Insight 2 -->
+<div class="flex-shrink-0 w-64 p-4 rounded-[1.5rem] bg-white dark:bg-[#1a2230] border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col gap-3">
+<div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center text-purple-600 dark:text-purple-400">
+<span class="material-symbols-outlined">self_improvement</span>
+</div>
+<div>
+<h4 class="font-bold text-[#111318] dark:text-white">Recomendación</h4>
+<p class="text-sm text-[#606e8a] dark:text-gray-400 mt-1">Ideal para yoga suave o meditación.</p>
+</div>
+</div>
+</section>
+<!-- Safe Space / Privacy Note -->
+<div class="mt-4 mb-20 flex items-center justify-center gap-2 text-[#606e8a] dark:text-gray-500 opacity-60">
+<span class="material-symbols-outlined text-[16px]">lock</span>
+<span class="text-xs font-medium">Tus datos están guardados localmente</span>
+</div>
+</main>
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 left-0 right-0 z-30 bg-white dark:bg-[#101622] border-t border-gray-100 dark:border-gray-800 px-6 py-2 pb-6 max-w-md mx-auto">
+<div class="flex items-center justify-between">
+<!-- Home (Active) -->
+<a class="flex flex-col items-center justify-center w-12 gap-1 group" href="#">
+<div class="relative flex items-center justify-center">
+<span class="material-symbols-outlined filled text-primary text-[26px] group-hover:scale-110 transition-transform">home</span>
+<!-- Active Dot -->
+<span class="absolute -bottom-2 w-1 h-1 bg-primary rounded-full"></span>
+</div>
+<span class="text-[10px] font-bold text-primary mt-1">Inicio</span>
+</a>
+<!-- Calendar -->
+<a class="flex flex-col items-center justify-center w-12 gap-1 group" href="#">
+<span class="material-symbols-outlined text-[#9ca3af] dark:text-gray-500 text-[26px] group-hover:text-primary transition-colors">calendar_month</span>
+<span class="text-[10px] font-medium text-[#9ca3af] dark:text-gray-500 mt-1 group-hover:text-primary transition-colors">Calendario</span>
+</a>
+<!-- Reports/Insights -->
+<a class="flex flex-col items-center justify-center w-12 gap-1 group" href="#">
+<span class="material-symbols-outlined text-[#9ca3af] dark:text-gray-500 text-[26px] group-hover:text-primary transition-colors">bar_chart</span>
+<span class="text-[10px] font-medium text-[#9ca3af] dark:text-gray-500 mt-1 group-hover:text-primary transition-colors">Reportes</span>
+</a>
+<!-- Settings -->
+<a class="flex flex-col items-center justify-center w-12 gap-1 group" href="#">
+<span class="material-symbols-outlined text-[#9ca3af] dark:text-gray-500 text-[26px] group-hover:text-primary transition-colors">settings</span>
+<span class="text-[10px] font-medium text-[#9ca3af] dark:text-gray-500 mt-1 group-hover:text-primary transition-colors">Ajustes</span>
+</a>
+</div>
+</nav>
+</div>
+</body></html>

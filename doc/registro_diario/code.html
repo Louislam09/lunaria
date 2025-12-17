@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Registro Diario</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#256af4",
+                        "background-light": "#f5f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Spline Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen font-display pb-28 selection:bg-primary/30">
+<!-- Top App Bar -->
+<div class="sticky top-0 z-20 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+<div class="flex items-center p-4 justify-between max-w-lg mx-auto">
+<button class="flex size-10 items-center justify-center rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors text-slate-800 dark:text-slate-200">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<div class="flex flex-col items-center">
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight">Lunes, 24 Oct</h2>
+<span class="text-xs font-medium text-primary uppercase tracking-wider">Ciclo Día 14</span>
+</div>
+<button class="flex size-10 items-center justify-center rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors text-slate-800 dark:text-slate-200">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Main Content -->
+<main class="flex flex-col max-w-lg mx-auto w-full px-4 pt-4 gap-6">
+<!-- Prediction Message (Empty State Logic) -->
+<div class="bg-primary/10 rounded-2xl p-4 flex items-center gap-3 border border-primary/20">
+<span class="material-symbols-outlined text-primary">auto_awesome</span>
+<p class="text-sm text-slate-700 dark:text-slate-300 font-medium">Predicción: Posible inicio de periodo hoy.</p>
+</div>
+<!-- Section: Menstruation Flow -->
+<section>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold mb-3 px-1">Menstruación</h2>
+<div class="bg-white dark:bg-slate-800 rounded-xl p-1.5 shadow-sm border border-slate-100 dark:border-slate-700">
+<div class="flex">
+<label class="group flex-1 cursor-pointer">
+<input class="peer sr-only" name="flow" type="radio" value="leve"/>
+<div class="flex items-center justify-center py-2.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 peer-checked:bg-primary peer-checked:text-white peer-checked:shadow-md transition-all">
+                            Leve
+                        </div>
+</label>
+<label class="group flex-1 cursor-pointer">
+<input checked="" class="peer sr-only" name="flow" type="radio" value="medio"/>
+<div class="flex items-center justify-center py-2.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 peer-checked:bg-primary peer-checked:text-white peer-checked:shadow-md transition-all">
+                            Medio
+                        </div>
+</label>
+<label class="group flex-1 cursor-pointer">
+<input class="peer sr-only" name="flow" type="radio" value="abundante"/>
+<div class="flex items-center justify-center py-2.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 peer-checked:bg-primary peer-checked:text-white peer-checked:shadow-md transition-all">
+                            Alto
+                        </div>
+</label>
+<label class="group flex-1 cursor-pointer">
+<input class="peer sr-only" name="flow" type="radio" value="manchado"/>
+<div class="flex items-center justify-center py-2.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 peer-checked:bg-primary peer-checked:text-white peer-checked:shadow-md transition-all">
+                            Mancha
+                        </div>
+</label>
+</div>
+</div>
+</section>
+<!-- Section: Mood -->
+<section>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold mb-3 px-1">Estado de Ánimo</h2>
+<!-- Horizontal Scroll Container -->
+<div class="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 snap-x">
+<label class="snap-start shrink-0 cursor-pointer group">
+<input class="peer sr-only" name="mood" type="checkbox" value="feliz"/>
+<div class="flex flex-col items-center justify-center w-20 h-24 gap-2 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+<span class="material-symbols-outlined text-3xl text-yellow-500 group-hover:scale-110 transition-transform">sentiment_satisfied</span>
+<span class="text-xs font-medium text-slate-600 dark:text-slate-300 group-hover:text-primary">Feliz</span>
+</div>
+</label>
+<label class="snap-start shrink-0 cursor-pointer group">
+<input checked="" class="peer sr-only" name="mood" type="checkbox" value="triste"/>
+<div class="flex flex-col items-center justify-center w-20 h-24 gap-2 rounded-2xl bg-white dark:bg-slate-800 border-2 border-primary bg-primary/5 transition-all shadow-sm">
+<span class="material-symbols-outlined text-3xl text-primary scale-110">sentiment_dissatisfied</span>
+<span class="text-xs font-bold text-primary">Triste</span>
+</div>
+</label>
+<label class="snap-start shrink-0 cursor-pointer group">
+<input class="peer sr-only" name="mood" type="checkbox" value="irritable"/>
+<div class="flex flex-col items-center justify-center w-20 h-24 gap-2 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+<span class="material-symbols-outlined text-3xl text-red-400 group-hover:scale-110 transition-transform">mood_bad</span>
+<span class="text-xs font-medium text-slate-600 dark:text-slate-300 group-hover:text-primary">Irritable</span>
+</div>
+</label>
+<label class="snap-start shrink-0 cursor-pointer group">
+<input class="peer sr-only" name="mood" type="checkbox" value="sensible"/>
+<div class="flex flex-col items-center justify-center w-20 h-24 gap-2 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+<span class="material-symbols-outlined text-3xl text-blue-400 group-hover:scale-110 transition-transform">water_drop</span>
+<span class="text-xs font-medium text-slate-600 dark:text-slate-300 group-hover:text-primary">Sensible</span>
+</div>
+</label>
+<label class="snap-start shrink-0 cursor-pointer group">
+<input class="peer sr-only" name="mood" type="checkbox" value="ansiosa"/>
+<div class="flex flex-col items-center justify-center w-20 h-24 gap-2 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+<span class="material-symbols-outlined text-3xl text-purple-400 group-hover:scale-110 transition-transform">sentiment_worried</span>
+<span class="text-xs font-medium text-slate-600 dark:text-slate-300 group-hover:text-primary">Ansiosa</span>
+</div>
+</label>
+</div>
+</section>
+<!-- Section: Symptoms -->
+<section>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold mb-3 px-1">Síntomas Físicos</h2>
+<div class="flex flex-wrap gap-2">
+<!-- Symptom Chip: Cólicos (Checked) -->
+<label class="cursor-pointer group">
+<input checked="" class="peer sr-only" type="checkbox"/>
+<div class="flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-colors duration-200 shadow-sm">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">spa</span>
+<span class="text-sm font-medium">Cólicos</span>
+</div>
+</label>
+<!-- Symptom Chip: Dolor de cabeza -->
+<label class="cursor-pointer group">
+<input class="peer sr-only" type="checkbox"/>
+<div class="flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-colors duration-200 shadow-sm">
+<span class="material-symbols-outlined text-lg">neurology</span>
+<span class="text-sm font-medium">Dolor de cabeza</span>
+</div>
+</label>
+<!-- Symptom Chip: Acné -->
+<label class="cursor-pointer group">
+<input class="peer sr-only" type="checkbox"/>
+<div class="flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-colors duration-200 shadow-sm">
+<span class="material-symbols-outlined text-lg">face</span>
+<span class="text-sm font-medium">Acné</span>
+</div>
+</label>
+<!-- Symptom Chip: Espalda -->
+<label class="cursor-pointer group">
+<input class="peer sr-only" type="checkbox"/>
+<div class="flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-colors duration-200 shadow-sm">
+<span class="material-symbols-outlined text-lg">accessibility_new</span>
+<span class="text-sm font-medium">Dolor de espalda</span>
+</div>
+</label>
+<!-- Symptom Chip: Fatiga -->
+<label class="cursor-pointer group">
+<input class="peer sr-only" type="checkbox"/>
+<div class="flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-colors duration-200 shadow-sm">
+<span class="material-symbols-outlined text-lg">battery_alert</span>
+<span class="text-sm font-medium">Fatiga</span>
+</div>
+</label>
+</div>
+</section>
+<!-- Section: Notes -->
+<section>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold mb-3 px-1">Notas</h2>
+<div class="relative">
+<textarea class="w-full bg-white dark:bg-slate-800 border-none rounded-2xl p-4 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-primary shadow-sm resize-none" placeholder="¿Algo más que notar hoy?" rows="4"></textarea>
+<div class="absolute bottom-3 right-3 text-slate-400 dark:text-slate-600 pointer-events-none">
+<span class="material-symbols-outlined">edit_note</span>
+</div>
+</div>
+</section>
+<!-- Save Button -->
+<button class="w-full bg-primary hover:bg-blue-600 text-white font-bold py-4 rounded-full shadow-lg shadow-primary/30 transition-all active:scale-[0.98] mt-2 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">check</span>
+            Guardar Registro
+        </button>
+</main>
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-[#101622]/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 pb-safe">
+<div class="flex justify-around items-center h-16 max-w-lg mx-auto">
+<a class="flex flex-col items-center justify-center w-full h-full gap-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" href="#">
+<span class="material-symbols-outlined text-2xl">calendar_today</span>
+<span class="text-[10px] font-medium">Calendario</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full gap-1 text-primary" href="#">
+<span class="material-symbols-outlined text-2xl font-bold" style="font-variation-settings: 'FILL' 1;">edit_calendar</span>
+<span class="text-[10px] font-bold">Registro</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full gap-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" href="#">
+<span class="material-symbols-outlined text-2xl">insights</span>
+<span class="text-[10px] font-medium">Reportes</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full gap-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" href="#">
+<span class="material-symbols-outlined text-2xl">settings</span>
+<span class="text-[10px] font-medium">Ajustes</span>
+</a>
+</div>
+</nav>
+<!-- Safe area padding for bottom nav on mobile -->
+<style>
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+</body></html>
