@@ -22,11 +22,13 @@ A React Native app built with Expo Router for tracking menstrual cycles, built f
 ### Installation
 
 1. Install dependencies:
+
 ```bash
 yarn install
 ```
 
 2. Install additional required packages:
+
 ```bash
 yarn add @react-native-async-storage/async-storage
 yarn add @react-native-community/datetimepicker
@@ -35,12 +37,14 @@ yarn add expo-notifications
 ```
 
 3. Set up environment variables:
-Create a `.env` file:
+   Create a `.env` file:
+
 ```
 EXPO_PUBLIC_POCKETBASE_URL=http://localhost:8090
 ```
 
 4. Start the development server:
+
 ```bash
 yarn start
 ```
@@ -48,25 +52,24 @@ yarn start
 ## Project Structure
 
 ```
-src/
-  app/                    # Expo Router screens
-    splash.tsx           # Welcome screen
-    home.tsx             # Dashboard
-    predictions.tsx      # Cycle predictions
-    registro.tsx         # Daily log
-    calendar.tsx         # Calendar view
-    settings.tsx         # Settings
-    onboarding/          # Onboarding flow
-  context/               # React contexts
-    AuthContext.tsx      # Authentication state
-  services/             # API services
-    pocketbase.ts       # PocketBase client
-    authService.ts      # Auth helpers
-    notifications.ts    # Push notifications
-  utils/                # Utility functions
-    predictions.ts     # Cycle calculations
-    dates.ts           # Date helpers
-    pcosLogic.ts       # PCOS logic
+app/                    # Expo Router screens
+  splash.tsx           # Welcome screen
+  home.tsx             # Dashboard
+  predictions.tsx      # Cycle predictions
+  registro.tsx         # Daily log
+  calendar.tsx         # Calendar view
+  settings.tsx         # Settings
+  onboarding/          # Onboarding flow
+context/               # React contexts
+  AuthContext.tsx      # Authentication state
+services/             # API services
+  pocketbase.ts       # PocketBase client
+  authService.ts      # Auth helpers
+  notifications.ts    # Push notifications
+utils/                # Utility functions
+  predictions.ts     # Cycle calculations
+  dates.ts           # Date helpers
+  pcosLogic.ts       # PCOS logic
 ```
 
 ## Architecture
@@ -81,12 +84,14 @@ The app follows the design document in `doc/lunaria-design.md`:
 ## Screens
 
 ### Onboarding
+
 1. Personal & Menstrual Info (`/onboarding/info`)
 2. Pregnancy Goal (`/onboarding/pregnancy`)
 3. Contraceptive Method (`/onboarding/contraceptive`)
 4. Common Symptoms (`/onboarding/symptoms`)
 
 ### Main App
+
 - Dashboard (`/home`)
 - Predictions (`/predictions`)
 - Calendar (`/calendar`)

@@ -19,36 +19,35 @@ Create a `.env` file in the root directory:
 EXPO_PUBLIC_POCKETBASE_URL=http://localhost:8090
 ```
 
-Or update `src/services/pocketbase.ts` with your PocketBase URL.
+Or update `services/pocketbase.ts` with your PocketBase URL.
 
 ## Project Structure
 
 ```
-src/
-  app/
-    splash.tsx                    # Splash/welcome screen
-    index.tsx                      # Root redirect
-    _layout.tsx                    # Root layout with AuthProvider
-    home.tsx                       # Dashboard/home screen
-    predictions.tsx                # Predictions screen
-    registro.tsx                   # Daily log screen
-    calendar.tsx                   # Calendar screen
-    settings.tsx                   # Settings screen
-    onboarding/
-      info.tsx                     # Personal & menstrual info
-      pregnancy.tsx                # Pregnancy goal selection
-      contraceptive.tsx            # Contraceptive method selection
-      symptoms.tsx                 # Common symptoms selection
-  context/
-    AuthContext.tsx                # Authentication context
-  services/
-    pocketbase.ts                  # PocketBase client
-    authService.ts                 # Auth service wrappers
-    notifications.ts               # Push notifications
-  utils/
-    predictions.ts                 # Cycle prediction logic
-    dates.ts                       # Date utilities
-    pcosLogic.ts                   # PCOS-related logic
+app/
+  splash.tsx                    # Splash/welcome screen
+  index.tsx                      # Root redirect
+  _layout.tsx                    # Root layout with AuthProvider
+  home.tsx                       # Dashboard/home screen
+  predictions.tsx                # Predictions screen
+  registro.tsx                   # Daily log screen
+  calendar.tsx                   # Calendar screen
+  settings.tsx                   # Settings screen
+  onboarding/
+    info.tsx                     # Personal & menstrual info
+    pregnancy.tsx                # Pregnancy goal selection
+    contraceptive.tsx            # Contraceptive method selection
+    symptoms.tsx                 # Common symptoms selection
+context/
+  AuthContext.tsx                # Authentication context
+services/
+  pocketbase.ts                  # PocketBase client
+  authService.ts                 # Auth service wrappers
+  notifications.ts               # Push notifications
+utils/
+  predictions.ts                 # Cycle prediction logic
+  dates.ts                       # Date utilities
+  pcosLogic.ts                   # PCOS-related logic
 ```
 
 ## Features Implemented
@@ -81,4 +80,3 @@ yarn start
 ```
 
 Then press `i` for iOS, `a` for Android, or `w` for web.
-

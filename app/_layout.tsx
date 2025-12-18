@@ -1,6 +1,6 @@
 import "../global.css";
 import { Slot } from "expo-router";
-import { View } from "react-native";
+import { View, Text } from "react-native";
 import { AuthProvider } from "@/context/AuthContext";
 
 export default function Layout() {
