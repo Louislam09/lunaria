@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, Platform } from 'react-native';
-import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Calendar, RefreshCw, Infinity, Check, ArrowRight } from 'lucide-react-native';
+import { Calendar, RefreshCw, Infinity, Check } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Slider from '@react-native-community/slider';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { colors } from '@/utils/colors';
+import OnboardingProgress from '@/components/ui/OnboardingProgress';
 
-export default function OnboardingInfoScreen() {
+export default function Step1() {
   const insets = useSafeAreaInsets();
   const { data, updateData } = useOnboarding();
 
@@ -54,37 +54,11 @@ export default function OnboardingInfoScreen() {
     return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
   };
 
-  const canContinue = name.trim().length > 0 && lastPeriod !== null;
-
-  const handleContinue = () => {
-    if (canContinue) {
-      router.push('/onboarding/symptoms');
-    }
-  };
-
   return (
     <View style={{ flex: 1, backgroundColor: colors.moonWhite }}>
       {/* Top App Bar */}
       <View style={{ paddingTop: insets.top, backgroundColor: colors.moonWhite }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, justifyContent: 'space-between' }}>
-          <Pressable onPress={() => router.back()}>
-            <ArrowLeft size={20} color={colors.textPrimary} />
-          </Pressable>
-          <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: '700', flex: 1, textAlign: 'center', paddingRight: 40 }}>
-            Paso 1 de 5
-          </Text>
-        </View>
-
-        {/* Progress Bar */}
-        <View style={{ paddingHorizontal: 24, paddingBottom: 16 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-            <Text style={{ fontSize: 16, fontWeight: '500', color: colors.textMuted }}>Datos personales y ciclo</Text>
-            <Text style={{ fontSize: 16, fontWeight: '500', color: colors.textMuted }}>20%</Text>
-          </View>
-          <View style={{ height: 4, width: '100%', borderRadius: 9999, backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
-            <View style={{ height: '100%', backgroundColor: colors.lavender, borderRadius: 9999, width: '20%' }} />
-          </View>
-        </View>
+        <OnboardingProgress currentStep={1} />
       </View>
 
       {/* Main Scrollable Content */}
@@ -476,42 +450,8 @@ export default function OnboardingInfoScreen() {
             </>
           )}
         </View>
-        <View style={{ height: 160, backgroundColor: 'transparent', width: '100%' }} />
+        <View style={{ height: 200, backgroundColor: 'transparent', width: '100%' }} />
       </ScrollView>
-
-      {/* Footer / Bottom Navigation */}
-      <View
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          backgroundColor: colors.moonWhite,
-          borderTopWidth: 1,
-          borderTopColor: '#e2e8f0',
-          padding: 16,
-          paddingBottom: insets.bottom + 16,
-        }}
-      >
-        <Pressable
-          onPress={handleContinue}
-          disabled={!canContinue}
-          style={{
-            width: '100%',
-            height: 56,
-            backgroundColor: canContinue ? colors.lavender : '#cbd5e1',
-            borderRadius: 9999,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            opacity: canContinue ? 1 : 0.6,
-          }}
-        >
-          <Text style={{ color: '#ffffff', fontSize: 18, fontWeight: '700' }}>Siguiente</Text>
-          <ArrowRight size={20} color="#ffffff" />
-        </Pressable>
-      </View>
     </View>
   );
 }

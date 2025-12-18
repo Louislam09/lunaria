@@ -55,7 +55,7 @@ export default function SplashScreen() {
       {/* Footer / Action Area */}
       <View className="w-full px-6 pb-10 pt-4 relative z-10 ">
         <Pressable
-          onPress={() => router.push('/onboarding/info')}
+          onPress={() => router.push('/onboarding/wizard')}
           className="flex flex-row align-center w-full cursor-pointer items-center justify-center overflow-hidden rounded-full h-14 text-white text-lg font-bold leading-normal tracking-[0.015em] shadow-lg bg-lavender transition-colors active:scale-[0.98]">
           <Text className="truncate text-white">Comenzar</Text>
           <View className="flex-row items-center justify-center ml-2">

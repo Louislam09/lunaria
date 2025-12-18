@@ -16,7 +16,8 @@
       "output": "static"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-sqlite"
     ],
     "name": "lunaria",
     "slug": "lunaria"

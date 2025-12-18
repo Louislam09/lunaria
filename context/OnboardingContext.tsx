@@ -46,6 +46,11 @@ type OnboardingContextType = {
   reset: () => void;
   isComplete: boolean;
   isLoading: boolean;
+  // Wizard navigation
+  actualStep: number;
+  actualSubStep: number;
+  setActualStep: (step: number) => void;
+  setActualSubStep: (subStep: number) => void;
 };
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
@@ -53,10 +58,15 @@ const OnboardingContext = createContext<OnboardingContextType | undefined>(undef
 const STORAGE_KEY = 'onboardingData';
 const COMPLETE_KEY = 'onboardingComplete';
 
+const STEP_KEY = 'onboardingStep';
+const SUBSTEP_KEY = 'onboardingSubStep';
+
 export function OnboardingProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<Partial<OnboardingData>>({});
   const [isComplete, setIsComplete] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [actualStep, setActualStepState] = useState(0);
+  const [actualSubStep, setActualSubStepState] = useState(0);
 
   // Load data from storage on mount
   useEffect(() => {
@@ -65,9 +75,11 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
   const loadData = async () => {
     try {
-      const [savedData, completeStatus] = await Promise.all([
+      const [savedData, completeStatus, savedStep, savedSubStep] = await Promise.all([
         AsyncStorage.getItem(STORAGE_KEY),
         AsyncStorage.getItem(COMPLETE_KEY),
+        AsyncStorage.getItem(STEP_KEY),
+        AsyncStorage.getItem(SUBSTEP_KEY),
       ]);
 
       if (savedData) {
@@ -84,10 +96,36 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       if (completeStatus === 'true') {
         setIsComplete(true);
       }
+
+      // Load step position
+      if (savedStep !== null) {
+        setActualStepState(parseInt(savedStep, 10));
+      }
+      if (savedSubStep !== null) {
+        setActualSubStepState(parseInt(savedSubStep, 10));
+      }
     } catch (error) {
       console.error('Error loading onboarding data:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const setActualStep = async (step: number) => {
+    setActualStepState(step);
+    try {
+      await AsyncStorage.setItem(STEP_KEY, step.toString());
+    } catch (error) {
+      console.error('Error saving step:', error);
+    }
+  };
+
+  const setActualSubStep = async (subStep: number) => {
+    setActualSubStepState(subStep);
+    try {
+      await AsyncStorage.setItem(SUBSTEP_KEY, subStep.toString());
+    } catch (error) {
+      console.error('Error saving substep:', error);
     }
   };
 
@@ -139,16 +177,30 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const reset = async () => {
     setData({});
     setIsComplete(false);
+    setActualStepState(0);
+    setActualSubStepState(0);
     try {
       await AsyncStorage.removeItem(STORAGE_KEY);
       await AsyncStorage.removeItem(COMPLETE_KEY);
+      await AsyncStorage.removeItem(STEP_KEY);
+      await AsyncStorage.removeItem(SUBSTEP_KEY);
     } catch (error) {
       console.error('Error resetting onboarding data:', error);
     }
   };
 
   return (
-    <OnboardingContext.Provider value={{ data, updateData, reset, isComplete, isLoading }}>
+    <OnboardingContext.Provider value={{ 
+      data, 
+      updateData, 
+      reset, 
+      isComplete, 
+      isLoading,
+      actualStep,
+      actualSubStep,
+      setActualStep,
+      setActualSubStep,
+    }}>
       {children}
     </OnboardingContext.Provider>
   );

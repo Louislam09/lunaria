@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
-import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, ArrowRight } from 'lucide-react-native';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { colors } from '@/utils/colors';
+import OnboardingProgress from '@/components/ui/OnboardingProgress';
 
 const symptoms = [
   { id: 'abdominal_pain', label: 'Dolor abdominal', icon: '🫄' },
@@ -17,7 +16,7 @@ const symptoms = [
   { id: 'cravings', label: 'Antojos', icon: '🍦' },
 ];
 
-export default function OnboardingSymptomsScreen() {
+export default function Step2() {
   const insets = useSafeAreaInsets();
   const { data, updateData } = useOnboarding();
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>(data.symptoms || []);
@@ -34,38 +33,11 @@ export default function OnboardingSymptomsScreen() {
     );
   };
 
-  const handleSkip = () => {
-    updateData({ symptoms: undefined });
-    router.push('/onboarding/pregnancy');
-  };
-
-  const handleContinue = () => {
-    router.push('/onboarding/pregnancy');
-  };
-
   return (
     <View style={{ flex: 1, backgroundColor: colors.moonWhite }}>
       {/* Top App Bar */}
       <View style={{ paddingTop: insets.top, backgroundColor: colors.moonWhite }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, justifyContent: 'space-between' }}>
-          <Pressable onPress={() => router.back()}>
-            <ArrowLeft size={20} color={colors.textPrimary} />
-          </Pressable>
-          <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: '700', flex: 1, textAlign: 'center', paddingRight: 40 }}>
-            Paso 2 de 5
-          </Text>
-        </View>
-
-        {/* Progress Bar */}
-        <View style={{ paddingHorizontal: 24, paddingBottom: 16 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-            <Text style={{ fontSize: 16, fontWeight: '500', color: colors.textMuted }}>Síntomas comunes</Text>
-            <Text style={{ fontSize: 16, fontWeight: '500', color: colors.textMuted }}>40%</Text>
-          </View>
-          <View style={{ height: 4, width: '100%', borderRadius: 9999, backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
-            <View style={{ height: '100%', backgroundColor: colors.lavender, borderRadius: 9999, width: '40%' }} />
-          </View>
-        </View>
+        <OnboardingProgress currentStep={2} />
       </View>
 
       {/* Main Scrollable Content */}
@@ -122,58 +94,8 @@ export default function OnboardingSymptomsScreen() {
             );
           })}
         </View>
-        <View style={{ height: 160, backgroundColor: 'transparent', width: '100%' }} />
+        <View style={{ height: 200, backgroundColor: 'transparent', width: '100%' }} />
       </ScrollView>
-
-      {/* Footer / Bottom Navigation */}
-      <View
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          backgroundColor: colors.moonWhite,
-          borderTopWidth: 1,
-          borderTopColor: '#e2e8f0',
-          padding: 16,
-          paddingBottom: insets.bottom + 16,
-        }}
-      >
-        <View style={{ flexDirection: 'row', gap: 12 }}>
-          <Pressable
-            onPress={handleSkip}
-            style={{
-              flex: 1,
-              height: 56,
-              backgroundColor: 'transparent',
-              borderRadius: 9999,
-              borderWidth: 1,
-              borderColor: '#e2e8f0',
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text style={{ color: colors.textMuted, fontSize: 18, fontWeight: '600' }}>Omitir</Text>
-          </Pressable>
-          <Pressable
-            onPress={handleContinue}
-            style={{
-              flex: 1,
-              height: 56,
-              backgroundColor: colors.lavender,
-              borderRadius: 9999,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-            }}
-          >
-            <Text style={{ color: '#ffffff', fontSize: 18, fontWeight: '700' }}>Continuar</Text>
-            <ArrowRight size={20} color="#ffffff" />
-          </Pressable>
-        </View>
-      </View>
     </View>
   );
 }
