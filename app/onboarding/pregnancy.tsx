@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ArrowLeft, ArrowRight } from 'lucide-react-native';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { colors } from '@/utils/colors';
 
 export default function OnboardingPregnancyScreen() {
   const insets = useSafeAreaInsets();
@@ -25,71 +27,91 @@ export default function OnboardingPregnancyScreen() {
   };
 
   return (
-    <View className="flex-1 bg-[#f8f6f6]">
-      {/* Top Navigation */}
-      <View className="flex-row items-center p-6 pb-2 justify-between" style={{ paddingTop: insets.top + 16 }}>
-        <Pressable onPress={() => router.back()}>
-          <Text className="text-2xl">←</Text>
-        </Pressable>
-        <Text className="text-sm font-medium text-gray-500">Paso 3 de 5</Text>
-        <Pressable onPress={handleSkip}>
-          <Text className="text-sm font-medium text-gray-500">Omitir</Text>
-        </Pressable>
+    <View style={{ flex: 1, backgroundColor: colors.moonWhite }}>
+      {/* Top App Bar */}
+      <View style={{ paddingTop: insets.top, backgroundColor: colors.moonWhite }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, justifyContent: 'space-between' }}>
+          <Pressable onPress={() => router.back()}>
+            <ArrowLeft size={20} color={colors.textPrimary} />
+          </Pressable>
+          <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: '700', flex: 1, textAlign: 'center', paddingRight: 40 }}>
+            Paso 3 de 5
+          </Text>
+        </View>
+
+        {/* Progress Bar */}
+        <View style={{ paddingHorizontal: 24, paddingBottom: 16 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+            <Text style={{ fontSize: 16, fontWeight: '500', color: colors.textMuted }}>Objetivo de embarazo</Text>
+            <Text style={{ fontSize: 16, fontWeight: '500', color: colors.textMuted }}>60%</Text>
+          </View>
+          <View style={{ height: 4, width: '100%', borderRadius: 9999, backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
+            <View style={{ height: '100%', backgroundColor: colors.lavender, borderRadius: 9999, width: '60%' }} />
+          </View>
+        </View>
       </View>
 
-      {/* Progress Indicators */}
-      <View className="flex-row items-center justify-center gap-2 py-4 px-6">
-        <View className="h-1.5 w-8 rounded-full bg-[#256af4]" />
-        <View className="h-1.5 w-8 rounded-full bg-[#256af4]" />
-        <View className="h-1.5 w-8 rounded-full bg-[#256af4]" />
-        <View className="h-1.5 w-8 rounded-full bg-gray-200" />
-        <View className="h-1.5 w-8 rounded-full bg-gray-200" />
-      </View>
-
-      {/* Main Content */}
-      <ScrollView className="flex-1 px-6 pt-4 pb-8" contentContainerStyle={{ flexGrow: 1 }}>
+      {/* Main Scrollable Content */}
+      <ScrollView style={{ flex: 1, paddingHorizontal: 24, paddingBottom: 128, paddingTop: 16 }} showsVerticalScrollIndicator={false}>
         {/* Headline Group */}
-        <View className="mb-8">
-          <Text className="text-[#181113] tracking-tight text-[32px] font-extrabold leading-[1.2] pb-3 text-center">
+        <View style={{ marginBottom: 32 }}>
+          <Text style={{ fontSize: 30, fontWeight: '700', letterSpacing: -0.5, color: colors.textPrimary, marginBottom: 8 }}>
             ¿Buscas un embarazo?
           </Text>
-          <Text className="text-gray-600 text-base font-medium leading-relaxed text-center">
+          <Text style={{ color: colors.textMuted, fontSize: 16, lineHeight: 24 }}>
             Personalizaremos tu calendario y predicciones según tu objetivo actual. Este paso es opcional.
           </Text>
         </View>
 
         {/* Selection Cards */}
-        <View className="flex flex-col gap-4 flex-1">
+        <View style={{ gap: 16, marginBottom: 24 }}>
           {/* Option 1: Yes */}
           <Pressable
             onPress={() => setWantsPregnancy(true)}
-            className={`relative flex-row items-center gap-5 rounded-2xl bg-white p-5 shadow-sm border-2 ${
-              wantsPregnancy === true
-                ? 'border-[#256af4] bg-[#256af4]/5'
-                : 'border-transparent'
-            }`}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 20,
+              padding: 20,
+              borderRadius: 16,
+              backgroundColor: '#ffffff',
+              borderWidth: wantsPregnancy === true ? 2 : 1,
+              borderColor: wantsPregnancy === true ? colors.lavender : '#e2e8f0',
+            }}
           >
             {/* Icon Box */}
-            <View className="flex size-14 shrink-0 items-center justify-center rounded-full bg-red-50">
-              <Text className="text-[28px]">👶</Text>
+            <View style={{
+              width: 56,
+              height: 56,
+              borderRadius: 28,
+              backgroundColor: `${colors.blush}33`,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <Text style={{ fontSize: 28 }}>👶</Text>
             </View>
             {/* Text Content */}
-            <View className="flex flex-col gap-1 flex-1">
-              <Text className="text-[#181113] text-lg font-bold leading-tight">
+            <View style={{ flex: 1, gap: 4 }}>
+              <Text style={{ fontSize: 18, fontWeight: '700', color: colors.textPrimary }}>
                 Sí, busco un embarazo
               </Text>
-              <Text className="text-gray-500 text-sm font-normal">
+              <Text style={{ fontSize: 14, color: colors.textMuted }}>
                 Quiero concebir pronto
               </Text>
             </View>
             {/* Check Indicator */}
-            <View className={`size-6 rounded-full border-2 ${
-              wantsPregnancy === true
-                ? 'border-[#256af4] bg-[#256af4]'
-                : 'border-gray-300'
-            } flex items-center justify-center`}>
+            <View style={{
+              width: 24,
+              height: 24,
+              borderRadius: 12,
+              borderWidth: 2,
+              borderColor: wantsPregnancy === true ? colors.lavender : '#d1d5db',
+              backgroundColor: wantsPregnancy === true ? colors.lavender : 'transparent',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
               {wantsPregnancy === true && (
-                <Text className="text-white text-[16px] font-bold">✓</Text>
+                <Text style={{ color: '#ffffff', fontSize: 14, fontWeight: '700' }}>✓</Text>
               )}
             </View>
           </Pressable>
@@ -97,51 +119,106 @@ export default function OnboardingPregnancyScreen() {
           {/* Option 2: No */}
           <Pressable
             onPress={() => setWantsPregnancy(false)}
-            className={`relative flex-row items-center gap-5 rounded-2xl bg-white p-5 shadow-sm border-2 ${
-              wantsPregnancy === false
-                ? 'border-[#256af4] bg-[#256af4]/5'
-                : 'border-transparent'
-            }`}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 20,
+              padding: 20,
+              borderRadius: 16,
+              backgroundColor: '#ffffff',
+              borderWidth: wantsPregnancy === false ? 2 : 1,
+              borderColor: wantsPregnancy === false ? colors.lavender : '#e2e8f0',
+            }}
           >
             {/* Icon Box */}
-            <View className="flex size-14 shrink-0 items-center justify-center rounded-full bg-purple-50">
-              <Text className="text-[28px]">📅</Text>
+            <View style={{
+              width: 56,
+              height: 56,
+              borderRadius: 28,
+              backgroundColor: `${colors.lavender}33`,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <Text style={{ fontSize: 28 }}>📅</Text>
             </View>
             {/* Text Content */}
-            <View className="flex flex-col gap-1 flex-1">
-              <Text className="text-[#181113] text-lg font-bold leading-tight">
+            <View style={{ flex: 1, gap: 4 }}>
+              <Text style={{ fontSize: 18, fontWeight: '700', color: colors.textPrimary }}>
                 No, solo monitorear
               </Text>
-              <Text className="text-gray-500 text-sm font-normal">
+              <Text style={{ fontSize: 14, color: colors.textMuted }}>
                 Controlar mi ciclo y salud
               </Text>
             </View>
             {/* Check Indicator */}
-            <View className={`size-6 rounded-full border-2 ${
-              wantsPregnancy === false
-                ? 'border-[#256af4] bg-[#256af4]'
-                : 'border-gray-300'
-            } flex items-center justify-center`}>
+            <View style={{
+              width: 24,
+              height: 24,
+              borderRadius: 12,
+              borderWidth: 2,
+              borderColor: wantsPregnancy === false ? colors.lavender : '#d1d5db',
+              backgroundColor: wantsPregnancy === false ? colors.lavender : 'transparent',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
               {wantsPregnancy === false && (
-                <Text className="text-white text-[16px] font-bold">✓</Text>
+                <Text style={{ color: '#ffffff', fontSize: 14, fontWeight: '700' }}>✓</Text>
               )}
             </View>
           </Pressable>
         </View>
+        <View style={{ height: 160, backgroundColor: 'transparent', width: '100%' }} />
+      </ScrollView>
 
-        {/* Spacer */}
-        <View className="flex-grow min-h-[40px]" />
-
-        {/* Bottom Action */}
-        <View style={{ paddingBottom: insets.bottom + 16 }}>
+      {/* Footer / Bottom Navigation */}
+      <View
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: colors.moonWhite,
+          borderTopWidth: 1,
+          borderTopColor: '#e2e8f0',
+          padding: 16,
+          paddingBottom: insets.bottom + 16,
+        }}
+      >
+        <View style={{ flexDirection: 'row', gap: 12 }}>
+          <Pressable
+            onPress={handleSkip}
+            style={{
+              flex: 1,
+              height: 56,
+              backgroundColor: 'transparent',
+              borderRadius: 9999,
+              borderWidth: 1,
+              borderColor: '#e2e8f0',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Text style={{ color: colors.textMuted, fontSize: 18, fontWeight: '600' }}>Omitir</Text>
+          </Pressable>
           <Pressable
             onPress={handleContinue}
-            className="w-full rounded-full bg-[#256af4] py-4 px-6 text-center shadow-lg"
+            style={{
+              flex: 1,
+              height: 56,
+              backgroundColor: colors.lavender,
+              borderRadius: 9999,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+            }}
           >
-            <Text className="text-white text-lg font-bold text-center">Continuar</Text>
+            <Text style={{ color: '#ffffff', fontSize: 18, fontWeight: '700' }}>Continuar</Text>
+            <ArrowRight size={20} color="#ffffff" />
           </Pressable>
         </View>
-      </ScrollView>
+      </View>
     </View>
   );
 }

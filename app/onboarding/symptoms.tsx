@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ArrowLeft, ArrowRight } from 'lucide-react-native';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { colors } from '@/utils/colors';
 
 const symptoms = [
   { id: 'abdominal_pain', label: 'Dolor abdominal', icon: '🫄' },
@@ -42,95 +44,135 @@ export default function OnboardingSymptomsScreen() {
   };
 
   return (
-    <View className="flex-1 bg-[#f8f6f6]">
-      {/* Top Navigation & Progress */}
-      <View className="flex flex-col gap-4 px-6 pt-12 pb-2 w-full z-20 bg-[#f8f6f6]/95 backdrop-blur-sm sticky top-0" style={{ paddingTop: insets.top + 48 }}>
-        <View className="flex-row items-center justify-between w-full">
+    <View style={{ flex: 1, backgroundColor: colors.moonWhite }}>
+      {/* Top App Bar */}
+      <View style={{ paddingTop: insets.top, backgroundColor: colors.moonWhite }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, justifyContent: 'space-between' }}>
           <Pressable onPress={() => router.back()}>
-            <View className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm">
-              <Text className="text-[20px]">←</Text>
-            </View>
+            <ArrowLeft size={20} color={colors.textPrimary} />
           </Pressable>
-          <Pressable onPress={handleSkip}>
-            <Text className="px-3 py-1.5 rounded-full text-sm font-bold text-gray-500">Omitir</Text>
-          </Pressable>
+          <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: '700', flex: 1, textAlign: 'center', paddingRight: 40 }}>
+            Paso 2 de 5
+          </Text>
         </View>
 
-        {/* Segmented Progress Indicator */}
-        <View className="flex-row w-full gap-1.5 mt-2">
-          <View className="h-1.5 flex-1 rounded-full bg-[#256af4]" />
-          <View className="h-1.5 flex-1 rounded-full bg-[#256af4]" />
-          <View className="h-1.5 flex-1 rounded-full bg-gray-200" />
-          <View className="h-1.5 flex-1 rounded-full bg-gray-200" />
-          <View className="h-1.5 flex-1 rounded-full bg-gray-200" />
+        {/* Progress Bar */}
+        <View style={{ paddingHorizontal: 24, paddingBottom: 16 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+            <Text style={{ fontSize: 16, fontWeight: '500', color: colors.textMuted }}>Síntomas comunes</Text>
+            <Text style={{ fontSize: 16, fontWeight: '500', color: colors.textMuted }}>40%</Text>
+          </View>
+          <View style={{ height: 4, width: '100%', borderRadius: 9999, backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
+            <View style={{ height: '100%', backgroundColor: colors.lavender, borderRadius: 9999, width: '40%' }} />
+          </View>
         </View>
       </View>
 
-      {/* Scrollable Content Area */}
-      <ScrollView className="flex-1 overflow-y-auto px-6 pb-32 pt-2" showsVerticalScrollIndicator={false}>
+      {/* Main Scrollable Content */}
+      <ScrollView style={{ flex: 1, paddingHorizontal: 24, paddingBottom: 128, paddingTop: 16 }} showsVerticalScrollIndicator={false}>
         {/* Header Text */}
-        <View className="mb-8 mt-2">
-          <Text className="text-[28px] leading-[1.2] font-extrabold text-[#181113] mb-3">
+        <View style={{ marginBottom: 32 }}>
+          <Text style={{ fontSize: 30, fontWeight: '700', letterSpacing: -0.5, color: colors.textPrimary, marginBottom: 8 }}>
             ¿Cuáles son tus síntomas más comunes?
           </Text>
-          <Text className="text-base text-gray-500 font-medium leading-relaxed">
+          <Text style={{ color: colors.textMuted, fontSize: 16, lineHeight: 24 }}>
             Selecciona todo lo que aplique para mejorar tus predicciones mensuales. Este paso es opcional.
           </Text>
         </View>
 
         {/* Symptoms Grid */}
-        <View className="grid grid-cols-2 gap-3 flex-row flex-wrap">
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>
           {symptoms.map((symptom) => {
             const isSelected = selectedSymptoms.includes(symptom.id);
             return (
               <Pressable
                 key={symptom.id}
                 onPress={() => toggleSymptom(symptom.id)}
-                className={`group relative flex flex-col items-start justify-between gap-4 rounded-2xl bg-white p-4 shadow-sm ${
-                  isSelected
-                    ? 'ring-2 ring-[#256af4]'
-                    : 'ring-1 ring-transparent'
-                } w-[48%] mb-3`}
+                style={{
+                  width: '48%',
+                  padding: 16,
+                  borderRadius: 16,
+                  backgroundColor: '#ffffff',
+                  borderWidth: isSelected ? 2 : 1,
+                  borderColor: isSelected ? colors.lavender : '#e2e8f0',
+                  marginBottom: 12,
+                }}
               >
-                <View className="flex-row w-full justify-between items-start">
-                  <View className={`flex h-12 w-12 items-center justify-center rounded-full ${
-                    isSelected
-                      ? 'bg-[#256af4]/10'
-                      : 'bg-gray-100'
-                  }`}>
-                    <Text className="text-2xl">{symptom.icon}</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                  <View style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 24,
+                    backgroundColor: isSelected ? `${colors.lavender}1A` : '#f1f5f9',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <Text style={{ fontSize: 24 }}>{symptom.icon}</Text>
                   </View>
                   {isSelected ? (
-                    <Text className="text-[#256af4] text-[22px]">✓</Text>
+                    <Text style={{ fontSize: 20, color: colors.lavender }}>✓</Text>
                   ) : (
-                    <View className="h-5 w-5 rounded-full border-2 border-gray-200" />
+                    <View style={{ width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#e2e8f0' }} />
                   )}
                 </View>
-                <Text className="text-[15px] font-bold text-[#181113] leading-tight">
+                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.textPrimary }}>
                   {symptom.label}
                 </Text>
               </Pressable>
             );
           })}
         </View>
+        <View style={{ height: 160, backgroundColor: 'transparent', width: '100%' }} />
       </ScrollView>
 
-      {/* Fixed Footer */}
-      <View className="absolute bottom-0 w-full bg-gradient-to-t from-[#f8f6f6] via-[#f8f6f6] to-transparent pt-12 pb-8 px-6 z-10" style={{ paddingBottom: insets.bottom + 32 }}>
-        {/* Privacy Note */}
-        <View className="flex-row items-center justify-center gap-2 mb-4 opacity-60">
-          <Text className="text-[16px]">🔒</Text>
-          <Text className="text-xs font-medium text-[#181113] tracking-wide">
-            Tus datos se guardan solo en tu dispositivo
-          </Text>
+      {/* Footer / Bottom Navigation */}
+      <View
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: colors.moonWhite,
+          borderTopWidth: 1,
+          borderTopColor: '#e2e8f0',
+          padding: 16,
+          paddingBottom: insets.bottom + 16,
+        }}
+      >
+        <View style={{ flexDirection: 'row', gap: 12 }}>
+          <Pressable
+            onPress={handleSkip}
+            style={{
+              flex: 1,
+              height: 56,
+              backgroundColor: 'transparent',
+              borderRadius: 9999,
+              borderWidth: 1,
+              borderColor: '#e2e8f0',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Text style={{ color: colors.textMuted, fontSize: 18, fontWeight: '600' }}>Omitir</Text>
+          </Pressable>
+          <Pressable
+            onPress={handleContinue}
+            style={{
+              flex: 1,
+              height: 56,
+              backgroundColor: colors.lavender,
+              borderRadius: 9999,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+            }}
+          >
+            <Text style={{ color: '#ffffff', fontSize: 18, fontWeight: '700' }}>Continuar</Text>
+            <ArrowRight size={20} color="#ffffff" />
+          </Pressable>
         </View>
-
-        <Pressable
-          onPress={handleContinue}
-          className="flex w-full items-center justify-center overflow-hidden rounded-full h-14 bg-[#256af4] shadow-lg"
-        >
-          <Text className="tracking-wide text-white text-[17px] font-bold">Continuar</Text>
-        </Pressable>
       </View>
     </View>
   );

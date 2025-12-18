@@ -116,14 +116,14 @@ export default function HomeScreen() {
       {/* Top App Bar */}
       <View className="flex-row items-center bg-white p-4 pb-2 justify-between" style={{ paddingTop: insets.top + 16 }}>
         <View className="flex flex-col">
-          <Text className="text-sm text-[#606e8a] font-medium">{getGreeting()}</Text>
-          <Text className="text-[#111318] text-2xl font-bold leading-tight tracking-tight">Hola, {userName}</Text>
+          <Text className="text-sm text-text-muted font-medium">{getGreeting()}</Text>
+          <Text className="text-text-primary text-2xl font-bold leading-tight tracking-tight">Hola, {userName}</Text>
         </View>
         <View className="flex-row items-center justify-end gap-3">
-          <Pressable className="flex items-center justify-center rounded-full h-10 w-10 bg-[#f5f6f8]">
-            <Text className="text-[#111318] text-2xl">🔔</Text>
+          <Pressable className="flex items-center justify-center rounded-full h-10 w-10 bg-moon-white">
+            <Text className="text-text-primary text-2xl">🔔</Text>
           </Pressable>
-          <Pressable className="flex items-center justify-center overflow-hidden rounded-full h-10 w-10 bg-[#f5f6f8]">
+          <Pressable className="flex items-center justify-center overflow-hidden rounded-full h-10 w-10 bg-moon-white">
             <View className="h-full w-full bg-gray-300 rounded-full" />
           </Pressable>
         </View>
@@ -135,11 +135,11 @@ export default function HomeScreen() {
         <View className="mt-4">
           <View className="flex flex-col items-center justify-center rounded-[2.5rem] bg-white p-6 shadow-lg border border-gray-100 relative overflow-hidden">
             {/* Background decorative blobs */}
-            <View className="absolute -top-10 -right-10 w-32 h-32 bg-[#256af4]/5 rounded-full blur-2xl" />
-            <View className="absolute -bottom-10 -left-10 w-32 h-32 bg-pink-500/5 rounded-full blur-2xl" />
+            <View className="absolute -top-10 -right-10 w-32 h-32 bg-lavender/10 rounded-full blur-2xl" />
+            <View className="absolute -bottom-10 -left-10 w-32 h-32 bg-blush/10 rounded-full blur-2xl" />
             
             <View className="relative z-10 flex flex-col items-center text-center">
-              <Text className="text-[#606e8a] text-sm font-medium uppercase tracking-wider mb-4">
+              <Text className="text-text-muted text-sm font-medium uppercase tracking-wider mb-4">
                 Próximo periodo
               </Text>
               
@@ -148,7 +148,7 @@ export default function HomeScreen() {
                 {/* Simplified circular progress */}
                 <View className="absolute inset-0 rounded-full border-8 border-gray-100" />
                 <View 
-                  className="absolute inset-0 rounded-full border-8 border-[#256af4]"
+                  className="absolute inset-0 rounded-full border-8 border-lavender"
                   style={{ 
                     borderTopColor: 'transparent',
                     borderRightColor: 'transparent',
@@ -156,17 +156,17 @@ export default function HomeScreen() {
                   }}
                 />
                 <View className="absolute inset-0 flex flex-col items-center justify-center">
-                  <Text className="text-6xl font-bold text-[#111318] tracking-tighter">
+                  <Text className="text-6xl font-bold text-text-primary tracking-tighter">
                     {daysUntilPeriod > 0 ? daysUntilPeriod : 0}
                   </Text>
-                  <Text className="text-sm font-medium text-[#606e8a] mt-1">días</Text>
+                  <Text className="text-sm font-medium text-text-muted mt-1">días</Text>
                 </View>
               </View>
               
               <View className="flex flex-col gap-1 items-center">
                 {nextPeriodResult.range ? (
                   <>
-                    <Text className="text-[#111318] text-lg font-bold">
+                    <Text className="text-text-primary text-lg font-bold">
                       {formatDate(nextPeriodResult.range.start, 'short')} - {formatDate(nextPeriodResult.range.end, 'short')}
                     </Text>
                     <Text className="text-orange-600 text-sm font-medium bg-orange-100 px-3 py-1 rounded-full">
@@ -175,10 +175,10 @@ export default function HomeScreen() {
                   </>
                 ) : (
                   <>
-                    <Text className="text-[#111318] text-lg font-bold">
+                    <Text className="text-text-primary text-lg font-bold">
                       {formatDate(nextPeriodResult.date, 'long')}
                     </Text>
-                    <Text className="text-[#256af4] text-sm font-medium bg-[#256af4]/10 px-3 py-1 rounded-full">
+                    <Text className="text-lavender text-sm font-medium bg-lavender/10 px-3 py-1 rounded-full">
                       Predicción regular
                     </Text>
                   </>
@@ -190,23 +190,23 @@ export default function HomeScreen() {
 
         {/* Action Panel: Current Phase */}
         <View className="mt-6">
-          <View className="flex flex-col gap-4 p-5 rounded-[2rem] bg-[#256af4]/5 border border-[#256af4]/10">
+          <View className="flex flex-col gap-4 p-5 rounded-[2rem] bg-lavender/5 border border-lavender/10">
             <View className="flex items-start justify-between">
               <View className="flex flex-col gap-1">
                 <View className="flex-row items-center gap-2 mb-1">
-                  <Text className="text-[#256af4] text-xl">💧</Text>
-                  <Text className="text-[#256af4] text-sm font-bold uppercase tracking-wide">
+                  <Text className="text-lavender text-xl">💧</Text>
+                  <Text className="text-lavender text-sm font-bold uppercase tracking-wide">
                     Estado Actual
                   </Text>
                 </View>
-                <Text className="text-[#111318] text-2xl font-bold leading-tight">{getPhaseName(phase)}</Text>
-                <Text className="text-[#606e8a] text-base font-normal leading-normal mt-1">
+                <Text className="text-text-primary text-2xl font-bold leading-tight">{getPhaseName(phase)}</Text>
+                <Text className="text-text-muted text-base font-normal leading-normal mt-1">
                   {getPhaseDescription(phase, cycleDay)}
                 </Text>
               </View>
             </View>
             <Link href="/registro" asChild>
-              <Pressable className="w-full flex-row items-center justify-center gap-2 rounded-full h-12 bg-[#256af4] shadow-lg">
+              <Pressable className="w-full flex-row items-center justify-center gap-2 rounded-full h-12 bg-lavender shadow-lg">
                 <Text className="text-xl">✏️</Text>
                 <Text className="text-white text-base font-bold">Registrar síntomas</Text>
               </Pressable>
@@ -221,7 +221,7 @@ export default function HomeScreen() {
             <View className="flex flex-col gap-2">
               <View className="flex-row items-center gap-2">
                 <Text className="text-gray-400 text-xl">👶</Text>
-                <Text className="text-[#111318] text-base font-bold">Riesgo de embarazo</Text>
+                <Text className="text-text-primary text-base font-bold">Riesgo de embarazo</Text>
               </View>
               <View className={`inline-flex self-start flex-row items-center gap-1.5 px-3 py-1 rounded-full ${
                 risk.color === 'green' ? 'bg-green-100' :
@@ -262,9 +262,9 @@ export default function HomeScreen() {
         {/* Section Header: Daily Insights */}
         <View className="mt-8 mb-4">
           <View className="flex-row items-center justify-between px-2">
-            <Text className="text-[#111318] text-xl font-bold leading-tight">Resumen de hoy</Text>
+            <Text className="text-text-primary text-xl font-bold leading-tight">Resumen de hoy</Text>
             <Pressable>
-              <Text className="text-[#256af4] text-sm font-semibold">Ver todo</Text>
+              <Text className="text-lavender text-sm font-semibold">Ver todo</Text>
             </Pressable>
           </View>
         </View>
@@ -277,8 +277,8 @@ export default function HomeScreen() {
               <Text className="text-2xl">☀️</Text>
             </View>
             <View>
-              <Text className="font-bold text-[#111318]">Estado de ánimo</Text>
-              <Text className="text-sm text-[#606e8a] mt-1">
+              <Text className="font-bold text-text-primary">Estado de ánimo</Text>
+              <Text className="text-sm text-text-muted mt-1">
                 {phase === 'luteal' || phase === 'menstrual' 
                   ? 'Es normal sentirse más introspectiva hoy.'
                   : 'Tu energía está en buen nivel.'}
@@ -292,8 +292,8 @@ export default function HomeScreen() {
               <Text className="text-2xl">🧘</Text>
             </View>
             <View>
-              <Text className="font-bold text-[#111318]">Recomendación</Text>
-              <Text className="text-sm text-[#606e8a] mt-1">
+              <Text className="font-bold text-text-primary">Recomendación</Text>
+              <Text className="text-sm text-text-muted mt-1">
                 {phase === 'luteal' || phase === 'menstrual'
                   ? 'Ideal para yoga suave o meditación.'
                   : 'Perfecto para actividades activas.'}
@@ -303,7 +303,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Safe Space / Privacy Note */}
-        <View className="mt-4 mb-20 flex-row items-center justify-center gap-2 text-[#606e8a] opacity-60">
+        <View className="mt-4 mb-20 flex-row items-center justify-center gap-2 text-text-muted opacity-60">
           <Text className="text-[16px]">🔒</Text>
           <Text className="text-xs font-medium">Tus datos están guardados localmente</Text>
         </View>

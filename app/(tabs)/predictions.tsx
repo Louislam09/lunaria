@@ -137,15 +137,15 @@ export default function PredictionsScreen() {
   };
 
   return (
-    <View className="flex-1 bg-[#f5f6f8]">
+    <View className="flex-1 bg-moon-white">
       {/* Header */}
-      <View className="flex-row items-center bg-[#f5f6f8] p-4 pb-2 justify-between sticky top-0 z-20" style={{ paddingTop: insets.top + 16 }}>
-        <Text className="text-[#111318] text-2xl font-bold leading-tight tracking-tight flex-1">
+      <View className="flex-row items-center bg-moon-white p-4 pb-2 justify-between sticky top-0 z-20" style={{ paddingTop: insets.top + 16 }}>
+        <Text className="text-text-primary text-2xl font-bold leading-tight tracking-tight flex-1">
           Predicciones
         </Text>
         <View className="flex-row gap-2">
           <Pressable className="p-2 rounded-full">
-            <Text className="text-[#111318] text-xl">🔔</Text>
+            <Text className="text-text-primary text-xl">🔔</Text>
           </Pressable>
         </View>
       </View>
@@ -175,13 +175,13 @@ export default function PredictionsScreen() {
             {/* Gradient background */}
             <View className="relative w-full h-48 bg-linear-to-br from-pink-200 via-purple-200 to-blue-200">
               <View className="absolute bottom-4 left-4 right-4">
-                <Text className="text-[#606e8a] text-sm font-medium uppercase tracking-wider mb-1">
+                <Text className="text-text-muted text-sm font-medium uppercase tracking-wider mb-1">
                   Tu próximo periodo
                 </Text>
                 <View className="flex-row items-end justify-between">
                   {nextPeriodResult.range ? (
                     <View className="flex-1">
-                      <Text className="text-[#111318] text-2xl font-bold tracking-tight">
+                      <Text className="text-text-primary text-2xl font-bold tracking-tight">
                         {formatDate(nextPeriodResult.range.start, 'short')} - {formatDate(nextPeriodResult.range.end, 'short')}
                       </Text>
                       <Text className="text-orange-600 text-xs font-medium mt-1">
@@ -189,13 +189,13 @@ export default function PredictionsScreen() {
                       </Text>
                     </View>
                   ) : (
-                    <Text className="text-[#111318] text-4xl font-bold tracking-tight">
+                    <Text className="text-text-primary text-4xl font-bold tracking-tight">
                       {formatDate(nextPeriodResult.date, 'short')}
                     </Text>
                   )}
                   <View className={`px-3 py-1 rounded-full mb-1 ${
                     nextPeriodResult.precision === 'high' 
-                      ? 'bg-[#256af4]' 
+                      ? 'bg-lavender' 
                       : 'bg-orange-500'
                   }`}>
                     <Text className="text-white text-sm font-medium">
@@ -217,24 +217,24 @@ export default function PredictionsScreen() {
                   return (
                     <View key={index} className="flex flex-col items-center gap-1">
                       <Text className={`text-xs font-medium ${
-                        isCurrentDay ? 'text-[#256af4] font-bold' : 'text-[#606e8a]'
+                        isCurrentDay ? 'text-lavender font-bold' : 'text-text-muted'
                       }`}>
                         {dayName}
                       </Text>
                       <View className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold ${
                         isCurrentDay
-                          ? 'bg-[#256af4] text-white shadow-lg'
+                          ? 'bg-lavender text-white shadow-lg'
                           : isPeriod
-                          ? 'bg-[#e96e7e] text-white'
-                          : 'bg-transparent text-[#111318]'
+                          ? 'bg-blush text-white'
+                          : 'bg-transparent text-text-primary'
                       }`}>
                         <Text className={`text-sm font-bold ${
-                          isCurrentDay || isPeriod ? 'text-white' : 'text-[#111318]'
+                          isCurrentDay || isPeriod ? 'text-white' : 'text-text-primary'
                         }`}>
                           {date.getDate()}
                         </Text>
                       </View>
-                      {isPeriod && <View className="absolute -bottom-1 w-1 h-1 bg-[#e96e7e] rounded-full" />}
+                      {isPeriod && <View className="absolute -bottom-1 w-1 h-1 bg-blush rounded-full" />}
                     </View>
                   );
                 })}
@@ -245,7 +245,7 @@ export default function PredictionsScreen() {
 
         {/* Stats Grid */}
         <View>
-          <Text className="text-[#111318] text-lg font-bold leading-tight mb-3">
+          <Text className="text-text-primary text-lg font-bold leading-tight mb-3">
             Detalles del ciclo
           </Text>
           <View className="flex-row gap-3">
@@ -261,10 +261,10 @@ export default function PredictionsScreen() {
                   </View>
                 </View>
                 <View className="flex flex-col gap-1">
-                  <Text className="text-[#606e8a] text-sm font-normal leading-normal">
+                  <Text className="text-text-muted text-sm font-normal leading-normal">
                     Ovulación
                   </Text>
-                  <Text className="text-[#111318] text-xl font-bold leading-tight">
+                  <Text className="text-text-primary text-xl font-bold leading-tight">
                     {formatDate(ovulationDate, 'short')}
                   </Text>
                 </View>
@@ -277,10 +277,10 @@ export default function PredictionsScreen() {
                   </View>
                 </View>
                 <View className="flex flex-col gap-1">
-                  <Text className="text-[#606e8a] text-sm font-normal leading-normal">
+                  <Text className="text-text-muted text-sm font-normal leading-normal">
                     Ovulación
                   </Text>
-                  <Text className="text-[#111318] text-sm font-medium leading-tight">
+                  <Text className="text-text-primary text-sm font-medium leading-tight">
                     No determinada
                   </Text>
                 </View>
@@ -296,10 +296,10 @@ export default function PredictionsScreen() {
                   </View>
                 </View>
                 <View className="flex flex-col gap-1">
-                  <Text className="text-[#606e8a] text-sm font-normal leading-normal">
+                  <Text className="text-text-muted text-sm font-normal leading-normal">
                     Ventana fértil
                   </Text>
-                  <Text className="text-[#111318] text-xl font-bold leading-tight">
+                  <Text className="text-text-primary text-xl font-bold leading-tight">
                     {formatDate(fertileWindowDates.start, 'short')} - {formatDate(fertileWindowDates.end, 'short')}
                   </Text>
                 </View>
@@ -312,10 +312,10 @@ export default function PredictionsScreen() {
                   </View>
                 </View>
                 <View className="flex flex-col gap-1">
-                  <Text className="text-[#606e8a] text-sm font-normal leading-normal">
+                  <Text className="text-text-muted text-sm font-normal leading-normal">
                     Ventana fértil
                   </Text>
-                  <Text className="text-[#111318] text-sm font-medium leading-tight">
+                  <Text className="text-text-primary text-sm font-medium leading-tight">
                     No determinada
                   </Text>
                 </View>
@@ -378,7 +378,7 @@ export default function PredictionsScreen() {
                   <Text className="text-[#111318] text-base font-bold leading-tight">
                     Método anticonceptivo
                   </Text>
-                  <Text className="text-[#606e8a] text-sm font-normal leading-normal">
+                  <Text className="text-text-muted text-sm font-normal leading-normal">
                     Tu método actual ({getContraceptiveLabel()}) puede afectar tu ciclo y las predicciones.
                   </Text>
                 </View>

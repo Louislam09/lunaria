@@ -6,6 +6,7 @@ import { ArrowLeft, Calendar, RefreshCw, Infinity, Check, ArrowRight } from 'luc
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Slider from '@react-native-community/slider';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { colors } from '@/utils/colors';
 
 export default function OnboardingInfoScreen() {
   const insets = useSafeAreaInsets();
@@ -62,14 +63,14 @@ export default function OnboardingInfoScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f5f6f8' }}>
+    <View style={{ flex: 1, backgroundColor: colors.moonWhite }}>
       {/* Top App Bar */}
-      <View style={{ paddingTop: insets.top, backgroundColor: '#f5f6f8' }}>
+      <View style={{ paddingTop: insets.top, backgroundColor: colors.moonWhite }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, justifyContent: 'space-between' }}>
           <Pressable onPress={() => router.back()}>
-            <ArrowLeft size={20} color="#000000" />
+            <ArrowLeft size={20} color={colors.textPrimary} />
           </Pressable>
-          <Text style={{ color: '#0f172a', fontSize: 18, fontWeight: '700', flex: 1, textAlign: 'center', paddingRight: 40 }}>
+          <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: '700', flex: 1, textAlign: 'center', paddingRight: 40 }}>
             Paso 1 de 5
           </Text>
         </View>
@@ -77,11 +78,11 @@ export default function OnboardingInfoScreen() {
         {/* Progress Bar */}
         <View style={{ paddingHorizontal: 24, paddingBottom: 16 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-            <Text style={{ fontSize: 16, fontWeight: '500', color: '#64748b' }}>Datos personales y ciclo</Text>
-            <Text style={{ fontSize: 16, fontWeight: '500', color: '#64748b' }}>20%</Text>
+            <Text style={{ fontSize: 16, fontWeight: '500', color: colors.textMuted }}>Datos personales y ciclo</Text>
+            <Text style={{ fontSize: 16, fontWeight: '500', color: colors.textMuted }}>20%</Text>
           </View>
-          <View style={{ height: 4, width: '100%', borderRadius: 9999, backgroundColor: '#cbd5e1', overflow: 'hidden' }}>
-            <View style={{ height: '100%', backgroundColor: '#256af4', borderRadius: 9999, width: '20%' }} />
+          <View style={{ height: 4, width: '100%', borderRadius: 9999, backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
+            <View style={{ height: '100%', backgroundColor: colors.lavender, borderRadius: 9999, width: '20%' }} />
           </View>
         </View>
       </View>
@@ -90,10 +91,10 @@ export default function OnboardingInfoScreen() {
       <ScrollView style={{ flex: 1, paddingHorizontal: 24, paddingBottom: 128, paddingTop: 16 }} showsVerticalScrollIndicator={false}>
         {/* Section 1: Introduction */}
         <View style={{ marginBottom: 32 }}>
-          <Text style={{ fontSize: 30, fontWeight: '700', letterSpacing: -0.5, color: '#0f172a', marginBottom: 8 }}>
+          <Text style={{ fontSize: 30, fontWeight: '700', letterSpacing: -0.5, color: colors.textPrimary, marginBottom: 8 }}>
             Hablemos de ti
           </Text>
-          <Text style={{ color: '#64748b', fontSize: 16, lineHeight: 24 }}>
+          <Text style={{ color: colors.textMuted, fontSize: 16, lineHeight: 24 }}>
             Personalicemos tu experiencia. Tus datos se guardan de forma segura solo en este dispositivo.
           </Text>
         </View>
@@ -102,7 +103,7 @@ export default function OnboardingInfoScreen() {
         <View style={{ marginBottom: 24 }}>
           {/* Name Field */}
           <View style={{ marginBottom: 24 }}>
-            <Text style={{ fontSize: 14, fontWeight: '600', color: '#334155', marginBottom: 8, marginLeft: 4 }}>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textPrimary, marginBottom: 8, marginLeft: 4 }}>
               ¿Cómo te llamas?
             </Text>
             <TextInput
@@ -114,7 +115,7 @@ export default function OnboardingInfoScreen() {
                 backgroundColor: '#ffffff',
                 borderWidth: 1,
                 borderColor: '#e2e8f0',
-                color: '#0f172a',
+                color: colors.textPrimary,
                 fontWeight: '500',
                 fontSize: 16,
               }}
@@ -126,7 +127,7 @@ export default function OnboardingInfoScreen() {
 
           {/* Birth Date Field */}
           <View>
-            <Text style={{ fontSize: 14, fontWeight: '600', color: '#334155', marginBottom: 8, marginLeft: 4 }}>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textPrimary, marginBottom: 8, marginLeft: 4 }}>
               Fecha de Nacimiento
             </Text>
             <Pressable
@@ -142,7 +143,7 @@ export default function OnboardingInfoScreen() {
                   backgroundColor: '#ffffff',
                   borderWidth: 1,
                   borderColor: '#e2e8f0',
-                  color: '#0f172a',
+                  color: colors.textPrimary,
                   fontWeight: '500',
                   fontSize: 16,
                 }}
@@ -150,7 +151,7 @@ export default function OnboardingInfoScreen() {
                 editable={false}
               />
               <View style={{ position: 'absolute', right: 16 }}>
-                <Calendar size={20} color="#94a3b8" />
+                <Calendar size={20} color={colors.textMuted} />
               </View>
             </Pressable>
             {showBirthDatePicker && (
@@ -184,13 +185,13 @@ export default function OnboardingInfoScreen() {
 
         {/* Section 3: Menstrual Info */}
         <View style={{ marginBottom: 24 }}>
-          <Text style={{ fontSize: 24, fontWeight: '700', color: '#0f172a', marginBottom: 24 }}>
+          <Text style={{ fontSize: 24, fontWeight: '700', color: colors.textPrimary, marginBottom: 24 }}>
             Tu ciclo menstrual
           </Text>
 
           {/* Last Period Field */}
           <View style={{ marginBottom: 24 }}>
-            <Text style={{ fontSize: 14, fontWeight: '600', color: '#334155', marginBottom: 8, marginLeft: 4 }}>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textPrimary, marginBottom: 8, marginLeft: 4 }}>
               ¿Cuándo inició tu último periodo?
             </Text>
             <Pressable
@@ -205,18 +206,18 @@ export default function OnboardingInfoScreen() {
                   borderRadius: 12,
                   backgroundColor: '#ffffff',
                   borderWidth: 1,
-                  borderColor: lastPeriod ? '#256af4' : '#e2e8f0',
-                  color: '#0f172a',
+                  borderColor: lastPeriod ? colors.lavender : '#e2e8f0',
+                  color: colors.textPrimary,
                   fontWeight: '500',
                   fontSize: 16,
                 }}
                 value={lastPeriod ? formatDate(lastPeriod) : ''}
                 placeholder="Selecciona una fecha"
-                placeholderTextColor="#94a3b8"
+                placeholderTextColor={colors.textMuted}
                 editable={false}
               />
               <View style={{ position: 'absolute', right: 16, alignItems: 'center', justifyContent: 'center' }}>
-                <Calendar size={18} color={lastPeriod ? '#256af4' : '#94a3b8'} />
+                <Calendar size={18} color={lastPeriod ? colors.lavender : colors.textMuted} />
               </View>
             </Pressable>
             {showLastPeriodPicker && (
@@ -247,7 +248,7 @@ export default function OnboardingInfoScreen() {
 
           {/* Cycle Type Toggle */}
           <View style={{ marginBottom: 24 }}>
-            <Text style={{ fontSize: 14, fontWeight: '600', color: '#334155', marginBottom: 12, marginLeft: 4 }}>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textPrimary, marginBottom: 12, marginLeft: 4 }}>
               ¿Cómo es tu ciclo?
             </Text>
             <View style={{ flexDirection: 'row', gap: 12, marginBottom: 8 }}>
@@ -259,8 +260,8 @@ export default function OnboardingInfoScreen() {
                   padding: 16,
                   borderRadius: 12,
                   borderWidth: cycleType === 'regular' ? 2 : 1,
-                  borderColor: cycleType === 'regular' ? '#256af4' : '#e2e8f0',
-                  backgroundColor: cycleType === 'regular' ? 'rgba(37, 106, 244, 0.05)' : '#ffffff',
+                  borderColor: cycleType === 'regular' ? colors.lavender : '#e2e8f0',
+                  backgroundColor: cycleType === 'regular' ? `${colors.lavender}15` : '#ffffff',
                   alignItems: 'center',
                   justifyContent: 'center',
                   position: 'relative',
@@ -271,26 +272,26 @@ export default function OnboardingInfoScreen() {
                     width: 32,
                     height: 32,
                     borderRadius: 16,
-                    backgroundColor: cycleType === 'regular' ? 'rgba(37, 106, 244, 0.2)' : '#f1f5f9',
+                    backgroundColor: cycleType === 'regular' ? `${colors.lavender}33` : '#f1f5f9',
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: 8,
                   }}
                 >
-                  <RefreshCw size={18} color={cycleType === 'regular' ? '#256af4' : '#64748b'} />
+                  <RefreshCw size={18} color={cycleType === 'regular' ? colors.lavender : colors.textMuted} />
                 </View>
                 <Text
                   style={{
                     fontWeight: '700',
                     fontSize: 14,
-                    color: cycleType === 'regular' ? '#256af4' : '#64748b',
+                    color: cycleType === 'regular' ? colors.lavender : colors.textMuted,
                   }}
                 >
                   Regular
                 </Text>
                 {cycleType === 'regular' && (
                   <View style={{ position: 'absolute', top: 8, right: 8 }}>
-                    <Check size={20} color="#256af4" />
+                    <Check size={20} color={colors.lavender} />
                   </View>
                 )}
               </Pressable>
@@ -303,8 +304,8 @@ export default function OnboardingInfoScreen() {
                   padding: 16,
                   borderRadius: 12,
                   borderWidth: cycleType === 'irregular' ? 2 : 1,
-                  borderColor: cycleType === 'irregular' ? '#256af4' : '#e2e8f0',
-                  backgroundColor: cycleType === 'irregular' ? 'rgba(37, 106, 244, 0.05)' : '#ffffff',
+                  borderColor: cycleType === 'irregular' ? colors.lavender : '#e2e8f0',
+                  backgroundColor: cycleType === 'irregular' ? `${colors.lavender}15` : '#ffffff',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
@@ -314,26 +315,26 @@ export default function OnboardingInfoScreen() {
                     width: 32,
                     height: 32,
                     borderRadius: 16,
-                    backgroundColor: cycleType === 'irregular' ? 'rgba(37, 106, 244, 0.2)' : '#f1f5f9',
+                    backgroundColor: cycleType === 'irregular' ? `${colors.lavender}33` : '#f1f5f9',
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: 8,
                   }}
                 >
-                  <Infinity size={18} color={cycleType === 'irregular' ? '#256af4' : '#64748b'} />
+                  <Infinity size={18} color={cycleType === 'irregular' ? colors.lavender : colors.textMuted} />
                 </View>
                 <Text
                   style={{
                     fontWeight: '500',
                     fontSize: 14,
-                    color: cycleType === 'irregular' ? '#256af4' : '#64748b',
+                    color: cycleType === 'irregular' ? colors.lavender : colors.textMuted,
                   }}
                 >
                   Irregular
                 </Text>
               </Pressable>
             </View>
-            <Text style={{ fontSize: 12, color: '#64748b', paddingHorizontal: 4 }}>
+            <Text style={{ fontSize: 12, color: colors.textMuted, paddingHorizontal: 4 }}>
               Un ciclo regular suele variar menos de 7 días entre meses.
             </Text>
           </View>
@@ -350,14 +351,14 @@ export default function OnboardingInfoScreen() {
             }}
           >
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 16 }}>
-              <Text style={{ fontSize: 14, fontWeight: '600', color: '#334155' }}>
+              <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textPrimary }}>
                 Duración del sangrado
               </Text>
               <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                <Text style={{ fontSize: 24, fontWeight: '700', color: '#256af4' }}>
+                <Text style={{ fontSize: 24, fontWeight: '700', color: colors.lavender }}>
                   {periodLength}
                 </Text>
-                <Text style={{ fontSize: 14, fontWeight: '400', color: '#64748b', marginLeft: 4 }}>
+                <Text style={{ fontSize: 14, fontWeight: '400', color: colors.textMuted, marginLeft: 4 }}>
                   días
                 </Text>
               </View>
@@ -369,14 +370,14 @@ export default function OnboardingInfoScreen() {
                 minimumValue={1}
                 maximumValue={10}
                 step={1}
-                minimumTrackTintColor="#256af4"
+                minimumTrackTintColor={colors.lavender}
                 maximumTrackTintColor="#e2e8f0"
-                thumbTintColor="#256af4"
+                thumbTintColor={colors.lavender}
                 style={{ width: '100%', height: 40 }}
               />
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
-                <Text style={{ fontSize: 12, color: '#94a3b8' }}>1 día</Text>
-                <Text style={{ fontSize: 12, color: '#94a3b8' }}>10 días</Text>
+                <Text style={{ fontSize: 12, color: colors.textMuted }}>1 día</Text>
+                <Text style={{ fontSize: 12, color: colors.textMuted }}>10 días</Text>
               </View>
             </View>
           </View>
@@ -393,14 +394,14 @@ export default function OnboardingInfoScreen() {
               }}
             >
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 16 }}>
-                <Text style={{ fontSize: 14, fontWeight: '600', color: '#334155' }}>
+                <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textPrimary }}>
                   Duración promedio del ciclo
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                  <Text style={{ fontSize: 24, fontWeight: '700', color: '#256af4' }}>
+                  <Text style={{ fontSize: 24, fontWeight: '700', color: colors.lavender }}>
                     {averageCycleLength}
                   </Text>
-                  <Text style={{ fontSize: 14, fontWeight: '400', color: '#64748b', marginLeft: 4 }}>
+                  <Text style={{ fontSize: 14, fontWeight: '400', color: colors.textMuted, marginLeft: 4 }}>
                     días
                   </Text>
                 </View>
@@ -412,21 +413,21 @@ export default function OnboardingInfoScreen() {
                   minimumValue={21}
                   maximumValue={45}
                   step={1}
-                  minimumTrackTintColor="#256af4"
+                  minimumTrackTintColor={colors.lavender}
                   maximumTrackTintColor="#e2e8f0"
-                  thumbTintColor="#256af4"
+                  thumbTintColor={colors.lavender}
                   style={{ width: '100%', height: 40 }}
                 />
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
-                  <Text style={{ fontSize: 12, color: '#94a3b8' }}>21 días</Text>
-                  <Text style={{ fontSize: 12, color: '#94a3b8' }}>45 días</Text>
+                  <Text style={{ fontSize: 12, color: colors.textMuted }}>21 días</Text>
+                  <Text style={{ fontSize: 12, color: colors.textMuted }}>45 días</Text>
                 </View>
               </View>
             </View>
           ) : (
             <>
               <View style={{ marginBottom: 12 }}>
-                <Text style={{ fontSize: 13, color: '#64748b', fontStyle: 'italic', paddingHorizontal: 4 }}>
+                <Text style={{ fontSize: 13, color: colors.textMuted, fontStyle: 'italic', paddingHorizontal: 4 }}>
                   Lunaria usará rangos aproximados y aprenderá con tus registros.
                 </Text>
               </View>
@@ -440,34 +441,34 @@ export default function OnboardingInfoScreen() {
                   marginBottom: 16,
                 }}
               >
-                <Text style={{ fontSize: 14, fontWeight: '600', color: '#334155', marginBottom: 16 }}>
+                <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textPrimary, marginBottom: 16 }}>
                   Rango de duración del ciclo
                 </Text>
                 <View style={{ marginBottom: 16 }}>
-                  <Text style={{ fontSize: 12, color: '#64748b', marginBottom: 8 }}>Mínimo: {cycleRangeMin} días</Text>
+                  <Text style={{ fontSize: 12, color: colors.textMuted, marginBottom: 8 }}>Mínimo: {cycleRangeMin} días</Text>
                   <Slider
                     value={cycleRangeMin}
                     onValueChange={setCycleRangeMin}
                     minimumValue={21}
                     maximumValue={cycleRangeMax - 1}
                     step={1}
-                    minimumTrackTintColor="#256af4"
+                    minimumTrackTintColor={colors.lavender}
                     maximumTrackTintColor="#e2e8f0"
-                    thumbTintColor="#256af4"
+                    thumbTintColor={colors.lavender}
                     style={{ width: '100%', height: 40 }}
                   />
                 </View>
                 <View>
-                  <Text style={{ fontSize: 12, color: '#64748b', marginBottom: 8 }}>Máximo: {cycleRangeMax} días</Text>
+                  <Text style={{ fontSize: 12, color: colors.textMuted, marginBottom: 8 }}>Máximo: {cycleRangeMax} días</Text>
                   <Slider
                     value={cycleRangeMax}
                     onValueChange={setCycleRangeMax}
                     minimumValue={cycleRangeMin + 1}
                     maximumValue={45}
                     step={1}
-                    minimumTrackTintColor="#256af4"
+                    minimumTrackTintColor={colors.lavender}
                     maximumTrackTintColor="#e2e8f0"
-                    thumbTintColor="#256af4"
+                    thumbTintColor={colors.lavender}
                     style={{ width: '100%', height: 40 }}
                   />
                 </View>
@@ -485,7 +486,7 @@ export default function OnboardingInfoScreen() {
           bottom: 0,
           left: 0,
           right: 0,
-          backgroundColor: '#f5f6f8',
+          backgroundColor: colors.moonWhite,
           borderTopWidth: 1,
           borderTopColor: '#e2e8f0',
           padding: 16,
@@ -498,7 +499,7 @@ export default function OnboardingInfoScreen() {
           style={{
             width: '100%',
             height: 56,
-            backgroundColor: canContinue ? '#256af4' : '#cbd5e1',
+            backgroundColor: canContinue ? colors.lavender : '#cbd5e1',
             borderRadius: 9999,
             flexDirection: 'row',
             alignItems: 'center',

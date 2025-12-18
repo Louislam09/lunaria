@@ -165,22 +165,22 @@ export default function CalendarScreen() {
   );
 
   return (
-    <View className="flex-1 bg-[#f8f9fc]">
+    <View className="flex-1 bg-moon-white">
       {/* Top App Bar */}
-      <View className="sticky top-0 z-50 bg-[#f8f9fc]/95 backdrop-blur-md border-b border-gray-100" style={{ paddingTop: insets.top + 16 }}>
+      <View className="sticky top-0 z-50 bg-moon-white/95 backdrop-blur-md border-b border-gray-100" style={{ paddingTop: insets.top + 16 }}>
         <View className="flex-row items-center p-4 justify-between">
           <Pressable onPress={() => {
             const prevMonth = new Date(currentMonth);
             prevMonth.setMonth(prevMonth.getMonth() - 1);
             setCurrentMonth(prevMonth);
           }}>
-            <Text className="text-[#111318] text-2xl">←</Text>
+            <Text className="text-text-primary text-2xl">←</Text>
           </Pressable>
-          <Text className="text-[#111318] text-lg font-bold leading-tight tracking-tight text-center">
+          <Text className="text-text-primary text-lg font-bold leading-tight tracking-tight text-center">
             {monthName} {year}
           </Text>
           <Pressable onPress={() => setCurrentMonth(new Date())}>
-            <Text className="text-[#256af4] text-sm font-bold leading-normal tracking-wide px-3 py-1.5 rounded-full">
+            <Text className="text-lavender text-sm font-bold leading-normal tracking-wide px-3 py-1.5 rounded-full">
               Hoy
             </Text>
           </Pressable>
@@ -214,16 +214,16 @@ export default function CalendarScreen() {
                 <Pressable key={index} className="h-11 flex-1 items-center justify-center">
                   {isPeriod ? (
                     <View className="relative w-full h-full items-center justify-center">
-                      <View className="absolute inset-y-[4px] inset-x-0 bg-[#fb7185]/20 z-0" />
+                      <View className="absolute inset-y-[4px] inset-x-0 bg-blush/20 z-0" />
                       <View className={`relative z-10 size-9 items-center justify-center rounded-full ${
                         index % 7 === 0 || (index + 1) % 7 === 0
-                          ? 'bg-[#fb7185]'
+                          ? 'bg-blush'
                           : 'bg-transparent'
                       }`}>
                         <Text className={`text-sm font-bold ${
                           index % 7 === 0 || (index + 1) % 7 === 0
                             ? 'text-white'
-                            : 'text-[#fb7185]'
+                            : 'text-blush'
                         }`}>
                           {date.getDate()}
                         </Text>
@@ -232,11 +232,11 @@ export default function CalendarScreen() {
                   ) : (
                     <View className="relative w-full h-full items-center justify-center">
                       {isFertile && !isOvul && (
-                        <View className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-[#f472b6]" />
+                        <View className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-blush" />
                       )}
                       {isOvul && (
                         <View className="size-9 items-center justify-center rounded-full border-2 border-[#c084fc] bg-purple-50">
-                          <Text className="text-sm font-bold text-[#c084fc]">
+                          <Text className="text-sm font-bold text-lavender">
                             {date.getDate()}
                           </Text>
                         </View>
@@ -244,13 +244,13 @@ export default function CalendarScreen() {
                       {!isOvul && (
                         <View className={`size-9 items-center justify-center rounded-full ${
                           isCurrentDay
-                            ? 'bg-[#256af4]'
+                            ? 'bg-lavender'
                             : 'bg-transparent'
                         }`}>
                           <Text className={`text-sm font-medium ${
                             isCurrentDay
                               ? 'text-white font-bold'
-                              : 'text-[#111318]'
+                              : 'text-text-primary'
                           }`}>
                             {date.getDate()}
                           </Text>
@@ -258,7 +258,7 @@ export default function CalendarScreen() {
                       )}
                       {isCurrentDay && (
                         <View className="absolute -bottom-1.5">
-                          <Text className="text-[10px] font-bold text-[#256af4]">Hoy</Text>
+                          <Text className="text-[10px] font-bold text-lavender">Hoy</Text>
                         </View>
                       )}
                     </View>
@@ -273,13 +273,13 @@ export default function CalendarScreen() {
         <View className="px-4 py-2">
           <View className="flex-row items-center justify-around rounded-xl bg-white border border-gray-100 p-4 shadow-sm">
             <View className="flex flex-col items-center gap-1.5">
-              <View className="size-3 rounded-full bg-[#fb7185]" />
+              <View className="size-3 rounded-full bg-blush" />
               <Text className="text-xs font-medium text-slate-500">Periodo</Text>
             </View>
             {data.cycleType === 'regular' && (
               <>
                 <View className="flex flex-col items-center gap-1.5">
-                  <View className="size-3 rounded-full bg-[#f472b6]" />
+                  <View className="size-3 rounded-full bg-blush" />
                   <Text className="text-xs font-medium text-slate-500">Fértil</Text>
                 </View>
                 <View className="flex flex-col items-center gap-1.5">
@@ -308,7 +308,7 @@ export default function CalendarScreen() {
                     {getPhaseName(phase)}
                   </Text>
                 </View>
-                <Text className="text-[#111318] text-lg font-bold leading-tight">
+                <Text className="text-text-primary text-lg font-bold leading-tight">
                   Día {cycleDay} del ciclo
                 </Text>
               </View>
@@ -328,7 +328,7 @@ export default function CalendarScreen() {
         {/* FAB Section */}
         <View className="flex justify-center px-5 pb-5">
           <Link href="/registro" asChild>
-            <Pressable className="group relative flex w-full max-w-sm items-center justify-center overflow-hidden rounded-xl h-14 bg-[#256af4] shadow-lg">
+            <Pressable className="group relative flex w-full max-w-sm items-center justify-center overflow-hidden rounded-xl h-14 bg-lavender shadow-lg">
               <Text className="text-white text-xl mr-2">💧</Text>
               <Text className="text-base font-bold leading-normal tracking-wide text-white">
                 Registrar Periodo
