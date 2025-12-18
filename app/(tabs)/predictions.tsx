@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
-import { Link, router } from 'expo-router';
+import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { getNextPeriodDate, getCycleDay, getCyclePhase, getFertileWindow } from '@/utils/predictions';
@@ -392,37 +392,7 @@ export default function PredictionsScreen() {
 
         <View className="h-10" />
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <View className="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-lg border-t border-gray-200 pb-safe pt-2 z-50" style={{ paddingBottom: insets.bottom + 16 }}>
-        <View className="flex-row justify-around items-center px-2 pb-4 pt-1">
-          <Link href="/home" asChild>
-            <Pressable className="flex flex-col items-center justify-center gap-1 p-2 w-16">
-              <Text className="text-[#606e8a] text-xl">📅</Text>
-              <Text className="text-[10px] font-medium text-[#606e8a]">Hoy</Text>
-            </Pressable>
-          </Link>
-
-          <Link href="/calendar" asChild>
-            <Pressable className="flex flex-col items-center justify-center gap-1 p-2 w-16">
-              <Text className="text-[#606e8a] text-xl">📆</Text>
-              <Text className="text-[10px] font-medium text-[#606e8a]">Calendario</Text>
-            </Pressable>
-          </Link>
-
-          <Pressable className="flex flex-col items-center justify-center gap-1 p-2 w-16 text-[#256af4]">
-            <Text className="text-[#256af4] text-xl">📈</Text>
-            <Text className="text-[10px] font-bold text-[#256af4]">Predicciones</Text>
-          </Pressable>
-
-          <Link href="/settings" asChild>
-            <Pressable className="flex flex-col items-center justify-center gap-1 p-2 w-16">
-              <Text className="text-[#606e8a] text-xl">👤</Text>
-              <Text className="text-[10px] font-medium text-[#606e8a]">Perfil</Text>
-            </Pressable>
-          </Link>
-        </View>
-      </View>
     </View>
   );
 }
+

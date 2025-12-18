@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
-import { Link, router } from 'expo-router';
+import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useOnboarding } from '@/context/OnboardingContext';
 
 const symptoms = [
   { id: 'abdominal_pain', label: 'Dolor abdominal', icon: '🫄' },
@@ -16,7 +17,12 @@ const symptoms = [
 
 export default function OnboardingSymptomsScreen() {
   const insets = useSafeAreaInsets();
-  const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>(['abdominal_pain', 'sensitivity']);
+  const { data, updateData } = useOnboarding();
+  const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>(data.symptoms || []);
+
+  useEffect(() => {
+    updateData({ symptoms: selectedSymptoms });
+  }, [selectedSymptoms]);
 
   const toggleSymptom = (id: string) => {
     setSelectedSymptoms(prev =>
@@ -24,6 +30,15 @@ export default function OnboardingSymptomsScreen() {
         ? prev.filter(s => s !== id)
         : [...prev, id]
     );
+  };
+
+  const handleSkip = () => {
+    updateData({ symptoms: undefined });
+    router.push('/onboarding/pregnancy');
+  };
+
+  const handleContinue = () => {
+    router.push('/onboarding/pregnancy');
   };
 
   return (
@@ -36,16 +51,16 @@ export default function OnboardingSymptomsScreen() {
               <Text className="text-[20px]">←</Text>
             </View>
           </Pressable>
-          <Pressable>
+          <Pressable onPress={handleSkip}>
             <Text className="px-3 py-1.5 rounded-full text-sm font-bold text-gray-500">Omitir</Text>
           </Pressable>
         </View>
 
         {/* Segmented Progress Indicator */}
         <View className="flex-row w-full gap-1.5 mt-2">
-          <View className="h-1.5 flex-1 rounded-full bg-[#ea3e77]/30" />
-          <View className="h-1.5 flex-1 rounded-full bg-[#ea3e77]/30" />
-          <View className="h-1.5 flex-1 rounded-full bg-[#ea3e77]" />
+          <View className="h-1.5 flex-1 rounded-full bg-[#256af4]" />
+          <View className="h-1.5 flex-1 rounded-full bg-[#256af4]" />
+          <View className="h-1.5 flex-1 rounded-full bg-gray-200" />
           <View className="h-1.5 flex-1 rounded-full bg-gray-200" />
           <View className="h-1.5 flex-1 rounded-full bg-gray-200" />
         </View>
@@ -59,7 +74,7 @@ export default function OnboardingSymptomsScreen() {
             ¿Cuáles son tus síntomas más comunes?
           </Text>
           <Text className="text-base text-gray-500 font-medium leading-relaxed">
-            Selecciona todo lo que aplique para mejorar tus predicciones mensuales.
+            Selecciona todo lo que aplique para mejorar tus predicciones mensuales. Este paso es opcional.
           </Text>
         </View>
 
@@ -73,20 +88,20 @@ export default function OnboardingSymptomsScreen() {
                 onPress={() => toggleSymptom(symptom.id)}
                 className={`group relative flex flex-col items-start justify-between gap-4 rounded-2xl bg-white p-4 shadow-sm ${
                   isSelected
-                    ? 'ring-2 ring-[#ea3e77]'
+                    ? 'ring-2 ring-[#256af4]'
                     : 'ring-1 ring-transparent'
                 } w-[48%] mb-3`}
               >
                 <View className="flex-row w-full justify-between items-start">
                   <View className={`flex h-12 w-12 items-center justify-center rounded-full ${
                     isSelected
-                      ? 'bg-[#ea3e77]/10'
+                      ? 'bg-[#256af4]/10'
                       : 'bg-gray-100'
                   }`}>
                     <Text className="text-2xl">{symptom.icon}</Text>
                   </View>
                   {isSelected ? (
-                    <Text className="text-[#ea3e77] text-[22px]">✓</Text>
+                    <Text className="text-[#256af4] text-[22px]">✓</Text>
                   ) : (
                     <View className="h-5 w-5 rounded-full border-2 border-gray-200" />
                   )}
@@ -110,13 +125,13 @@ export default function OnboardingSymptomsScreen() {
           </Text>
         </View>
 
-        <Link href="/home" asChild>
-          <Pressable className="flex w-full items-center justify-center overflow-hidden rounded-full h-14 bg-[#ea3e77] shadow-lg">
-            <Text className="tracking-wide text-white text-[17px] font-bold">Continuar</Text>
-          </Pressable>
-        </Link>
+        <Pressable
+          onPress={handleContinue}
+          className="flex w-full items-center justify-center overflow-hidden rounded-full h-14 bg-[#256af4] shadow-lg"
+        >
+          <Text className="tracking-wide text-white text-[17px] font-bold">Continuar</Text>
+        </Pressable>
       </View>
     </View>
   );
 }
-

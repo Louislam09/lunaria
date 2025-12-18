@@ -1,11 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
-import { Link, router } from 'expo-router';
+import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useOnboarding } from '@/context/OnboardingContext';
 
 export default function OnboardingPregnancyScreen() {
   const insets = useSafeAreaInsets();
-  const [wantsPregnancy, setWantsPregnancy] = useState<'yes' | 'no'>('no');
+  const { data, updateData } = useOnboarding();
+  const [wantsPregnancy, setWantsPregnancy] = useState<boolean | undefined>(data.wantsPregnancy);
+
+  useEffect(() => {
+    if (wantsPregnancy !== undefined) {
+      updateData({ wantsPregnancy });
+    }
+  }, [wantsPregnancy]);
+
+  const handleSkip = () => {
+    updateData({ wantsPregnancy: undefined });
+    router.push('/onboarding/contraceptive');
+  };
+
+  const handleContinue = () => {
+    router.push('/onboarding/contraceptive');
+  };
 
   return (
     <View className="flex-1 bg-[#f8f6f6]">
@@ -14,14 +31,17 @@ export default function OnboardingPregnancyScreen() {
         <Pressable onPress={() => router.back()}>
           <Text className="text-2xl">←</Text>
         </Pressable>
-        <Text className="text-sm font-medium text-gray-500">Paso 2 de 5</Text>
+        <Text className="text-sm font-medium text-gray-500">Paso 3 de 5</Text>
+        <Pressable onPress={handleSkip}>
+          <Text className="text-sm font-medium text-gray-500">Omitir</Text>
+        </Pressable>
       </View>
 
       {/* Progress Indicators */}
       <View className="flex-row items-center justify-center gap-2 py-4 px-6">
-        <View className="h-1.5 w-8 rounded-full bg-[#ea3e77]" />
-        <View className="h-1.5 w-8 rounded-full bg-[#ea3e77]" />
-        <View className="h-1.5 w-8 rounded-full bg-gray-200" />
+        <View className="h-1.5 w-8 rounded-full bg-[#256af4]" />
+        <View className="h-1.5 w-8 rounded-full bg-[#256af4]" />
+        <View className="h-1.5 w-8 rounded-full bg-[#256af4]" />
         <View className="h-1.5 w-8 rounded-full bg-gray-200" />
         <View className="h-1.5 w-8 rounded-full bg-gray-200" />
       </View>
@@ -34,7 +54,7 @@ export default function OnboardingPregnancyScreen() {
             ¿Buscas un embarazo?
           </Text>
           <Text className="text-gray-600 text-base font-medium leading-relaxed text-center">
-            Personalizaremos tu calendario y predicciones según tu objetivo actual.
+            Personalizaremos tu calendario y predicciones según tu objetivo actual. Este paso es opcional.
           </Text>
         </View>
 
@@ -42,10 +62,10 @@ export default function OnboardingPregnancyScreen() {
         <View className="flex flex-col gap-4 flex-1">
           {/* Option 1: Yes */}
           <Pressable
-            onPress={() => setWantsPregnancy('yes')}
+            onPress={() => setWantsPregnancy(true)}
             className={`relative flex-row items-center gap-5 rounded-2xl bg-white p-5 shadow-sm border-2 ${
-              wantsPregnancy === 'yes'
-                ? 'border-[#ea3e77] bg-[#ea3e77]/5'
+              wantsPregnancy === true
+                ? 'border-[#256af4] bg-[#256af4]/5'
                 : 'border-transparent'
             }`}
           >
@@ -64,11 +84,11 @@ export default function OnboardingPregnancyScreen() {
             </View>
             {/* Check Indicator */}
             <View className={`size-6 rounded-full border-2 ${
-              wantsPregnancy === 'yes'
-                ? 'border-[#ea3e77] bg-[#ea3e77]'
+              wantsPregnancy === true
+                ? 'border-[#256af4] bg-[#256af4]'
                 : 'border-gray-300'
             } flex items-center justify-center`}>
-              {wantsPregnancy === 'yes' && (
+              {wantsPregnancy === true && (
                 <Text className="text-white text-[16px] font-bold">✓</Text>
               )}
             </View>
@@ -76,10 +96,10 @@ export default function OnboardingPregnancyScreen() {
 
           {/* Option 2: No */}
           <Pressable
-            onPress={() => setWantsPregnancy('no')}
+            onPress={() => setWantsPregnancy(false)}
             className={`relative flex-row items-center gap-5 rounded-2xl bg-white p-5 shadow-sm border-2 ${
-              wantsPregnancy === 'no'
-                ? 'border-[#ea3e77] bg-[#ea3e77]/5'
+              wantsPregnancy === false
+                ? 'border-[#256af4] bg-[#256af4]/5'
                 : 'border-transparent'
             }`}
           >
@@ -98,11 +118,11 @@ export default function OnboardingPregnancyScreen() {
             </View>
             {/* Check Indicator */}
             <View className={`size-6 rounded-full border-2 ${
-              wantsPregnancy === 'no'
-                ? 'border-[#ea3e77] bg-[#ea3e77]'
+              wantsPregnancy === false
+                ? 'border-[#256af4] bg-[#256af4]'
                 : 'border-gray-300'
             } flex items-center justify-center`}>
-              {wantsPregnancy === 'no' && (
+              {wantsPregnancy === false && (
                 <Text className="text-white text-[16px] font-bold">✓</Text>
               )}
             </View>
@@ -114,14 +134,14 @@ export default function OnboardingPregnancyScreen() {
 
         {/* Bottom Action */}
         <View style={{ paddingBottom: insets.bottom + 16 }}>
-          <Link href="/onboarding/contraceptive" asChild>
-            <Pressable className="w-full rounded-full bg-[#ea3e77] py-4 px-6 text-center shadow-lg">
-              <Text className="text-white text-lg font-bold text-center">Continuar</Text>
-            </Pressable>
-          </Link>
+          <Pressable
+            onPress={handleContinue}
+            className="w-full rounded-full bg-[#256af4] py-4 px-6 text-center shadow-lg"
+          >
+            <Text className="text-white text-lg font-bold text-center">Continuar</Text>
+          </Pressable>
         </View>
       </ScrollView>
     </View>
   );
 }
-

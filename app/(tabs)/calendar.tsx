@@ -165,7 +165,7 @@ export default function CalendarScreen() {
   );
 
   return (
-    <View className="flex-1 bg-[#f8f9fc] pb-24">
+    <View className="flex-1 bg-[#f8f9fc]">
       {/* Top App Bar */}
       <View className="sticky top-0 z-50 bg-[#f8f9fc]/95 backdrop-blur-md border-b border-gray-100" style={{ paddingTop: insets.top + 16 }}>
         <View className="flex-row items-center p-4 justify-between">
@@ -337,32 +337,7 @@ export default function CalendarScreen() {
           </Link>
         </View>
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <View className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 pb-safe pt-2 px-6 h-[80px] z-50" style={{ paddingBottom: insets.bottom + 16 }}>
-        <View className="flex-row justify-between items-center max-w-lg mx-auto h-full pb-4">
-          <Pressable className="flex flex-col items-center justify-center w-16 gap-1">
-            <View className="flex items-center justify-center p-1 rounded-full bg-[#256af4]/10">
-              <Text className="text-[#256af4] text-xl">📅</Text>
-            </View>
-            <Text className="text-[11px] font-bold text-[#256af4]">Calendario</Text>
-          </Pressable>
-
-          <Link href="/predictions" asChild>
-            <Pressable className="flex flex-col items-center justify-center w-16 gap-1">
-              <Text className="text-slate-400 text-xl">📊</Text>
-              <Text className="text-[11px] font-medium text-slate-400">Reportes</Text>
-            </Pressable>
-          </Link>
-
-          <Link href="/settings" asChild>
-            <Pressable className="flex flex-col items-center justify-center w-16 gap-1">
-              <Text className="text-slate-400 text-xl">⚙️</Text>
-              <Text className="text-[11px] font-medium text-slate-400">Ajustes</Text>
-            </Pressable>
-          </Link>
-        </View>
-      </View>
     </View>
   );
 }
+

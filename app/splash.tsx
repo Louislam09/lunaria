@@ -1,13 +1,28 @@
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { ArrowRight } from 'lucide-react-native';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useOnboarding } from '@/context/OnboardingContext';
 
 export default function SplashScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { isComplete, isLoading } = useOnboarding();
+
+  useEffect(() => {
+    // If onboarding is already complete, redirect to home
+    if (!isLoading && isComplete) {
+      router.replace('/home');
+    }
+  }, [isComplete, isLoading]);
+
+  // Don't show splash if onboarding is complete
+  if (isComplete) {
+    return null;
+  }
+
   return (
     <ScrollView
       className="flex-1 bg-[#f5f6f8]"
@@ -54,4 +69,3 @@ export default function SplashScreen() {
     </ScrollView >
   );
 }
-

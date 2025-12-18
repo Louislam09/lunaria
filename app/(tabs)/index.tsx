@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, ScrollView, Image } from 'react-native';
+import { View, Text, Pressable, ScrollView } from 'react-native';
 import { Link, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useOnboarding } from '@/context/OnboardingContext';
@@ -308,46 +308,7 @@ export default function HomeScreen() {
           <Text className="text-xs font-medium">Tus datos están guardados localmente</Text>
         </View>
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <View className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-100 px-6 py-2" style={{ paddingBottom: insets.bottom + 16 }}>
-        <View className="flex-row items-center justify-between">
-          {/* Home (Active) */}
-          <Link href="/home" asChild>
-            <Pressable className="flex flex-col items-center justify-center w-12 gap-1">
-              <View className="relative flex items-center justify-center">
-                <Text className="text-[#256af4] text-2xl">🏠</Text>
-                <View className="absolute -bottom-2 w-1 h-1 bg-[#256af4] rounded-full" />
-              </View>
-              <Text className="text-[10px] font-bold text-[#256af4] mt-1">Inicio</Text>
-            </Pressable>
-          </Link>
-
-          {/* Calendar */}
-          <Link href="/calendar" asChild>
-            <Pressable className="flex flex-col items-center justify-center w-12 gap-1">
-              <Text className="text-[#9ca3af] text-2xl">📅</Text>
-              <Text className="text-[10px] font-medium text-[#9ca3af] mt-1">Calendario</Text>
-            </Pressable>
-          </Link>
-
-          {/* Reports/Insights */}
-          <Link href="/predictions" asChild>
-            <Pressable className="flex flex-col items-center justify-center w-12 gap-1">
-              <Text className="text-[#9ca3af] text-2xl">📊</Text>
-              <Text className="text-[10px] font-medium text-[#9ca3af] mt-1">Reportes</Text>
-            </Pressable>
-          </Link>
-
-          {/* Settings */}
-          <Link href="/settings" asChild>
-            <Pressable className="flex flex-col items-center justify-center w-12 gap-1">
-              <Text className="text-[#9ca3af] text-2xl">⚙️</Text>
-              <Text className="text-[10px] font-medium text-[#9ca3af] mt-1">Ajustes</Text>
-            </Pressable>
-          </Link>
-        </View>
-      </View>
     </View>
   );
 }
+

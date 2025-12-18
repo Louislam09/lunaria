@@ -3,6 +3,15 @@
     "scheme": "acme",
     "userInterfaceStyle": "automatic",
     "orientation": "default",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#256af4"
+    },
+    "icon": {
+      "dark": "./assets/images/bg_icon.png",
+      "light": "./assets/images/bg_icon.png",
+      "backgroundColor": "#256af4"
+    },
     "web": {
       "output": "static"
     },
