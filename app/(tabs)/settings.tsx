@@ -34,7 +34,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View className="flex-1 bg-moon-white">
+    <View className="flex-1 bg-background">
       {/* Header */}
       <View
         className="flex-row items-center bg-white px-6 pt-6 pb-2 justify-between sticky top-0 z-20"
@@ -44,7 +44,7 @@ export default function SettingsScreen() {
           Perfil
         </Text>
         <View className="flex-row items-center justify-end gap-3">
-          <Pressable className="flex items-center justify-center rounded-full h-10 w-10 bg-moon-white">
+          <Pressable className="flex items-center justify-center rounded-full h-10 w-10 bg-background">
             <Bell size={20} color={colors.textPrimary} />
           </Pressable>
         </View>
@@ -54,7 +54,7 @@ export default function SettingsScreen() {
         {/* Profile Card */}
         <View className="mt-4">
           <View className="flex flex-col items-center justify-center rounded-[2.5rem] bg-white p-6 shadow-lg border border-gray-100 relative overflow-hidden">
-            <View className="absolute -top-10 -right-10 w-32 h-32 bg-lavender/10 rounded-full blur-2xl" />
+            <View className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl" />
             <View className="relative z-10 flex flex-col items-center text-center">
               {/* Profile Picture */}
               <View className="relative mb-4">
@@ -65,7 +65,7 @@ export default function SettingsScreen() {
                   <View className="h-full w-full bg-pink-200" />
                 </View>
                 <Pressable
-                  className="absolute bottom-1 right-1 h-8 w-8 flex items-center justify-center bg-lavender rounded-full border-2 border-white shadow-sm"
+                  className="absolute bottom-1 right-1 h-8 w-8 flex items-center justify-center bg-primary rounded-full border-2 border-white shadow-sm"
                   style={{
                     position: 'absolute',
                     bottom: 4,
@@ -89,8 +89,8 @@ export default function SettingsScreen() {
 
               {/* Premium Badge */}
               <View className="mt-4 flex gap-3">
-                <View className="px-4 py-1.5 bg-lavender/10 rounded-full">
-                  <Text className="text-lavender text-xs font-bold uppercase tracking-wide">
+                <View className="px-4 py-1.5 bg-primary/10 rounded-full">
+                  <Text className="text-primary text-xs font-bold uppercase tracking-wide">
                     Premium
                   </Text>
                 </View>

@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, ArrowRight } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useOnboarding } from '@/context/OnboardingContext';
-import { STEPS } from '@/constants/onboarding';
+import { STEPS, ALL_STEPS } from '@/constants/onboarding';
 import { colors } from '@/utils/colors';
 
 export default function WizardFooter() {
@@ -12,144 +12,58 @@ export default function WizardFooter() {
   const { actualStep, actualSubStep, setActualStep, setActualSubStep, data } = useOnboarding();
 
   const step = STEPS[actualStep];
-  const currentStep = step.subSteps[actualSubStep]
+  const currentSubStep = step.subSteps[actualSubStep];
+  const { wizard, key: stepKey } = currentSubStep;
 
-  const { wizard, key: stepKey } = currentStep;
-
-  // Calculate total steps for progress
-  const totalSteps = STEPS.reduce((acc, s) => acc + (s.subSteps?.length || 1), 0);
-  const currentStepNumber = STEPS.slice(0, actualStep).reduce((acc, s) => acc + (s.subSteps?.length || 1), 0) + actualSubStep + 1;
+  // Calculate progress
+  const totalSteps = ALL_STEPS.length;
+  const currentStepNumber = STEPS.slice(0, actualStep).reduce((acc, s) => acc + s.subSteps.length, 0) + actualSubStep + 1;
   const progress = (currentStepNumber / totalSteps) * 100;
 
-
-  const buttonText = wizard.button;
-
-  // Find next valid step
-  const findNextValidStep = (startStepIndex: number, startSubStepIndex: number) => {
-    let currentStepIndex = startStepIndex;
-    let currentSubStepIndex = startSubStepIndex;
-
-    while (true) {
-      const currentStep = STEPS[currentStepIndex];
-      const hasSubSteps = currentStep?.subSteps?.length > 0;
-
-      if (hasSubSteps) {
-        if (currentSubStepIndex < currentStep.subSteps.length - 1) {
-          currentSubStepIndex++;
-        } else {
-          currentStepIndex++;
-          currentSubStepIndex = 0;
-        }
-      } else {
-        currentStepIndex++;
-        currentSubStepIndex = 0;
-      }
-
-      if (currentStepIndex >= STEPS.length) {
-        // Reached the end - finish onboarding
-        return null;
-      }
-
-      // Check if step should be skipped
-      const stepToCheck = STEPS[currentStepIndex];
-      const subStepToCheck = stepToCheck?.subSteps?.[currentSubStepIndex];
-      const step = subStepToCheck || stepToCheck;
-
-      if (!wizard.skipTo) {
-        return { stepIndex: currentStepIndex, subStepIndex: currentSubStepIndex };
-      }
-    }
-  };
-
-  // Find previous valid step
-  const findPreviousValidStep = (startStepIndex: number, startSubStepIndex: number) => {
-    let currentStepIndex = startStepIndex;
-    let currentSubStepIndex = startSubStepIndex;
-
-    while (true) {
-      const currentStep = STEPS[currentStepIndex];
-      const hasSubSteps = currentStep?.subSteps?.length > 0;
-
-      if (hasSubSteps) {
-        if (currentSubStepIndex > 0) {
-          currentSubStepIndex--;
-        } else {
-          currentStepIndex--;
-          if (currentStepIndex < 0) break;
-          const previousStep = STEPS[currentStepIndex];
-          currentSubStepIndex = previousStep?.subSteps?.length - 1 || 0;
-        }
-      } else {
-        currentStepIndex--;
-        currentSubStepIndex = 0;
-      }
-
-      if (currentStepIndex < 0) break;
-
-      // Check if step should be skipped
-      const stepToCheck = STEPS[currentStepIndex];
-      const subStepToCheck = stepToCheck?.subSteps?.[currentSubStepIndex];
-      const step = subStepToCheck || stepToCheck;
-
-      if (!wizard.skipTo) {
-        return { stepIndex: currentStepIndex, subStepIndex: currentSubStepIndex };
-      }
-    }
-
-    return null;
-  };
+  const isFirstStep = currentStepNumber === 1;
+  const isLastStep = currentStepNumber === totalSteps;
 
   const handleNext = () => {
-    // Check if we should skip to a specific step
-    if (wizard.skipTo && wizard.skippable) {
+    if (wizard.skipTo) {
       const targetStepIndex = STEPS.findIndex(s => s.title === wizard.skipTo);
       if (targetStepIndex > -1) {
-        const targetStep = STEPS[targetStepIndex];
         setActualStep(targetStepIndex);
         setActualSubStep(0);
         return;
       }
     }
 
-    const next = findNextValidStep(actualStep, actualSubStep);
-    if (next) {
-      setActualStep(next.stepIndex);
-      setActualSubStep(next.subStepIndex);
+    if (actualSubStep < step.subSteps.length - 1) {
+      setActualSubStep(actualSubStep + 1);
+    } else if (actualStep < STEPS.length - 1) {
+      setActualStep(actualStep + 1);
+      setActualSubStep(0);
     } else {
-      // Finished onboarding - navigate to tabs
       router.replace('/(tabs)');
     }
   };
 
   const handleBack = () => {
-    if (actualStep === 0 && actualSubStep === 0) {
+    if (isFirstStep) {
       router.back();
       return;
     }
 
-    const prev = findPreviousValidStep(actualStep, actualSubStep);
-    if (prev) {
-      setActualStep(prev.stepIndex);
-      setActualSubStep(prev.subStepIndex);
-    } else {
-      router.back();
+    if (actualSubStep > 0) {
+      setActualSubStep(actualSubStep - 1);
+    } else if (actualStep > 0) {
+      setActualStep(actualStep - 1);
+      setActualSubStep(STEPS[actualStep - 1].subSteps.length - 1);
     }
   };
 
-  const handleSkip = () => {
-    if (wizard.skipTo && wizard.skippable) {
-      handleNext(); // Use the skip logic
-    } else {
-      handleNext();
-    }
-  };
-
-  const isFirstStep = actualStep === 0 && actualSubStep === 0;
-  const isLastStep = actualStep === STEPS.length - 1;
+  const handleSkip = () => handleNext();
 
   // Validation for info step
   const canContinue = stepKey !== 'info' ||
-    (data.name && data.name.trim().length > 0 && data.lastPeriodStart !== null && data.lastPeriodStart !== undefined);
+    (data.name?.trim().length > 0 && data.lastPeriodStart != null);
+
+  const buttonText = isLastStep ? 'Finalizar' : wizard.button;
 
   return (
     <View
@@ -182,7 +96,7 @@ export default function WizardFooter() {
 
       {/* Navigation Buttons */}
       <View style={{ flexDirection: 'row', gap: 12 }}>
-        {wizard.skippable && !isFirstStep ? (
+        {wizard.skippable && !isFirstStep && (
           <Pressable
             onPress={handleSkip}
             style={{
@@ -199,7 +113,7 @@ export default function WizardFooter() {
           >
             <Text style={{ color: colors.textMuted, fontSize: 18, fontWeight: '600' }}>Omitir</Text>
           </Pressable>
-        ) : null}
+        )}
 
         <Pressable
           onPress={handleBack}
@@ -237,7 +151,7 @@ export default function WizardFooter() {
           }}
         >
           <Text style={{ color: '#ffffff', fontSize: 18, fontWeight: '700' }}>
-            {isLastStep ? 'Finalizar' : buttonText}
+            {buttonText}
           </Text>
           {!isLastStep && <ArrowRight size={20} color="#ffffff" />}
         </Pressable>

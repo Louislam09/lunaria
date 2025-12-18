@@ -1,4 +1,3 @@
-
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css";
@@ -6,26 +5,59 @@
 
 @layer theme {
   @theme {
-    /* Fonts */
+    /* Fonts - DM Sans (Default) */
+    --font-sans: "DMSans_400Regular", sans-serif;
+    --font-regular: "DMSans_400Regular", sans-serif;
+    --font-medium: "DMSans_500Medium", sans-serif;
+    --font-bold: "DMSans_700Bold", sans-serif;
     --font-rounded: "SF Pro Rounded", "Hiragino Maru Gothic ProN", Meiryo,
       "MS PGothic", sans-serif;
 
     /* Custom Colors - Lunaria Theme */
-    /* These colors can be used as: bg-lavender, text-lavender, border-lavender, etc. */
-    --color-lavender: #B9A7E8;
-    --color-blush: #F3B7C6;
-    --color-moon-white: #F6F2FA;
-    --color-text-primary: #2E2A38;
-    --color-text-muted: #8E8AA0;
+    /* These colors can be used as: bg-primary, text-primary, border-primary, etc. */
+    --color-primary: #b9a7e8;
+    --color-secondary: #f3b7c6;
+    --color-background: #f6f2fa;
+    --color-text-primary: #2e2a38;
+    --color-text-muted: #8e8aa0;
+  }
+}
+
+/* Custom font utilities for React Native */
+@layer utilities {
+  /* Map Tailwind font-weight classes to DM Sans font families */
+  .font-normal {
+    font-family: "DMSans_400Regular", sans-serif;
+  }
+
+  .font-medium {
+    font-family: "DMSans_500Medium", sans-serif;
+  }
+
+  .font-bold {
+    font-family: "DMSans_700Bold", sans-serif;
+  }
+
+  .font-semibold {
+    font-family: "DMSans_700Bold", sans-serif;
+  }
+
+  /* Custom font family classes */
+  .font-regular {
+    font-family: "DMSans_400Regular", sans-serif;
   }
 }
 
 @media android {
   :root {
     --font-mono: monospace;
-    --font-rounded: normal;
     --font-serif: serif;
-    --font-sans: normal;
+    --font-sans: "DMSans_400Regular", sans-serif;
+    --font-regular: "DMSans_400Regular", sans-serif;
+    --font-medium: "DMSans_500Medium", sans-serif;
+    --font-bold: "DMSans_700Bold", sans-serif;
+    --font-rounded: "SF Pro Rounded", "Hiragino Maru Gothic ProN", Meiryo,
+      "MS PGothic", sans-serif;
   }
 }
 
@@ -33,7 +65,10 @@
   :root {
     --font-mono: ui-monospace;
     --font-serif: ui-serif;
-    --font-sans: system-ui;
+    --font-sans: "DMSans_400Regular", sans-serif;
+    --font-regular: "DMSans_400Regular", sans-serif;
+    --font-medium: "DMSans_500Medium", sans-serif;
+    --font-bold: "DMSans_700Bold", sans-serif;
     --font-rounded: ui-rounded;
   }
 }

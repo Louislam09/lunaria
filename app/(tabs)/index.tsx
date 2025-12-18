@@ -38,9 +38,9 @@ export default function HomeScreen() {
   // Get predictions
   const nextPeriodResult = getNextPeriodDate(predictionInput);
   const cycleDay = getCycleDay(data.lastPeriodStart);
-  const cycleLength = data.cycleType === 'regular' && data.averageCycleLength 
-    ? data.averageCycleLength 
-    : data.cycleRangeMin && data.cycleRangeMax 
+  const cycleLength = data.cycleType === 'regular' && data.averageCycleLength
+    ? data.averageCycleLength
+    : data.cycleRangeMin && data.cycleRangeMax
       ? Math.round((data.cycleRangeMin + data.cycleRangeMax) / 2)
       : 28; // fallback
   const phase = getCyclePhase(cycleDay, cycleLength);
@@ -120,10 +120,10 @@ export default function HomeScreen() {
           <Text className="text-text-primary text-2xl font-bold leading-tight tracking-tight">Hola, {userName}</Text>
         </View>
         <View className="flex-row items-center justify-end gap-3">
-          <Pressable className="flex items-center justify-center rounded-full h-10 w-10 bg-moon-white">
+          <Pressable className="flex items-center justify-center rounded-full h-10 w-10 bg-background">
             <Text className="text-text-primary text-2xl">🔔</Text>
           </Pressable>
-          <Pressable className="flex items-center justify-center overflow-hidden rounded-full h-10 w-10 bg-moon-white">
+          <Pressable className="flex items-center justify-center overflow-hidden rounded-full h-10 w-10 bg-background">
             <View className="h-full w-full bg-gray-300 rounded-full" />
           </Pressable>
         </View>
@@ -135,21 +135,21 @@ export default function HomeScreen() {
         <View className="mt-4">
           <View className="flex flex-col items-center justify-center rounded-[2.5rem] bg-white p-6 shadow-lg border border-gray-100 relative overflow-hidden">
             {/* Background decorative blobs */}
-            <View className="absolute -top-10 -right-10 w-32 h-32 bg-lavender/10 rounded-full blur-2xl" />
-            <View className="absolute -bottom-10 -left-10 w-32 h-32 bg-blush/10 rounded-full blur-2xl" />
-            
+            <View className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl" />
+            <View className="absolute -bottom-10 -left-10 w-32 h-32 bg-secondary/10 rounded-full blur-2xl" />
+
             <View className="relative z-10 flex flex-col items-center text-center">
               <Text className="text-text-muted text-sm font-medium uppercase tracking-wider mb-4">
                 Próximo periodo
               </Text>
-              
+
               {/* Circular Progress / Countdown Visualization */}
               <View className="relative flex items-center justify-center w-48 h-48 mb-4">
                 {/* Simplified circular progress */}
                 <View className="absolute inset-0 rounded-full border-8 border-gray-100" />
-                <View 
-                  className="absolute inset-0 rounded-full border-8 border-lavender"
-                  style={{ 
+                <View
+                  className="absolute inset-0 rounded-full border-8 border-primary"
+                  style={{
                     borderTopColor: 'transparent',
                     borderRightColor: 'transparent',
                     transform: [{ rotate: '-90deg' }],
@@ -162,7 +162,7 @@ export default function HomeScreen() {
                   <Text className="text-sm font-medium text-text-muted mt-1">días</Text>
                 </View>
               </View>
-              
+
               <View className="flex flex-col gap-1 items-center">
                 {nextPeriodResult.range ? (
                   <>
@@ -178,7 +178,7 @@ export default function HomeScreen() {
                     <Text className="text-text-primary text-lg font-bold">
                       {formatDate(nextPeriodResult.date, 'long')}
                     </Text>
-                    <Text className="text-lavender text-sm font-medium bg-lavender/10 px-3 py-1 rounded-full">
+                    <Text className="text-primary text-sm font-medium bg-primary/10 px-3 py-1 rounded-full">
                       Predicción regular
                     </Text>
                   </>
@@ -190,12 +190,12 @@ export default function HomeScreen() {
 
         {/* Action Panel: Current Phase */}
         <View className="mt-6">
-          <View className="flex flex-col gap-4 p-5 rounded-[2rem] bg-lavender/5 border border-lavender/10">
+          <View className="flex flex-col gap-4 p-5 rounded-[2rem] bg-primary/5 border border-primary/10">
             <View className="flex items-start justify-between">
               <View className="flex flex-col gap-1">
                 <View className="flex-row items-center gap-2 mb-1">
-                  <Text className="text-lavender text-xl">💧</Text>
-                  <Text className="text-lavender text-sm font-bold uppercase tracking-wide">
+                  <Text className="text-primary text-xl">💧</Text>
+                  <Text className="text-primary text-sm font-bold uppercase tracking-wide">
                     Estado Actual
                   </Text>
                 </View>
@@ -206,7 +206,7 @@ export default function HomeScreen() {
               </View>
             </View>
             <Link href="/registro" asChild>
-              <Pressable className="w-full flex-row items-center justify-center gap-2 rounded-full h-12 bg-lavender shadow-lg">
+              <Pressable className="w-full flex-row items-center justify-center gap-2 rounded-full h-12 bg-primary shadow-lg">
                 <Text className="text-xl">✏️</Text>
                 <Text className="text-white text-base font-bold">Registrar síntomas</Text>
               </Pressable>
@@ -223,37 +223,33 @@ export default function HomeScreen() {
                 <Text className="text-gray-400 text-xl">👶</Text>
                 <Text className="text-text-primary text-base font-bold">Riesgo de embarazo</Text>
               </View>
-              <View className={`inline-flex self-start flex-row items-center gap-1.5 px-3 py-1 rounded-full ${
-                risk.color === 'green' ? 'bg-green-100' :
+              <View className={`inline-flex self-start flex-row items-center gap-1.5 px-3 py-1 rounded-full ${risk.color === 'green' ? 'bg-green-100' :
                 risk.color === 'orange' ? 'bg-orange-100' :
-                risk.color === 'red' ? 'bg-red-100' :
-                risk.color === 'purple' ? 'bg-purple-100' :
-                'bg-gray-100'
-              }`}>
-                <View className={`w-2 h-2 rounded-full ${
-                  risk.color === 'green' ? 'bg-green-500' :
+                  risk.color === 'red' ? 'bg-red-100' :
+                    risk.color === 'purple' ? 'bg-purple-100' :
+                      'bg-gray-100'
+                }`}>
+                <View className={`w-2 h-2 rounded-full ${risk.color === 'green' ? 'bg-green-500' :
                   risk.color === 'orange' ? 'bg-orange-500' :
-                  risk.color === 'red' ? 'bg-red-500' :
-                  risk.color === 'purple' ? 'bg-purple-500' :
-                  'bg-gray-500'
-                }`} />
-                <Text className={`text-sm font-bold ${
-                  risk.color === 'green' ? 'text-green-700' :
+                    risk.color === 'red' ? 'bg-red-500' :
+                      risk.color === 'purple' ? 'bg-purple-500' :
+                        'bg-gray-500'
+                  }`} />
+                <Text className={`text-sm font-bold ${risk.color === 'green' ? 'text-green-700' :
                   risk.color === 'orange' ? 'text-orange-700' :
-                  risk.color === 'red' ? 'text-red-700' :
-                  risk.color === 'purple' ? 'text-purple-700' :
-                  'text-gray-700'
-                }`}>{risk.label}</Text>
+                    risk.color === 'red' ? 'text-red-700' :
+                      risk.color === 'purple' ? 'text-purple-700' :
+                        'text-gray-700'
+                  }`}>{risk.label}</Text>
               </View>
             </View>
             {/* Abstract visual for risk */}
-            <View className={`w-16 h-16 rounded-full ${
-              risk.color === 'green' ? 'bg-green-50' :
+            <View className={`w-16 h-16 rounded-full ${risk.color === 'green' ? 'bg-green-50' :
               risk.color === 'orange' ? 'bg-orange-50' :
-              risk.color === 'red' ? 'bg-red-50' :
-              risk.color === 'purple' ? 'bg-purple-50' :
-              'bg-gray-50'
-            } flex items-center justify-center`}>
+                risk.color === 'red' ? 'bg-red-50' :
+                  risk.color === 'purple' ? 'bg-purple-50' :
+                    'bg-gray-50'
+              } flex items-center justify-center`}>
               <Text className="text-3xl">🛡️</Text>
             </View>
           </View>
@@ -264,7 +260,7 @@ export default function HomeScreen() {
           <View className="flex-row items-center justify-between px-2">
             <Text className="text-text-primary text-xl font-bold leading-tight">Resumen de hoy</Text>
             <Pressable>
-              <Text className="text-lavender text-sm font-semibold">Ver todo</Text>
+              <Text className="text-primary text-sm font-semibold">Ver todo</Text>
             </Pressable>
           </View>
         </View>
@@ -279,7 +275,7 @@ export default function HomeScreen() {
             <View>
               <Text className="font-bold text-text-primary">Estado de ánimo</Text>
               <Text className="text-sm text-text-muted mt-1">
-                {phase === 'luteal' || phase === 'menstrual' 
+                {phase === 'luteal' || phase === 'menstrual'
                   ? 'Es normal sentirse más introspectiva hoy.'
                   : 'Tu energía está en buen nivel.'}
               </Text>

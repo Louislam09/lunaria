@@ -37,9 +37,9 @@ export default function PredictionsScreen() {
 
   const nextPeriodResult = getNextPeriodDate(predictionInput);
   const cycleDay = getCycleDay(data.lastPeriodStart);
-  const cycleLength = data.cycleType === 'regular' && data.averageCycleLength 
-    ? data.averageCycleLength 
-    : data.cycleRangeMin && data.cycleRangeMax 
+  const cycleLength = data.cycleType === 'regular' && data.averageCycleLength
+    ? data.averageCycleLength
+    : data.cycleRangeMin && data.cycleRangeMax
       ? Math.round((data.cycleRangeMin + data.cycleRangeMax) / 2)
       : 28;
   const phase = getCyclePhase(cycleDay, cycleLength);
@@ -50,22 +50,22 @@ export default function PredictionsScreen() {
   // Calculate ovulation date (for regular cycles)
   const ovulationDate = data.cycleType === 'regular' && data.averageCycleLength
     ? (() => {
-        const ov = new Date(nextPeriodResult.date);
-        ov.setDate(ov.getDate() - 14);
-        return ov;
-      })()
+      const ov = new Date(nextPeriodResult.date);
+      ov.setDate(ov.getDate() - 14);
+      return ov;
+    })()
     : null;
 
   // Calculate fertile window dates
   const fertileWindowDates = fertileWindow && data.cycleType === 'regular' && data.averageCycleLength
     ? (() => {
-        const lastPeriod = new Date(data.lastPeriodStart);
-        const start = new Date(lastPeriod);
-        start.setDate(start.getDate() + fertileWindow.startDay);
-        const end = new Date(lastPeriod);
-        end.setDate(end.getDate() + fertileWindow.endDay);
-        return { start, end };
-      })()
+      const lastPeriod = new Date(data.lastPeriodStart);
+      const start = new Date(lastPeriod);
+      start.setDate(start.getDate() + fertileWindow.startDay);
+      const end = new Date(lastPeriod);
+      end.setDate(end.getDate() + fertileWindow.endDay);
+      return { start, end };
+    })()
     : null;
 
   const daysUntilPeriod = getDaysUntil(nextPeriodResult.date);
@@ -82,13 +82,13 @@ export default function PredictionsScreen() {
   const isPeriodDay = (date: Date) => {
     const dateNormalized = new Date(date);
     dateNormalized.setHours(0, 0, 0, 0);
-    
+
     // Check current period
     const periodStart = new Date(data.lastPeriodStart);
     periodStart.setHours(0, 0, 0, 0);
     const periodEnd = new Date(periodStart);
     periodEnd.setDate(periodEnd.getDate() + (data.periodLength || 5));
-    
+
     if (dateNormalized >= periodStart && dateNormalized <= periodEnd) {
       return true;
     }
@@ -98,7 +98,7 @@ export default function PredictionsScreen() {
     nextPeriodStart.setHours(0, 0, 0, 0);
     const nextPeriodEnd = new Date(nextPeriodStart);
     nextPeriodEnd.setDate(nextPeriodEnd.getDate() + (data.periodLength || 5));
-    
+
     if (nextPeriodResult.range) {
       // For irregular cycles, check if date is within range
       const rangeStart = new Date(nextPeriodResult.range.start);
@@ -106,10 +106,10 @@ export default function PredictionsScreen() {
       const rangeEnd = new Date(nextPeriodResult.range.end);
       rangeEnd.setHours(0, 0, 0, 0);
       rangeEnd.setDate(rangeEnd.getDate() + (data.periodLength || 5));
-      
+
       return dateNormalized >= rangeStart && dateNormalized <= rangeEnd;
     }
-    
+
     return dateNormalized >= nextPeriodStart && dateNormalized <= nextPeriodEnd;
   };
 
@@ -137,9 +137,9 @@ export default function PredictionsScreen() {
   };
 
   return (
-    <View className="flex-1 bg-moon-white">
+    <View className="flex-1 bg-background">
       {/* Header */}
-      <View className="flex-row items-center bg-moon-white p-4 pb-2 justify-between sticky top-0 z-20" style={{ paddingTop: insets.top + 16 }}>
+      <View className="flex-row items-center bg-background p-4 pb-2 justify-between sticky top-0 z-20" style={{ paddingTop: insets.top + 16 }}>
         <Text className="text-text-primary text-2xl font-bold leading-tight tracking-tight flex-1">
           Predicciones
         </Text>
@@ -193,11 +193,10 @@ export default function PredictionsScreen() {
                       {formatDate(nextPeriodResult.date, 'short')}
                     </Text>
                   )}
-                  <View className={`px-3 py-1 rounded-full mb-1 ${
-                    nextPeriodResult.precision === 'high' 
-                      ? 'bg-lavender' 
-                      : 'bg-orange-500'
-                  }`}>
+                  <View className={`px-3 py-1 rounded-full mb-1 ${nextPeriodResult.precision === 'high'
+                    ? 'bg-primary'
+                    : 'bg-orange-500'
+                    }`}>
                     <Text className="text-white text-sm font-medium">
                       En {daysUntilPeriod} días
                     </Text>
@@ -213,28 +212,25 @@ export default function PredictionsScreen() {
                   const dayName = ['D', 'L', 'M', 'X', 'J', 'V', 'S'][date.getDay()];
                   const isPeriod = isPeriodDay(date);
                   const isCurrentDay = isToday(date);
-                  
+
                   return (
                     <View key={index} className="flex flex-col items-center gap-1">
-                      <Text className={`text-xs font-medium ${
-                        isCurrentDay ? 'text-lavender font-bold' : 'text-text-muted'
-                      }`}>
+                      <Text className={`text-xs font-medium ${isCurrentDay ? 'text-primary font-bold' : 'text-text-muted'
+                        }`}>
                         {dayName}
                       </Text>
-                      <View className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold ${
-                        isCurrentDay
-                          ? 'bg-lavender text-white shadow-lg'
-                          : isPeriod
-                          ? 'bg-blush text-white'
+                      <View className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold ${isCurrentDay
+                        ? 'bg-primary text-white shadow-lg'
+                        : isPeriod
+                          ? 'bg-secondary text-white'
                           : 'bg-transparent text-text-primary'
-                      }`}>
-                        <Text className={`text-sm font-bold ${
-                          isCurrentDay || isPeriod ? 'text-white' : 'text-text-primary'
                         }`}>
+                        <Text className={`text-sm font-bold ${isCurrentDay || isPeriod ? 'text-white' : 'text-text-primary'
+                          }`}>
                           {date.getDate()}
                         </Text>
                       </View>
-                      {isPeriod && <View className="absolute -bottom-1 w-1 h-1 bg-blush rounded-full" />}
+                      {isPeriod && <View className="absolute -bottom-1 w-1 h-1 bg-secondary rounded-full" />}
                     </View>
                   );
                 })}
@@ -337,9 +333,9 @@ export default function PredictionsScreen() {
                 <Text className="text-[#606e8a] text-sm">Fase actual</Text>
                 <Text className="text-[#111318] text-sm font-bold">
                   {phase === 'menstrual' ? 'Menstruación' :
-                   phase === 'follicular' ? 'Fase Folicular' :
-                   phase === 'ovulatory' ? 'Ovulación' :
-                   'Fase Lútea'}
+                    phase === 'follicular' ? 'Fase Folicular' :
+                      phase === 'ovulatory' ? 'Ovulación' :
+                        'Fase Lútea'}
                 </Text>
               </View>
               <View className="flex-row justify-between">
