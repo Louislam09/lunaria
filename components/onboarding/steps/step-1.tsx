@@ -72,7 +72,7 @@ export default function Step1() {
         {/* Name Field */}
         <View className='mb-8'>
           <Text
-            className='text-base font-medium text-text-primary mb-2 ml-1'
+            className='text-base font-bold text-text-primary mb-2 ml-1'
           >
             ¿Cómo te llamas?
           </Text>
@@ -97,12 +97,14 @@ export default function Step1() {
 
         {/* Birth Date Field */}
         <View>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textPrimary, marginBottom: 8, marginLeft: 4 }}>
+          <Text
+            className='text-base font-bold text-text-primary mb-2 ml-1'
+          >
             Fecha de Nacimiento
           </Text>
           <Pressable
             onPress={() => setShowBirthDatePicker(true)}
-            style={{ position: 'relative', flexDirection: 'row', alignItems: 'center' }}
+            className='relative flex-row items-center'
           >
             <TextInput
               style={{
@@ -120,7 +122,7 @@ export default function Step1() {
               value={formatDate(birthDate)}
               editable={false}
             />
-            <View style={{ position: 'absolute', right: 16 }}>
+            <View className='absolute right-4'>
               <Calendar size={20} color={colors.textMuted} />
             </View>
           </Pressable>
@@ -143,7 +145,7 @@ export default function Step1() {
           {Platform.OS === 'ios' && showBirthDatePicker && (
             <Pressable
               onPress={() => setShowBirthDatePicker(false)}
-              style={{ marginTop: 10, padding: 10, backgroundColor: '#f0f0f0', borderRadius: 8 }}
+              className='mt-2.5 p-2.5 bg-gray-100 rounded-lg'
             >
               <Text style={{ textAlign: 'center', fontWeight: '600' }}>Done</Text>
             </Pressable>
@@ -155,7 +157,7 @@ export default function Step1() {
 
       {/* Section 3: Menstrual Info */}
       <View className='mb-8'>
-        <Text style={{ fontSize: 24, fontWeight: '700', color: colors.textPrimary, marginBottom: 24 }}>
+        <Text className='text-2xl font-bold tracking-tight text-text-primary mb-6'>
           Tu ciclo menstrual
         </Text>
 
@@ -186,7 +188,7 @@ export default function Step1() {
               placeholderTextColor={colors.textMuted}
               editable={false}
             />
-            <View style={{ position: 'absolute', right: 16, alignItems: 'center', justifyContent: 'center' }}>
+            <View className='absolute right-4 items-center justify-center'>
               <Calendar size={18} color={lastPeriod ? colors.lavender : colors.textMuted} />
             </View>
           </Pressable>
@@ -209,131 +211,91 @@ export default function Step1() {
           {Platform.OS === 'ios' && showLastPeriodPicker && (
             <Pressable
               onPress={() => setShowLastPeriodPicker(false)}
-              style={{ marginTop: 10, padding: 10, backgroundColor: '#f0f0f0', borderRadius: 8 }}
+              className='mt-2.5 p-2.5 bg-gray-100 rounded-lg'
             >
-              <Text style={{ textAlign: 'center', fontWeight: '600' }}>Done</Text>
+              <Text className='text-center font-bold'>Done</Text>
             </Pressable>
           )}
         </View>
 
         {/* Cycle Type Toggle */}
         <View className='mb-8'>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textPrimary, marginBottom: 12, marginLeft: 4 }}>
+          <Text className='text-base font-bold text-text-primary mb-3 ml-1'>
             ¿Cómo es tu ciclo?
           </Text>
-          <View style={{ flexDirection: 'row', gap: 12, marginBottom: 8 }}>
+          <View className='flex-row gap-3 mb-2'>
             {/* Regular */}
             <Pressable
               onPress={() => setCycleType('regular')}
-              style={{
-                flex: 1,
-                padding: 16,
-                borderRadius: 12,
-                borderWidth: cycleType === 'regular' ? 2 : 1,
-                borderColor: cycleType === 'regular' ? colors.lavender : '#e2e8f0',
-                backgroundColor: cycleType === 'regular' ? `${colors.lavender}15` : '#ffffff',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
-              }}
+              className={`flex-1 p-4 rounded-2xl border-2 
+              ${cycleType === 'regular' ? 'border-primary' : 'border-gray-200'} bg-white items-center justify-center relative`}
             >
-              <View
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
-                  backgroundColor: cycleType === 'regular' ? `${colors.lavender}33` : '#f1f5f9',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 8,
-                }}
-              >
+              <View className={`size-8 rounded-full ${cycleType === 'regular' ? 'bg-primary/33' : 'bg-gray-200'} items-center justify-center mb-2`}  >
                 <RefreshCw size={18} color={cycleType === 'regular' ? colors.lavender : colors.textMuted} />
               </View>
-              <Text
-                style={{
-                  fontWeight: '700',
-                  fontSize: 14,
-                  color: cycleType === 'regular' ? colors.lavender : colors.textMuted,
-                }}
-              >
+              <Text className={`text-base font-bold ${cycleType === 'regular' ? 'text-primary' : 'text-text-muted'}`}  >
                 Regular
               </Text>
-              {cycleType === 'regular' && (
-                <View style={{ position: 'absolute', top: 8, right: 8 }}>
-                  <Check size={20} color={colors.lavender} />
-                </View>
-              )}
+
+              <View
+                className={`absolute top-3 right-3 size-5 rounded-full border-2 
+               flex items-center justify-center transition-colors ${cycleType === 'regular' ? 'border-primary bg-primary' : 'border-gray-300 bg-transparent'}`}
+              >
+                {cycleType === 'regular' && (
+                  <Check size={20} color={colors.moonWhite} strokeWidth={4} />
+                )}
+              </View>
             </Pressable>
 
             {/* Irregular */}
             <Pressable
               onPress={() => setCycleType('irregular')}
-              style={{
-                flex: 1,
-                padding: 16,
-                borderRadius: 12,
-                borderWidth: cycleType === 'irregular' ? 2 : 1,
-                borderColor: cycleType === 'irregular' ? colors.lavender : '#e2e8f0',
-                backgroundColor: cycleType === 'irregular' ? `${colors.lavender}15` : '#ffffff',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+              className={`flex-1 p-4 rounded-2xl border-2 
+                ${cycleType === 'irregular' ? 'border-primary' : 'border-gray-200'} bg-white items-center justify-center relative`}
             >
               <View
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
-                  backgroundColor: cycleType === 'irregular' ? `${colors.lavender}33` : '#f1f5f9',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 8,
-                }}
+                className={`size-8 rounded-full ${cycleType === 'irregular' ? 'bg-primary/33' : 'bg-gray-200'} items-center justify-center mb-2`}
               >
                 <Infinity size={18} color={cycleType === 'irregular' ? colors.lavender : colors.textMuted} />
               </View>
               <Text
-                style={{
-                  fontWeight: '500',
-                  fontSize: 14,
-                  color: cycleType === 'irregular' ? colors.lavender : colors.textMuted,
-                }}
+                className={`text-base font-bold ${cycleType === 'irregular' ? 'text-primary' : 'text-text-muted'}`}
               >
                 Irregular
               </Text>
+              <View
+                className={`absolute top-3 right-3 size-5 rounded-full border-2 
+               flex items-center justify-center transition-colors ${cycleType === 'irregular' ? 'border-primary bg-primary' : 'border-gray-300 bg-transparent'}`}
+              >
+                {cycleType === 'irregular' && (
+                  <Check size={20} color={colors.moonWhite} strokeWidth={4} />
+                )}
+              </View>
             </Pressable>
           </View>
-          <Text style={{ fontSize: 12, color: colors.textMuted, paddingHorizontal: 4 }}>
+          <Text className='text-sm text-text-muted px-1' >
             Un ciclo regular suele variar menos de 7 días entre meses.
           </Text>
         </View>
 
         {/* Period Length */}
         <View
-          style={{
-            backgroundColor: '#ffffff',
-            padding: 20,
-            borderRadius: 16,
-            borderWidth: 1,
-            borderColor: '#e2e8f0',
-            marginBottom: 16,
-          }}
+          className='bg-white p-5 rounded-2xl border border-gray-200 mb-4'
         >
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 16 }}>
-            <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textPrimary }}>
+          <View className='flex-row justify-between items-end mb-4' >
+            <Text className='text-base font-bold text-text-primary' >
               Duración del sangrado
             </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-              <Text style={{ fontSize: 24, fontWeight: '700', color: colors.lavender }}>
+            <View className='flex-row items-baseline' >
+              <Text className='text-2xl font-bold text-primary' >
                 {periodLength}
               </Text>
-              <Text style={{ fontSize: 14, fontWeight: '400', color: colors.textMuted, marginLeft: 4 }}>
+              <Text className='text-base font-medium text-text-muted ml-1' >
                 días
               </Text>
             </View>
           </View>
-          <View style={{ marginTop: 16, marginBottom: 8 }}>
+          <View className='mt-4 mb-2' >
             <Slider
               value={periodLength}
               onValueChange={setPeriodLength}
@@ -345,9 +307,9 @@ export default function Step1() {
               thumbTintColor={colors.lavender}
               style={{ width: '100%', height: 40 }}
             />
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
-              <Text style={{ fontSize: 12, color: colors.textMuted }}>1 día</Text>
-              <Text style={{ fontSize: 12, color: colors.textMuted }}>10 días</Text>
+            <View className='flex-row justify-between mt-2' >
+              <Text className='text-sm text-text-muted' >1 día</Text>
+              <Text className='text-sm text-text-muted' >10 días</Text>
             </View>
           </View>
         </View>
@@ -355,28 +317,22 @@ export default function Step1() {
         {/* Cycle Length - Conditional based on cycleType */}
         {cycleType === 'regular' ? (
           <View
-            style={{
-              backgroundColor: '#ffffff',
-              padding: 20,
-              borderRadius: 16,
-              borderWidth: 1,
-              borderColor: '#e2e8f0',
-            }}
+            className='bg-white p-5 rounded-2xl border border-gray-200'
           >
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 16 }}>
-              <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textPrimary }}>
+            <View className='flex-row justify-between items-end mb-4' >
+              <Text className='text-base font-bold text-text-primary' >
                 Duración promedio del ciclo
               </Text>
-              <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                <Text style={{ fontSize: 24, fontWeight: '700', color: colors.lavender }}>
+              <View className='flex-row items-baseline' >
+                <Text className='text-2xl font-bold text-primary' >
                   {averageCycleLength}
                 </Text>
-                <Text style={{ fontSize: 14, fontWeight: '400', color: colors.textMuted, marginLeft: 4 }}>
+                <Text className='text-base font-medium text-text-muted ml-1' >
                   días
                 </Text>
               </View>
             </View>
-            <View style={{ marginTop: 16, marginBottom: 8 }}>
+            <View className='mt-4 mb-2' >
               <Slider
                 value={averageCycleLength}
                 onValueChange={setAverageCycleLength}
@@ -388,34 +344,27 @@ export default function Step1() {
                 thumbTintColor={colors.lavender}
                 style={{ width: '100%', height: 40 }}
               />
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
-                <Text style={{ fontSize: 12, color: colors.textMuted }}>21 días</Text>
-                <Text style={{ fontSize: 12, color: colors.textMuted }}>45 días</Text>
+              <View className='flex-row justify-between mt-2' >
+                <Text className='text-sm text-text-muted' >21 días</Text>
+                <Text className='text-sm text-text-muted' >45 días</Text>
               </View>
             </View>
           </View>
         ) : (
           <>
-            <View style={{ marginBottom: 12 }}>
-              <Text style={{ fontSize: 13, color: colors.textMuted, fontStyle: 'italic', paddingHorizontal: 4 }}>
+            <View className='mb-3' >
+              <Text className='text-sm text-text-muted italic px-1' >
                 Lunaria usará rangos aproximados y aprenderá con tus registros.
               </Text>
             </View>
             <View
-              style={{
-                backgroundColor: '#ffffff',
-                padding: 20,
-                borderRadius: 16,
-                borderWidth: 1,
-                borderColor: '#e2e8f0',
-                marginBottom: 16,
-              }}
+              className='bg-white p-5 rounded-2xl border border-gray-200 mb-4'
             >
-              <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textPrimary, marginBottom: 16 }}>
+              <Text className='text-base font-bold text-text-primary mb-4' >
                 Rango de duración del ciclo
               </Text>
-              <View style={{ marginBottom: 16 }}>
-                <Text style={{ fontSize: 12, color: colors.textMuted, marginBottom: 8 }}>Mínimo: {cycleRangeMin} días</Text>
+              <View className='mb-4' >
+                <Text className='text-sm text-text-muted mb-2' >Mínimo: {cycleRangeMin} días</Text>
                 <Slider
                   value={cycleRangeMin}
                   onValueChange={setCycleRangeMin}
@@ -429,7 +378,7 @@ export default function Step1() {
                 />
               </View>
               <View>
-                <Text style={{ fontSize: 12, color: colors.textMuted, marginBottom: 8 }}>Máximo: {cycleRangeMax} días</Text>
+                <Text className='text-sm text-text-muted mb-2' >Máximo: {cycleRangeMax} días</Text>
                 <Slider
                   value={cycleRangeMax}
                   onValueChange={setCycleRangeMax}
@@ -446,7 +395,7 @@ export default function Step1() {
           </>
         )}
       </View>
-      <View style={{ height: 200, backgroundColor: 'transparent', width: '100%' }} />
+      <View style={{ height: 100, backgroundColor: 'transparent', width: '100%' }} />
     </View>
   );
 }
