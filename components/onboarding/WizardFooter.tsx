@@ -8,7 +8,6 @@ import { STEPS, ALL_STEPS } from '@/constants/onboarding';
 import { colors } from '@/utils/colors';
 
 export default function WizardFooter() {
-  const insets = useSafeAreaInsets();
   const { actualStep, actualSubStep, setActualStep, setActualSubStep, data } = useOnboarding();
 
   const step = STEPS[actualStep];
@@ -16,12 +15,10 @@ export default function WizardFooter() {
   const { wizard, key: stepKey } = currentSubStep;
 
   // Calculate progress
-  const totalSteps = ALL_STEPS.length;
-  const currentStepNumber = STEPS.slice(0, actualStep).reduce((acc, s) => acc + s.subSteps.length, 0) + actualSubStep + 1;
-  const progress = (currentStepNumber / totalSteps) * 100;
+  const totalSteps = ALL_STEPS.length - 1;
 
-  const isFirstStep = currentStepNumber === 0;
-  const isLastStep = currentStepNumber === totalSteps;
+  const isFirstStep = actualStep === 0;
+  const isLastStep = actualStep === totalSteps;
 
   const handleNext = () => {
     if (wizard.skipTo) {
@@ -61,27 +58,15 @@ export default function WizardFooter() {
 
   // Validation for info step
   const canContinue = stepKey !== 'info' ||
-    (data.name?.trim().length > 0 && data.lastPeriodStart != null);
+    (data.name?.trim().length > 0 && data.lastPeriodStart != null) || true
 
   const buttonText = isLastStep ? 'Finalizar' : wizard.button;
 
   return (
-    <View
-      style={{
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: colors.moonWhite,
-        borderTopWidth: 1,
-        borderTopColor: '#e2e8f0',
-        padding: 16,
-        // paddingBottom: insets.bottom + 16,
-      }}
-    >
+    <View className='absolute bottom-0 left-0 right-0 bg-background/90 backdrop-blur-sm p-4' >
       {/* Navigation Buttons */}
       <View style={{ flexDirection: 'row', gap: 12 }}>
-        {wizard.skippable && !isFirstStep && (
+        {/* {wizard.skippable && !isFirstStep && (
           <Pressable
             onPress={handleSkip}
             style={{
@@ -98,23 +83,11 @@ export default function WizardFooter() {
           >
             <Text style={{ color: colors.textMuted, fontSize: 18, fontWeight: '600' }}>Omitir</Text>
           </Pressable>
-        )}
+        )} */}
 
         <Pressable
+          className={`h-full w-14 rounded-full  items-center justify-center bg-transparent ${isFirstStep ? 'hidden' : ''}`}
           onPress={handleBack}
-          style={{
-            flex: isFirstStep ? 0 : 1,
-            height: 56,
-            backgroundColor: 'transparent',
-            borderRadius: 9999,
-            borderWidth: 1,
-            borderColor: '#e2e8f0',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minWidth: isFirstStep ? 56 : undefined,
-            opacity: isFirstStep ? 0.5 : 1,
-          }}
           disabled={isFirstStep}
         >
           <ArrowLeft size={20} color={isFirstStep ? colors.textMuted : colors.textPrimary} />
@@ -135,13 +108,11 @@ export default function WizardFooter() {
             opacity: canContinue ? 1 : 0.6,
           }}
         >
-          <Text style={{ color: '#ffffff', fontSize: 18, fontWeight: '700' }}>
-            {buttonText}
-          </Text>
-          {!isLastStep && !isFirstStep && <ArrowRight size={20} color="#ffffff" />}
+          <Text className='text-white text-lg font-bold'>{buttonText}</Text>
+          {!isLastStep && <ArrowRight size={20} color="#ffffff" />}
         </Pressable>
       </View>
-    </View>
+    </View >
   );
 }
 

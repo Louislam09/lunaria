@@ -26,11 +26,6 @@ export default function SplashScreen() {
   return (
     <View className="flex-1 items-center justify-center px-6 relative">
       <View className="absolute left-0 right-0 top-0 bottom-0  bg-linear-to-b from-5% from-primary via-background to-background animate-curtain" />
-      {/* <LinearGradient
-        colors={[startColor, '#f6f2fa', '#f6f2fa']}
-        locations={[0.05, 0.5, 1]}
-        style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}
-      /> */}
       <View className="flex-1 justify-center items-center">
         {/* Logo / Hero Visual */}
         <View className="relative z-10">
@@ -38,8 +33,6 @@ export default function SplashScreen() {
             <Image contentFit='contain' source={require('../assets/images/bg_icon.png')} style={{ width: '100%', height: '100%' }} />
           </View>
         </View>
-
-        {/* <Slider range={[0, 1]} /> */}
 
         {/* Title & Tagline */}
         <View className="text-center space-y-4 z-10">

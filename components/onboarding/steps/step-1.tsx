@@ -53,22 +53,27 @@ export default function Step1() {
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Main Scrollable Content */}
       {/* Section 1: Introduction */}
-      <View style={{ marginBottom: 32 }}>
-        <Text style={{ fontSize: 30, fontWeight: '700', letterSpacing: -0.5, color: colors.textPrimary, marginBottom: 8 }}>
+      <View className='mb-8'>
+        <Text
+          className='text-3xl font-bold tracking-tight text-text-primary mb-2'
+        >
           Hablemos de ti
         </Text>
-        <Text style={{ color: colors.textMuted, fontSize: 16, lineHeight: 24 }}>
+        <Text
+          className='text-base text-text-muted leading-6'
+        >
           Personalicemos tu experiencia. Tus datos se guardan de forma segura solo en este dispositivo.
         </Text>
       </View>
 
       {/* Section 2: Personal Info Forms */}
-      <View style={{ marginBottom: 24 }}>
+      <View className='mb-8'>
         {/* Name Field */}
-        <View style={{ marginBottom: 24 }}>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textPrimary, marginBottom: 8, marginLeft: 4 }}>
+        <View className='mb-8'>
+          <Text
+            className='text-base font-medium text-text-primary mb-2 ml-1'
+          >
             ¿Cómo te llamas?
           </Text>
           <TextInput
@@ -149,13 +154,13 @@ export default function Step1() {
       <View style={{ height: 1, backgroundColor: '#e2e8f0', marginVertical: 24 }} />
 
       {/* Section 3: Menstrual Info */}
-      <View style={{ marginBottom: 24 }}>
+      <View className='mb-8'>
         <Text style={{ fontSize: 24, fontWeight: '700', color: colors.textPrimary, marginBottom: 24 }}>
           Tu ciclo menstrual
         </Text>
 
         {/* Last Period Field */}
-        <View style={{ marginBottom: 24 }}>
+        <View className='mb-8'>
           <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textPrimary, marginBottom: 8, marginLeft: 4 }}>
             ¿Cuándo inició tu último periodo?
           </Text>
@@ -212,7 +217,7 @@ export default function Step1() {
         </View>
 
         {/* Cycle Type Toggle */}
-        <View style={{ marginBottom: 24 }}>
+        <View className='mb-8'>
           <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textPrimary, marginBottom: 12, marginLeft: 4 }}>
             ¿Cómo es tu ciclo?
           </Text>

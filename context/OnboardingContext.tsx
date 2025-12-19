@@ -8,8 +8,8 @@ try {
   // Fallback for development
   AsyncStorage = {
     getItem: async () => null,
-    setItem: async () => {},
-    removeItem: async () => {},
+    setItem: async () => { },
+    removeItem: async () => { },
   };
 }
 
@@ -88,7 +88,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         if (parsed.birthDate) parsed.birthDate = new Date(parsed.birthDate);
         if (parsed.lastPeriodStart) parsed.lastPeriodStart = new Date(parsed.lastPeriodStart);
         setData(parsed);
-        
+
         // Check completion after loading data
         checkCompletion(parsed);
       }
@@ -190,11 +190,11 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <OnboardingContext.Provider value={{ 
-      data, 
-      updateData, 
-      reset, 
-      isComplete, 
+    <OnboardingContext.Provider value={{
+      data,
+      updateData,
+      reset,
+      isComplete,
       isLoading,
       actualStep,
       actualSubStep,

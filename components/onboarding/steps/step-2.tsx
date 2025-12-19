@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { colors } from '@/utils/colors';
-import OnboardingProgress from '@/components/ui/OnboardingProgress';
+import { Check } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
 
 const symptoms = [
   { id: 'abdominal_pain', label: 'Dolor abdominal', icon: '🫄' },
@@ -17,7 +16,6 @@ const symptoms = [
 ];
 
 export default function Step2() {
-  const insets = useSafeAreaInsets();
   const { data, updateData } = useOnboarding();
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>(data.symptoms || []);
 
@@ -34,68 +32,52 @@ export default function Step2() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.moonWhite }}>
-      {/* Top App Bar */}
-      <View style={{ paddingTop: insets.top, backgroundColor: colors.moonWhite }}>
-        <OnboardingProgress currentStep={2} />
+    <View style={{ flex: 1 }}>
+      <View className='mb-8'>
+        <Text
+          className='text-3xl font-bold tracking-tight text-text-primary mb-2'
+        >
+          ¿Cuáles son tus síntomas más comunes?
+        </Text>
+        <Text className='text-base text-text-muted leading-6'  >
+          Selecciona todo lo que aplique para mejorar tus predicciones mensuales. Este paso es opcional.
+        </Text>
       </View>
 
-      {/* Main Scrollable Content */}
-      <ScrollView style={{ flex: 1, paddingHorizontal: 24, paddingBottom: 128, paddingTop: 16 }} showsVerticalScrollIndicator={false}>
-        {/* Header Text */}
-        <View style={{ marginBottom: 32 }}>
-          <Text style={{ fontSize: 30, fontWeight: '700', letterSpacing: -0.5, color: colors.textPrimary, marginBottom: 8 }}>
-            ¿Cuáles son tus síntomas más comunes?
-          </Text>
-          <Text style={{ color: colors.textMuted, fontSize: 16, lineHeight: 24 }}>
-            Selecciona todo lo que aplique para mejorar tus predicciones mensuales. Este paso es opcional.
-          </Text>
-        </View>
-
-        {/* Symptoms Grid */}
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>
-          {symptoms.map((symptom) => {
-            const isSelected = selectedSymptoms.includes(symptom.id);
-            return (
-              <Pressable
-                key={symptom.id}
-                onPress={() => toggleSymptom(symptom.id)}
-                style={{
-                  width: '48%',
-                  padding: 16,
-                  borderRadius: 16,
-                  backgroundColor: '#ffffff',
-                  borderWidth: isSelected ? 2 : 1,
-                  borderColor: isSelected ? colors.lavender : '#e2e8f0',
-                  marginBottom: 12,
-                }}
-              >
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                  <View style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 24,
-                    backgroundColor: isSelected ? `${colors.lavender}1A` : '#f1f5f9',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                    <Text style={{ fontSize: 24 }}>{symptom.icon}</Text>
-                  </View>
-                  {isSelected ? (
-                    <Text style={{ fontSize: 20, color: colors.lavender }}>✓</Text>
-                  ) : (
-                    <View style={{ width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#e2e8f0' }} />
-                  )}
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>
+        {symptoms.map((symptom) => {
+          const isSelected = selectedSymptoms.includes(symptom.id);
+          return (
+            <Pressable
+              key={symptom.id}
+              onPress={() => toggleSymptom(symptom.id)}
+              className={`w-[48%] p-4 rounded-2xl bg-white  border-2  ${isSelected ? 'border-primary' : 'border-gray-200'}  items-center justify-center`}
+            >
+              <View className='flex-row justify-between items-start mb-3 relative'  >
+                <View
+                  className={`size-12 rounded-full items-center justify-center ${isSelected ? 'bg-primary/80' : 'bg-gray-200'}`}
+                >
+                  <Text className='text-2xl'>{symptom.icon}</Text>
                 </View>
-                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.textPrimary }}>
-                  {symptom.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-        <View style={{ height: 200, backgroundColor: 'transparent', width: '100%' }} />
-      </ScrollView>
+              </View>
+
+              <Text className='text-base font-medium text-text-primary text-center'  >
+                {symptom.label}
+              </Text>
+
+              <View
+                className={`absolute top-3 right-3 size-6 rounded-full border-2 
+               flex items-center justify-center transition-colors ${isSelected ? 'border-primary bg-primary' : 'border-gray-300 bg-transparent'}`}
+              >
+                {isSelected && (
+                  <Check size={20} color={colors.moonWhite} strokeWidth={4} />
+                )}
+              </View>
+            </Pressable>
+          );
+        })}
+      </View>
+      <View style={{ height: 200, backgroundColor: 'transparent', width: '100%' }} />
     </View>
   );
 }

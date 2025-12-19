@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useOnboarding, ContraceptiveMethod } from '@/context/OnboardingContext';
+import { ContraceptiveMethod, useOnboarding } from '@/context/OnboardingContext';
 import { colors } from '@/utils/colors';
-import OnboardingProgress from '@/components/ui/OnboardingProgress';
+import { Check } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
 
 const contraceptiveMethods: { id: ContraceptiveMethod; label: string; icon: string }[] = [
   { id: 'none', label: 'Ninguno', icon: '🚫' },
@@ -17,7 +16,6 @@ const contraceptiveMethods: { id: ContraceptiveMethod; label: string; icon: stri
 ];
 
 export default function Step4() {
-  const insets = useSafeAreaInsets();
   const { data, updateData } = useOnboarding();
   const [selectedMethod, setSelectedMethod] = useState<ContraceptiveMethod | undefined>(
     data.contraceptiveMethod || 'none'
@@ -30,72 +28,44 @@ export default function Step4() {
   }, [selectedMethod]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.moonWhite }}>
-      {/* Top App Bar */}
-      <View style={{ paddingTop: insets.top, backgroundColor: colors.moonWhite }}>
-        <OnboardingProgress currentStep={4} />
+    <View style={{ flex: 1 }}>
+
+
+      {/* Text Section */}
+      <View className='mb-8'>
+        <Text className='text-3xl font-bold tracking-tight text-text-primary mb-2'>
+          ¿Usas algún método anticonceptivo?
+        </Text>
+        <Text className='text-text-muted text-base leading-relaxed'>
+          Esto nos ayuda a mejorar tus predicciones y personalizar tu experiencia. Este paso es opcional.
+        </Text>
       </View>
 
-      {/* Main Scrollable Content */}
-      <ScrollView style={{ flex: 1, paddingHorizontal: 24, paddingBottom: 128, paddingTop: 16 }} showsVerticalScrollIndicator={false}>
-        {/* Text Section */}
-        <View style={{ marginBottom: 32 }}>
-          <Text style={{ fontSize: 30, fontWeight: '700', letterSpacing: -0.5, color: colors.textPrimary, marginBottom: 8 }}>
-            ¿Usas algún método anticonceptivo?
-          </Text>
-          <Text style={{ color: colors.textMuted, fontSize: 16, lineHeight: 24 }}>
-            Esto nos ayuda a mejorar tus predicciones y personalizar tu experiencia. Este paso es opcional.
-          </Text>
-        </View>
+      {/* Options Grid */}
+      <View className='flex-row flex-wrap gap-3 mb-6'>
+        {contraceptiveMethods.map((method) => (
+          <Pressable
+            key={method.id}
+            onPress={() => setSelectedMethod(method.id)}
+            className={`w-[48%] p-4 rounded-2xl bg-white  border-2  ${selectedMethod === method.id ? 'border-primary' : 'border-gray-200'}   items-center justify-center`}
+          >
+            <View className={`size-12  rounded-full items-center justify-center ${selectedMethod === method.id ? 'bg-primary/80' : 'bg-gray-200'} mb-3`} >
+              <Text className='text-2xl'>{method.icon}</Text>
+            </View>
+            <Text className='text-base font-medium text-text-primary text-center'  > {method.label}  </Text>
 
-        {/* Options Grid */}
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>
-          {contraceptiveMethods.map((method) => (
-            <Pressable
-              key={method.id}
-              onPress={() => setSelectedMethod(method.id)}
-              style={{
-                width: '48%',
-                padding: 16,
-                borderRadius: 16,
-                backgroundColor: '#ffffff',
-                borderWidth: selectedMethod === method.id ? 2 : 1,
-                borderColor: selectedMethod === method.id ? colors.lavender : '#e2e8f0',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: 12,
-                position: 'relative',
-              }}
+            <View
+              className={`absolute top-3 right-3 size-6 rounded-full border-2 
+               flex items-center justify-center transition-colors ${selectedMethod === method.id ? 'border-primary bg-primary' : 'border-gray-300 bg-transparent'}`}
             >
-              <View style={{
-                width: 48,
-                height: 48,
-                borderRadius: 24,
-                backgroundColor: selectedMethod === method.id ? `${colors.lavender}1A` : '#f1f5f9',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: 12,
-              }}>
-                <Text style={{ fontSize: 24 }}>{method.icon}</Text>
-              </View>
-              <Text style={{
-                fontSize: 14,
-                fontWeight: '600',
-                color: selectedMethod === method.id ? colors.lavender : colors.textPrimary,
-                textAlign: 'center',
-              }}>
-                {method.label}
-              </Text>
               {selectedMethod === method.id && (
-                <View style={{ position: 'absolute', top: 12, right: 12 }}>
-                  <Text style={{ fontSize: 20, color: colors.lavender }}>✓</Text>
-                </View>
+                <Check size={20} color={colors.moonWhite} strokeWidth={4} />
               )}
-            </Pressable>
-          ))}
-        </View>
-        <View style={{ height: 200, backgroundColor: 'transparent', width: '100%' }} />
-      </ScrollView>
+            </View>
+          </Pressable>
+        ))}
+      </View>
+      <View style={{ height: 200, backgroundColor: 'transparent', width: '100%' }} />
     </View>
   );
 }

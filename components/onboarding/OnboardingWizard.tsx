@@ -19,7 +19,7 @@ export default function OnboardingWizard() {
     <View className={classname}>
       <WizardHeader />
       <ScrollView style={{ flex: 1, paddingHorizontal: 24, paddingBottom: 128, paddingTop: 16 }} showsVerticalScrollIndicator={false}>
-        <View className="h-20" />
+        <View className="h-20 " />
         <Component />
       </ScrollView>
       <WizardFooter />
