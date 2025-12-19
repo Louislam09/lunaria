@@ -30,7 +30,6 @@ export default function OnboardingProgress({ currentStep, totalSteps = 4 }: Onbo
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 24,
     paddingVertical: 12,
   },
   progressBar: {

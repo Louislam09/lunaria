@@ -20,7 +20,7 @@ export default function WizardFooter() {
   const currentStepNumber = STEPS.slice(0, actualStep).reduce((acc, s) => acc + s.subSteps.length, 0) + actualSubStep + 1;
   const progress = (currentStepNumber / totalSteps) * 100;
 
-  const isFirstStep = currentStepNumber === 1;
+  const isFirstStep = currentStepNumber === 0;
   const isLastStep = currentStepNumber === totalSteps;
 
   const handleNext = () => {
@@ -76,24 +76,9 @@ export default function WizardFooter() {
         borderTopWidth: 1,
         borderTopColor: '#e2e8f0',
         padding: 16,
-        paddingBottom: insets.bottom + 16,
+        // paddingBottom: insets.bottom + 16,
       }}
     >
-      {/* Progress Bar */}
-      <View style={{ marginBottom: 16, paddingHorizontal: 8 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-          <Text style={{ fontSize: 14, fontWeight: '500', color: colors.textMuted }}>
-            {step.title}
-          </Text>
-          <Text style={{ fontSize: 14, fontWeight: '500', color: colors.textMuted }}>
-            {Math.round(progress)}%
-          </Text>
-        </View>
-        <View style={{ height: 4, width: '100%', borderRadius: 9999, backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
-          <View style={{ height: '100%', backgroundColor: colors.lavender, borderRadius: 9999, width: `${progress}%` }} />
-        </View>
-      </View>
-
       {/* Navigation Buttons */}
       <View style={{ flexDirection: 'row', gap: 12 }}>
         {wizard.skippable && !isFirstStep && (
@@ -153,7 +138,7 @@ export default function WizardFooter() {
           <Text style={{ color: '#ffffff', fontSize: 18, fontWeight: '700' }}>
             {buttonText}
           </Text>
-          {!isLastStep && <ArrowRight size={20} color="#ffffff" />}
+          {!isLastStep && !isFirstStep && <ArrowRight size={20} color="#ffffff" />}
         </Pressable>
       </View>
     </View>
