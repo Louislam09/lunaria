@@ -11,10 +11,13 @@ import {
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "../global.css";
-
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 SplashScreen.preventAutoHideAsync();
 
 export default function Layout() {
+  const { bottom, top } = useSafeAreaInsets();
+
   const [fontsLoaded] = useFonts({
     DMSans_400Regular,
     DMSans_500Medium,
@@ -32,12 +35,14 @@ export default function Layout() {
   }
 
   return (
-    <AuthProvider>
-      <OnboardingProvider>
-        <View className="flex flex-1 bg-white">
-          <Slot />
-        </View>
-      </OnboardingProvider>
-    </AuthProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AuthProvider>
+        <OnboardingProvider>
+          <View style={{ paddingBottom: bottom, flex: 1 }}>
+            <Slot />
+          </View>
+        </OnboardingProvider>
+      </AuthProvider>
+    </GestureHandlerRootView>
   );
 }

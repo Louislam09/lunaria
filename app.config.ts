@@ -34,11 +34,11 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         slug: 'lunaria',
         version: '1.0.0',
         orientation: 'portrait',
-        icon: './assets/images/icon.png',
+        icon: './assets/images/icon.webp',
         scheme: 'lunaria',
         userInterfaceStyle: 'automatic',
         splash: {
-            image: './assets/images/splash.png',
+            image: './assets/images/splash.webp',
             resizeMode: 'contain',
             backgroundColor: '#B9A7E8',
         },
@@ -49,14 +49,14 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         },
         android: {
             adaptiveIcon: {
-                foregroundImage: './assets/images/adaptive-icon.png',
+                foregroundImage: './assets/images/adaptive-icon.webp',
                 backgroundColor: '#B9A7E8',
             },
             package: getUniqueIdentifier(),
         },
         web: {
             output: 'static',
-            favicon: './assets/images/icon.png',
+            favicon: './assets/images/icon.webp',
         },
         plugins: [
             'expo-router',

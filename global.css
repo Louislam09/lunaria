@@ -23,6 +23,18 @@
   }
 }
 
+@theme {
+  --animate-curtain: curtain 1s linear 1;
+  @keyframes curtain {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
 /* Custom font utilities for React Native */
 @layer utilities {
   /* Map Tailwind font-weight classes to DM Sans font families */
