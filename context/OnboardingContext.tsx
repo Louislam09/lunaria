@@ -1,17 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-// AsyncStorage - using same pattern as AuthContext
-let AsyncStorage: any;
-try {
-  AsyncStorage = require('@react-native-async-storage/async-storage').default;
-} catch {
-  // Fallback for development
-  AsyncStorage = {
-    getItem: async () => null,
-    setItem: async () => { },
-    removeItem: async () => { },
-  };
-}
+import Storage from 'expo-sqlite/kv-store';
 
 export type ContraceptiveMethod =
   | 'none'
@@ -76,10 +64,10 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const loadData = async () => {
     try {
       const [savedData, completeStatus, savedStep, savedSubStep] = await Promise.all([
-        AsyncStorage.getItem(STORAGE_KEY),
-        AsyncStorage.getItem(COMPLETE_KEY),
-        AsyncStorage.getItem(STEP_KEY),
-        AsyncStorage.getItem(SUBSTEP_KEY),
+        Storage.getItem(STORAGE_KEY),
+        Storage.getItem(COMPLETE_KEY),
+        Storage.getItem(STEP_KEY),
+        Storage.getItem(SUBSTEP_KEY),
       ]);
 
       if (savedData) {
@@ -114,7 +102,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const setActualStep = async (step: number) => {
     setActualStepState(step);
     try {
-      await AsyncStorage.setItem(STEP_KEY, step.toString());
+      await Storage.setItem(STEP_KEY, step.toString());
     } catch (error) {
       console.error('Error saving step:', error);
     }
@@ -123,7 +111,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const setActualSubStep = async (subStep: number) => {
     setActualSubStepState(subStep);
     try {
-      await AsyncStorage.setItem(SUBSTEP_KEY, subStep.toString());
+      await Storage.setItem(SUBSTEP_KEY, subStep.toString());
     } catch (error) {
       console.error('Error saving substep:', error);
     }
@@ -136,7 +124,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     // Persist to storage
     try {
       const dataToStore = JSON.stringify(newData);
-      await AsyncStorage.setItem(STORAGE_KEY, dataToStore);
+      await Storage.setItem(STORAGE_KEY, dataToStore);
     } catch (error) {
       console.error('Error saving onboarding data:', error);
     }
@@ -165,7 +153,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     if (allRequired) {
       setIsComplete(true);
       try {
-        await AsyncStorage.setItem(COMPLETE_KEY, 'true');
+        await Storage.setItem(COMPLETE_KEY, 'true');
       } catch (error) {
         console.error('Error saving completion status:', error);
       }
@@ -180,10 +168,10 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     setActualStepState(0);
     setActualSubStepState(0);
     try {
-      await AsyncStorage.removeItem(STORAGE_KEY);
-      await AsyncStorage.removeItem(COMPLETE_KEY);
-      await AsyncStorage.removeItem(STEP_KEY);
-      await AsyncStorage.removeItem(SUBSTEP_KEY);
+      await Storage.removeItem(STORAGE_KEY);
+      await Storage.removeItem(COMPLETE_KEY);
+      await Storage.removeItem(STEP_KEY);
+      await Storage.removeItem(SUBSTEP_KEY);
     } catch (error) {
       console.error('Error resetting onboarding data:', error);
     }

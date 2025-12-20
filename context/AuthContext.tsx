@@ -1,18 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { pb } from '@/services/pocketbase';
-
-// AsyncStorage - install @react-native-async-storage/async-storage
-let AsyncStorage: any;
-try {
-  AsyncStorage = require('@react-native-async-storage/async-storage').default;
-} catch {
-  // Fallback for development
-  AsyncStorage = {
-    getItem: async () => null,
-    setItem: async () => {},
-    removeItem: async () => {},
-  };
-}
+import Storage from 'expo-sqlite/kv-store';
 
 interface User {
   id: string;
@@ -42,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     try {
-      const authData = await AsyncStorage.getItem('authData');
+      const authData = await Storage.getItem('authData');
       if (authData) {
         const parsed = JSON.parse(authData);
         pb.authStore.save(parsed.token, parsed.model);
@@ -65,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginEmail = async (email: string, password: string) => {
     try {
       const authData = await pb.collection('users').authWithPassword(email, password);
-      await AsyncStorage.setItem('authData', JSON.stringify({
+      await Storage.setItem('authData', JSON.stringify({
         token: pb.authStore.token,
         model: pb.authStore.model,
       }));
@@ -83,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginGoogle = async () => {
     try {
       const authData = await pb.collection('users').authWithOAuth2({ provider: 'google' });
-      await AsyncStorage.setItem('authData', JSON.stringify({
+      await Storage.setItem('authData', JSON.stringify({
         token: pb.authStore.token,
         model: pb.authStore.model,
       }));
@@ -102,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     pb.authStore.clear();
-    await AsyncStorage.removeItem('authData');
+    await Storage.removeItem('authData');
     setIsAuthenticated(false);
     setUser(null);
   };
