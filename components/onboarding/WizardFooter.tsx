@@ -1,11 +1,10 @@
-import React from 'react';
-import { View, Text, Pressable } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, ArrowRight } from 'lucide-react-native';
-import { router } from 'expo-router';
+import { ALL_STEPS, STEPS } from '@/constants/onboarding';
 import { useOnboarding } from '@/context/OnboardingContext';
-import { STEPS, ALL_STEPS } from '@/constants/onboarding';
 import { colors } from '@/utils/colors';
+import { router } from 'expo-router';
+import { ArrowLeft, ArrowRight } from 'lucide-react-native';
+import React from 'react';
+import { Pressable, Text, View } from 'react-native';
 
 export default function WizardFooter() {
   const { actualStep, actualSubStep, setActualStep, setActualSubStep, data } = useOnboarding();
@@ -58,33 +57,13 @@ export default function WizardFooter() {
 
   // Validation for info step
   const canContinue = stepKey !== 'info' ||
-    (data.name?.trim().length > 0 && data.lastPeriodStart != null) || true
+    (data.name?.trim().length > 0 && data.lastPeriodStart != null)
 
   const buttonText = isLastStep ? 'Finalizar' : wizard.button;
 
   return (
     <View className='absolute bottom-0 left-0 right-0 bg-background/90 backdrop-blur-sm p-4' >
-      {/* Navigation Buttons */}
-      <View style={{ flexDirection: 'row', gap: 12 }}>
-        {/* {wizard.skippable && !isFirstStep && (
-          <Pressable
-            onPress={handleSkip}
-            style={{
-              flex: 1,
-              height: 56,
-              backgroundColor: 'transparent',
-              borderRadius: 9999,
-              borderWidth: 1,
-              borderColor: '#e2e8f0',
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text style={{ color: colors.textMuted, fontSize: 18, fontWeight: '600' }}>Omitir</Text>
-          </Pressable>
-        )} */}
-
+      <View className='flex-row gap-3' >
         <Pressable
           className={`h-full w-14 rounded-full  items-center justify-center bg-transparent ${isFirstStep ? 'hidden' : ''}`}
           onPress={handleBack}

@@ -1,27 +1,23 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, Switch, Image } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useOnboarding } from '@/context/OnboardingContext';
+import { ProfileCard } from '@/components/settings/ProfileCard';
+import { SettingsItem } from '@/components/settings/SettingsItem';
+import { SettingsSection } from '@/components/settings/SettingsSection';
+import { ToggleRow } from '@/components/settings/ToggleRow';
+import MyIcon from '@/components/ui/Icon';
 import { useAuth } from '@/context/AuthContext';
-import {
-  Bell,
-  Droplet,
-  RefreshCw,
-  TrendingUp,
-  Download,
-  Lock,
-  Edit,
-  ChevronRight,
-  Settings as SettingsIcon
-} from 'lucide-react-native';
-import { router } from 'expo-router';
+import { useOnboarding } from '@/context/OnboardingContext';
 import { colors } from '@/utils/colors';
+import { formatDate } from '@/utils/dates';
+import Constants from 'expo-constants';
+import { router } from 'expo-router';
+import { Bell } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function SettingsScreen() {
-  const insets = useSafeAreaInsets();
+  const version = Constants.expoConfig?.version;
   const { data } = useOnboarding();
   const { user, logout } = useAuth();
-
+  const { averageCycleLength, cycleRangeMin, cycleRangeMax, periodLength } = data;
   const [remindersEnabled, setRemindersEnabled] = useState(true);
   const [aiPredictionEnabled, setAiPredictionEnabled] = useState(true);
 
@@ -36,192 +32,110 @@ export default function SettingsScreen() {
   return (
     <View className="flex-1 bg-background">
       {/* Header */}
-      <View
-        className="flex-row items-center bg-white px-6 pt-6 pb-2 justify-between sticky top-0 z-20"
-        style={{ paddingTop: insets.top + 24 }}
-      >
-        <Text className="text-text-primary text-2xl font-bold leading-tight tracking-tight">
+      <View className="absolute top-0 left-0 right-0 z-20 flex-row items-center justify-between px-6 pt-6 pb-2 bg-background/90 backdrop-blur-sm">
+        <Text className="text-2xl font-bold text-text-primary">
           Perfil
         </Text>
-        <View className="flex-row items-center justify-end gap-3">
-          <Pressable className="flex items-center justify-center rounded-full h-10 w-10 bg-background">
-            <Bell size={20} color={colors.textPrimary} />
-          </Pressable>
-        </View>
+
+        <TouchableOpacity className="h-10 w-10 items-center justify-center rounded-full bg-background">
+          {/* <Bell size={24} color={colors.textPrimary} /> */}
+          <MyIcon name="Bell" className="text-text-primary" />
+        </TouchableOpacity>
       </View>
 
-      <ScrollView className="flex-1 px-4 pt-2 pb-6" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 120 }}
+        className="px-4"
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="h-20 " />
         {/* Profile Card */}
-        <View className="mt-4">
-          <View className="flex flex-col items-center justify-center rounded-[2.5rem] bg-white p-6 shadow-lg border border-gray-100 relative overflow-hidden">
-            <View className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl" />
-            <View className="relative z-10 flex flex-col items-center text-center">
-              {/* Profile Picture */}
-              <View className="relative mb-4">
-                <View
-                  className="h-28 w-28 rounded-full border-4 border-white shadow-md overflow-hidden"
-                  style={{ backgroundColor: '#fce7f3' }}
-                >
-                  <View className="h-full w-full bg-pink-200" />
-                </View>
-                <Pressable
-                  className="absolute bottom-1 right-1 h-8 w-8 flex items-center justify-center bg-primary rounded-full border-2 border-white shadow-sm"
-                  style={{
-                    position: 'absolute',
-                    bottom: 4,
-                    right: 4,
-                    height: 32,
-                    width: 32,
-                    borderRadius: 16,
-                    backgroundColor: colors.lavender,
-                    borderWidth: 2,
-                    borderColor: '#ffffff',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Edit size={14} color="#ffffff" />
-                </Pressable>
-              </View>
+        <ProfileCard
+          name={userName}
+          email={userEmail}
+          avatarUrl="https://lh3.googleusercontent.com/aida-public/AB6AXuAN6IrQ_FpbYLpB4Usi_IRFDz-jqCFglsJmCLRaWMXZNIpdGZkAGLIZOdN2DoX8QRSVfk206Zu57M_TwasxtCmJW2l17m2IkaRyXZQuXclAIh6oBeqsuHP8Z5Iz3v-s4e3ktrVmnvbLXqNezeNjLiW4AKoOgu3pWM8y-SCbQDhPS84KiCrcmxOul4wliFLLJAC3cNSNIjOE9riaJkGZi0a2nkJmIISwRpUsMq4RYmHP0_HldgRG9RIBxyT7KhFHBHFSB89wa0kSCDc"
+          isPremium
+        />
 
-              <Text className="text-text-primary text-xl font-bold">{userName}</Text>
-              <Text className="text-text-muted text-sm font-medium mt-1">{userEmail}</Text>
+        {/* Mi Ciclo */}
+        <SettingsSection title="Mi Ciclo">
+          <SettingsItem
+            icon="Droplet"
+            iconBg="bg-blue-100"
+            iconColor="text-blue-500"
+            title="Duración del periodo"
+            subtitle={`${periodLength} día${periodLength > 1 ? 's' : ''}`}
+          />
+          <SettingsItem
+            icon="RefreshCw"
+            iconBg="bg-blue-100"
+            iconColor="text-blue-500"
+            title="Duración del ciclo"
+            subtitle={`${averageCycleLength} día${averageCycleLength > 1 ? 's' : ''}`}
+            showDivider
+          />
+          <SettingsItem
+            icon="CalendarDays"
+            iconBg="bg-blue-100"
+            iconColor="text-blue-500"
+            title="Último periodo"
+            subtitle={`${formatDate(data.lastPeriodStart, 'long')}`}
+            showDivider={false}
+            showChevron={false}
+          />
+        </SettingsSection>
 
-              {/* Premium Badge */}
-              <View className="mt-4 flex gap-3">
-                <View className="px-4 py-1.5 bg-primary/10 rounded-full">
-                  <Text className="text-primary text-xs font-bold uppercase tracking-wide">
-                    Premium
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        </View>
+        {/* Preferencias */}
+        <SettingsSection title="Preferencias">
+          <ToggleRow
+            icon="Bell"
+            iconBg="bg-pink-100"
+            iconColor="text-pink-500"
+            title="Recordatorios"
+            subtitle="Inicio y ovulación"
+            value={remindersEnabled}
+            onChange={setRemindersEnabled}
+          />
+          <ToggleRow
+            icon="Sparkles"
+            iconBg="bg-purple-100"
+            iconColor="text-purple-500"
+            title="Predicción Inteligente"
+            subtitle="Usar IA para análisis"
+            value={aiPredictionEnabled}
+            onChange={setAiPredictionEnabled}
+            showDivider={false}
+          />
+        </SettingsSection>
 
-        {/* Mi Ciclo Section */}
-        <View className="mt-6">
-          <Text className="px-2 mb-3 text-lg font-bold text-text-primary">Mi Ciclo</Text>
-          <View className="flex flex-col bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
-            <Pressable className="flex-row items-center justify-between p-4 pl-5 border-b border-gray-50">
-              <View className="flex-row items-center gap-4">
-                <View className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
-                  <Droplet size={20} color={colors.lavender} />
-                </View>
-                <View className="text-left">
-                  <Text className="font-bold text-text-primary text-sm">Duración del periodo</Text>
-                  <Text className="text-xs text-text-muted font-medium">
-                    {data.periodLength || 5} días
-                  </Text>
-                </View>
-              </View>
-              <ChevronRight size={20} color="#9ca3af" />
-            </Pressable>
+        {/* Datos */}
+        <SettingsSection title="Datos">
+          <SettingsItem
+            icon="Download"
+            iconBg="bg-orange-100"
+            iconColor="text-orange-500"
+            title="Exportar Reporte"
+          />
+          <SettingsItem
+            icon="LockKeyhole"
+            iconBg="bg-gray-100"
+            iconColor="text-gray-500"
+            title="Privacidad y Seguridad"
+            showDivider={false}
+          />
+        </SettingsSection>
 
-            <Pressable className="flex-row items-center justify-between p-4 pl-5">
-              <View className="flex-row items-center gap-4">
-                <View className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
-                  <RefreshCw size={20} color={colors.lavender} />
-                </View>
-                <View className="text-left">
-                  <Text className="font-bold text-text-primary text-sm">Duración del ciclo</Text>
-                  <Text className="text-xs text-text-muted font-medium">
-                    {data.cycleType === 'regular' && data.averageCycleLength
-                      ? `${data.averageCycleLength} días`
-                      : data.cycleRangeMin && data.cycleRangeMax
-                        ? `${data.cycleRangeMin}-${data.cycleRangeMax} días`
-                        : '28 días'}
-                  </Text>
-                </View>
-              </View>
-              <ChevronRight size={20} color="#9ca3af" />
-            </Pressable>
-          </View>
-        </View>
+        {/* Footer */}
+        <View className="mt-10 items-center gap-3">
+          <TouchableOpacity className="w-full max-w-[200px] py-5 font-bold text-sm bg-red-100 rounded-full transition-colors" onPress={handleLogout}>
+            <Text className="text-center text-base font-bold text-red-500">
+              Cerrar Sesión
+            </Text>
+          </TouchableOpacity>
 
-        {/* Preferencias Section */}
-        <View className="mt-6">
-          <Text className="px-2 mb-3 text-lg font-bold text-text-primary">Preferencias</Text>
-          <View className="flex flex-col bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
-            <View className="flex-row items-center justify-between p-4 pl-5 border-b border-gray-50">
-              <View className="flex-row items-center gap-4">
-                <View className="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center">
-                  <Bell size={20} color="#ec4899" />
-                </View>
-                <View>
-                  <Text className="font-bold text-text-primary text-sm">Recordatorios</Text>
-                  <Text className="text-xs text-text-muted font-medium">Inicio y ovulación</Text>
-                </View>
-              </View>
-              <Switch
-                value={remindersEnabled}
-                onValueChange={setRemindersEnabled}
-                trackColor={{ false: '#e5e7eb', true: colors.lavender }}
-                thumbColor="#ffffff"
-              />
-            </View>
-
-            <View className="flex-row items-center justify-between p-4 pl-5">
-              <View className="flex-row items-center gap-4">
-                <View className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center">
-                  <TrendingUp size={20} color="#a855f7" />
-                </View>
-                <View>
-                  <Text className="font-bold text-text-primary text-sm">Predicción Inteligente</Text>
-                  <Text className="text-xs text-text-muted font-medium">Usar IA para análisis</Text>
-                </View>
-              </View>
-              <Switch
-                value={aiPredictionEnabled}
-                onValueChange={setAiPredictionEnabled}
-                trackColor={{ false: '#e5e7eb', true: colors.lavender }}
-                thumbColor="#ffffff"
-              />
-            </View>
-          </View>
-        </View>
-
-        {/* Datos Section */}
-        <View className="mt-6">
-          <Text className="px-2 mb-3 text-lg font-bold text-text-primary">Datos</Text>
-          <View className="flex flex-col bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
-            <Pressable className="flex-row items-center justify-between p-4 pl-5 border-b border-gray-50">
-              <View className="flex-row items-center gap-4">
-                <View className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center">
-                  <Download size={20} color="#f97316" />
-                </View>
-                <View className="text-left">
-                  <Text className="font-bold text-text-primary text-sm">Exportar Reporte</Text>
-                </View>
-              </View>
-              <ChevronRight size={20} color="#9ca3af" />
-            </Pressable>
-
-            <Pressable className="flex-row items-center justify-between p-4 pl-5">
-              <View className="flex-row items-center gap-4">
-                <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                  <Lock size={20} color="#6b7280" />
-                </View>
-                <View className="text-left">
-                  <Text className="font-bold text-text-primary text-sm">Privacidad y Seguridad</Text>
-                </View>
-              </View>
-              <ChevronRight size={20} color="#9ca3af" />
-            </Pressable>
-          </View>
-        </View>
-
-        {/* Logout Button and Version */}
-        <View className="mt-8 mb-20 flex flex-col items-center justify-center gap-3">
-          <Pressable
-            onPress={handleLogout}
-            className="w-full max-w-[200px] py-3 text-red-500 font-bold text-sm bg-red-50 rounded-xl"
-          >
-            <Text className="text-red-500 font-bold text-sm text-center">Cerrar Sesión</Text>
-          </Pressable>
-          <View className="flex flex-col items-center">
-            <Text className="text-xs font-medium text-text-muted">Versión 2.4.0</Text>
-          </View>
+          <Text className="text-sm font-medium text-text-muted">
+            Versión {version}
+          </Text>
         </View>
       </ScrollView>
     </View>

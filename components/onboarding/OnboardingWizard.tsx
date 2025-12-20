@@ -1,10 +1,9 @@
-import React from 'react';
-import { ScrollView, View } from 'react-native';
-import { useOnboarding } from '@/context/OnboardingContext';
-import { STEPS } from '@/constants/onboarding';
 import WizardFooter from '@/components/onboarding/WizardFooter';
 import WizardHeader from '@/components/onboarding/WizardHeader';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { STEPS } from '@/constants/onboarding';
+import { useOnboarding } from '@/context/OnboardingContext';
+import React from 'react';
+import { ScrollView, View } from 'react-native';
 
 export default function OnboardingWizard() {
   const { actualStep, actualSubStep } = useOnboarding();

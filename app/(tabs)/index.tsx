@@ -1,10 +1,15 @@
-import React from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
-import { Link, router } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MyImage } from '@/components/ui';
+import MyIcon from '@/components/ui/Icon';
 import { useOnboarding } from '@/context/OnboardingContext';
-import { getNextPeriodDate, getCycleDay, getCyclePhase, getFertileWindow } from '@/utils/predictions';
-import { formatDate, getDaysUntil } from '@/utils/dates';
+import { colors } from '@/utils/colors';
+import { getDaysUntil } from '@/utils/dates';
+import { getCycleDay, getCyclePhase, getFertileWindow, getNextPeriodDate } from '@/utils/predictions';
+import { router } from 'expo-router';
+import React from 'react';
+import { Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Circle } from 'react-native-svg';
+
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -109,202 +114,172 @@ export default function HomeScreen() {
     return { level: 'low', label: 'Bajo', color: 'green' };
   };
 
+  const resumeInsights = [
+    { emoji: "☀️", icon: "Sun", title: "Estado de ánimo", text: "Es normal sentirse más introspectiva hoy.", iconBg: "bg-orange-100", iconColor: "text-orange-600" },
+    { emoji: "💖", icon: "Heart", title: "Recomendación", text: "Ideal para yoga suave o meditación.", iconBg: "bg-purple-100", iconColor: "text-purple-600" }
+  ];
+
   const risk = getPregnancyRisk();
 
+
   return (
-    <View className="flex-1 bg-white">
-      {/* Top App Bar */}
-      <View className="flex-row items-center bg-white p-4 pb-2 justify-between" style={{ paddingTop: insets.top + 16 }}>
-        <View className="flex flex-col">
-          <Text className="text-sm text-text-muted font-medium">{getGreeting()}</Text>
-          <Text className="text-text-primary text-2xl font-bold leading-tight tracking-tight">Hola, {userName}</Text>
+    <View className="flex-1 bg-background">
+
+      {/* Header */}
+      <View className="px-4 pt-6 pb-2 flex-row justify-between items-center">
+        <View>
+          <Text className="text-sm text-gray-500">{getGreeting()}</Text>
+          <Text className="text-2xl font-bold text-text-primary">
+            Hola, {userName}
+          </Text>
         </View>
-        <View className="flex-row items-center justify-end gap-3">
-          <Pressable className="flex items-center justify-center rounded-full h-10 w-10 bg-background">
-            <Text className="text-text-primary text-2xl">🔔</Text>
+
+        <View className="flex-row gap-3">
+          <Pressable className="h-10 w-10 rounded-full bg-background items-center justify-center">
+            <MyIcon name="Bell" size={24} className="text-text-primary fill-white" />
           </Pressable>
-          <Pressable className="flex items-center justify-center overflow-hidden rounded-full h-10 w-10 bg-background">
-            <View className="h-full w-full bg-gray-300 rounded-full" />
-          </Pressable>
+
+          <MyImage
+            source={{ uri: "https://i.pravatar.cc/100" }}
+            contentFit="contain"
+            className="h-10 w-10 rounded-full"
+          />
         </View>
       </View>
 
-      {/* Main Content Scroll Area */}
-      <ScrollView className="flex-1 px-4 pt-2 pb-6" showsVerticalScrollIndicator={false}>
-        {/* Hero Card: Next Period */}
-        <View className="mt-4">
-          <View className="flex flex-col items-center justify-center rounded-[2.5rem] bg-white p-6 shadow-lg border border-gray-100 relative overflow-hidden">
-            {/* Background decorative blobs */}
-            <View className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl" />
-            <View className="absolute -bottom-10 -left-10 w-32 h-32 bg-secondary/10 rounded-full blur-2xl" />
+      {/* Scroll content */}
+      <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
 
-            <View className="relative z-10 flex flex-col items-center text-center">
-              <Text className="text-text-muted text-sm font-medium uppercase tracking-wider mb-4">
-                Próximo periodo
+        {/* Next period card */}
+        <View className="mt-6 bg-background rounded-[40px] p-6 items-center">
+          <Text className="uppercase text-base font-medium text-text-muted mb-4">
+            Próximo periodo
+          </Text>
+
+          {/* Circular counter */}
+          <View className="w-50 h-50 items-center justify-center">
+            <Svg width="100%" height="100%" viewBox="0 0 100 100">
+              <Circle
+                cx="50"
+                cy="50"
+                r="42"
+                stroke="#e5e7eb"
+                strokeWidth="6"
+                fill="none"
+              />
+              <Circle
+                cx="50"
+                cy="50"
+                r="42"
+                stroke={colors.lavender}
+                strokeWidth="6"
+                strokeDasharray="264"
+                strokeDashoffset="60"
+                strokeLinecap="round"
+                fill="none"
+                rotation="-90"
+                origin="50,50"
+              />
+            </Svg>
+
+            <View className="absolute items-center">
+              <Text className="text-6xl font-bold text-text-primary">
+                5
               </Text>
-
-              {/* Circular Progress / Countdown Visualization */}
-              <View className="relative flex items-center justify-center w-48 h-48 mb-4">
-                {/* Simplified circular progress */}
-                <View className="absolute inset-0 rounded-full border-8 border-gray-100" />
-                <View
-                  className="absolute inset-0 rounded-full border-8 border-primary"
-                  style={{
-                    borderTopColor: 'transparent',
-                    borderRightColor: 'transparent',
-                    transform: [{ rotate: '-90deg' }],
-                  }}
-                />
-                <View className="absolute inset-0 flex flex-col items-center justify-center">
-                  <Text className="text-6xl font-bold text-text-primary tracking-tighter">
-                    {daysUntilPeriod > 0 ? daysUntilPeriod : 0}
-                  </Text>
-                  <Text className="text-sm font-medium text-text-muted mt-1">días</Text>
-                </View>
-              </View>
-
-              <View className="flex flex-col gap-1 items-center">
-                {nextPeriodResult.range ? (
-                  <>
-                    <Text className="text-text-primary text-lg font-bold">
-                      {formatDate(nextPeriodResult.range.start, 'short')} - {formatDate(nextPeriodResult.range.end, 'short')}
-                    </Text>
-                    <Text className="text-orange-600 text-sm font-medium bg-orange-100 px-3 py-1 rounded-full">
-                      Predicción aproximada
-                    </Text>
-                  </>
-                ) : (
-                  <>
-                    <Text className="text-text-primary text-lg font-bold">
-                      {formatDate(nextPeriodResult.date, 'long')}
-                    </Text>
-                    <Text className="text-primary text-sm font-medium bg-primary/10 px-3 py-1 rounded-full">
-                      Predicción regular
-                    </Text>
-                  </>
-                )}
-              </View>
+              <Text className="text-text-muted">días</Text>
             </View>
+          </View>
+
+          <Text className="text-lg font-bold mt-4 text-text-primary">
+            Jueves, 24 de Octubre
+          </Text>
+
+          <View className="mt-2 px-3 py-1 w-fit rounded-full bg-primary/20">
+            <Text className="text-primary text-sm font-bold">
+              Predicción {data.cycleType === 'regular' ? 'regular' : 'irregular'}
+            </Text>
           </View>
         </View>
 
-        {/* Action Panel: Current Phase */}
-        <View className="mt-6">
-          <View className="flex flex-col gap-4 p-5 rounded-[2rem] bg-primary/5 border border-primary/10">
-            <View className="flex items-start justify-between">
-              <View className="flex flex-col gap-1">
-                <View className="flex-row items-center gap-2 mb-1">
-                  <Text className="text-primary text-xl">💧</Text>
-                  <Text className="text-primary text-sm font-bold uppercase tracking-wide">
-                    Estado Actual
-                  </Text>
-                </View>
-                <Text className="text-text-primary text-2xl font-bold leading-tight">{getPhaseName(phase)}</Text>
-                <Text className="text-text-muted text-base font-normal leading-normal mt-1">
-                  {getPhaseDescription(phase, cycleDay)}
-                </Text>
-              </View>
-            </View>
-            <Link href="/registro" asChild>
-              <Pressable className="w-full flex-row items-center justify-center gap-2 rounded-full h-12 bg-primary shadow-lg">
-                <Text className="text-xl">✏️</Text>
-                <Text className="text-white text-base font-bold">Registrar síntomas</Text>
-              </Pressable>
-            </Link>
+        {/* Current phase */}
+        <View className="w-full mt-6 bg-primary/10 rounded-[32px] p-5 shadow-md border border-primary/10 relative ">
+          <View className='w-full h-full absolute inset-0 bg-white/70 m-5 rounded-3xl blur-sm' />
+
+          <View className="flex-row items-center gap-2 mb-3">
+            <MyIcon name="Droplet" size={20} className="text-primary fill-primary" />
+
+            <Text className="text-primary font-bold uppercase text-sm">
+              Estado actual
+            </Text>
           </View>
+
+          <Text className="text-2xl font-bold text-text-primary">
+            Fase Lútea
+          </Text>
+
+          <Text className="text-text-muted mt-2">
+            Día 19 del ciclo. Tu energía puede empezar a disminuir.
+          </Text>
+
+          <Pressable className="w-full mt-5 bg-primary py-5 rounded-full items-center justify-center flex-row gap-2">
+            <MyIcon name="NotebookPen" size={20} className="text-white " />
+            <Text className="text-white font-bold text-base">
+              Registrar síntomas
+            </Text>
+          </Pressable>
         </View>
 
-        {/* Risk Card & Stats Row */}
-        <View className="mt-6">
-          {/* Pregnancy Risk Card */}
-          <View className="flex-row items-center justify-between gap-4 p-5 rounded-[2rem] bg-white shadow-sm border border-gray-100">
-            <View className="flex flex-col gap-2">
-              <View className="flex-row items-center gap-2">
-                <Text className="text-gray-400 text-xl">👶</Text>
-                <Text className="text-text-primary text-base font-bold">Riesgo de embarazo</Text>
-              </View>
-              <View className={`inline-flex self-start flex-row items-center gap-1.5 px-3 py-1 rounded-full ${risk.color === 'green' ? 'bg-green-100' :
-                risk.color === 'orange' ? 'bg-orange-100' :
-                  risk.color === 'red' ? 'bg-red-100' :
-                    risk.color === 'purple' ? 'bg-purple-100' :
-                      'bg-gray-100'
-                }`}>
-                <View className={`w-2 h-2 rounded-full ${risk.color === 'green' ? 'bg-green-500' :
-                  risk.color === 'orange' ? 'bg-orange-500' :
-                    risk.color === 'red' ? 'bg-red-500' :
-                      risk.color === 'purple' ? 'bg-purple-500' :
-                        'bg-gray-500'
-                  }`} />
-                <Text className={`text-sm font-bold ${risk.color === 'green' ? 'text-green-700' :
-                  risk.color === 'orange' ? 'text-orange-700' :
-                    risk.color === 'red' ? 'text-red-700' :
-                      risk.color === 'purple' ? 'text-purple-700' :
-                        'text-gray-700'
-                  }`}>{risk.label}</Text>
-              </View>
-            </View>
-            {/* Abstract visual for risk */}
-            <View className={`w-16 h-16 rounded-full ${risk.color === 'green' ? 'bg-green-50' :
-              risk.color === 'orange' ? 'bg-orange-50' :
-                risk.color === 'red' ? 'bg-red-50' :
-                  risk.color === 'purple' ? 'bg-purple-50' :
-                    'bg-gray-50'
-              } flex items-center justify-center`}>
-              <Text className="text-3xl">🛡️</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Section Header: Daily Insights */}
-        <View className="mt-8 mb-4">
-          <View className="flex-row items-center justify-between px-2">
-            <Text className="text-text-primary text-xl font-bold leading-tight">Resumen de hoy</Text>
-            <Pressable>
-              <Text className="text-primary text-sm font-semibold">Ver todo</Text>
-            </Pressable>
-          </View>
-        </View>
-
-        {/* Horizontal Scroll Cards (Insights) */}
-        <View className="flex-row gap-4 overflow-x-auto pb-4 -mx-4 px-4">
-          {/* Insight 1 */}
-          <View className="flex-shrink-0 w-64 p-4 rounded-[1.5rem] bg-white border border-gray-100 shadow-sm flex flex-col gap-3">
-            <View className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
-              <Text className="text-2xl">☀️</Text>
-            </View>
-            <View>
-              <Text className="font-bold text-text-primary">Estado de ánimo</Text>
-              <Text className="text-sm text-text-muted mt-1">
-                {phase === 'luteal' || phase === 'menstrual'
-                  ? 'Es normal sentirse más introspectiva hoy.'
-                  : 'Tu energía está en buen nivel.'}
+        {/* Pregnancy risk */}
+        <View className="mt-6 flex-row items-center justify-between gap-4 bg-white rounded-[32px] p-5 py-8 shadow-md border border-gray-200">
+          <View className="flex-1 flex flex-col gap-4">
+            <View className="flex flex-row items-center gap-2">
+              <MyIcon name="Smile" size={20} className="text-text-muted" />
+              <Text className="text-text-primary text-lg font-bold">
+                Riesgo de embarazo
               </Text>
             </View>
+            <Text className="inline-flex self-start items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 text-base font-bold">
+              <View className="w-2 h-2 mr-1 rounded-full bg-green-500" />{" "}
+              Bajo
+            </Text>
           </View>
+          <View className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center">
+            <MyIcon name="Shield" size={32} className="text-green-500 fill-green-500" />
+          </View>
+        </View>
 
-          {/* Insight 2 */}
-          <View className="flex-shrink-0 w-64 p-4 rounded-[1.5rem] bg-white border border-gray-100 shadow-sm flex flex-col gap-3">
-            <View className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-              <Text className="text-2xl">🧘</Text>
-            </View>
-            <View>
-              <Text className="font-bold text-text-primary">Recomendación</Text>
-              <Text className="text-sm text-text-muted mt-1">
-                {phase === 'luteal' || phase === 'menstrual'
-                  ? 'Ideal para yoga suave o meditación.'
-                  : 'Perfecto para actividades activas.'}
+        {/* Insights */}
+        <Text className="mt-8 mb-4 text-xl font-bold text-text-primary">
+          Resumen de hoy
+        </Text>
+
+        <ScrollView className="flex-row gap-4 py-1" horizontal showsHorizontalScrollIndicator={false}>
+          {resumeInsights.map((item, i) => (
+            <TouchableOpacity
+              key={i}
+              activeOpacity={0.6}
+              className="w-64 mr-4 bg-white p-4 rounded-2xl border border-gray-200 shadow-md"
+            >
+              <View className={`h-10 w-10 rounded-full ${item.iconBg} items-center justify-center mb-3`}>
+                <MyIcon name={item.icon as any} size={20} className={`${item.iconColor} fill-${item.iconColor}`} />
+                {/* <Text className="text-2xl">{item.emoji}</Text> */}
+              </View>
+
+              <Text className="font-bold text-text-primary">
+                {item.title}
               </Text>
-            </View>
-          </View>
-        </View>
 
-        {/* Safe Space / Privacy Note */}
-        <View className="mt-4 mb-20 flex-row items-center justify-center gap-2 text-text-muted opacity-60">
-          <Text className="text-[16px]">🔒</Text>
-          <Text className="text-xs font-medium">Tus datos están guardados localmente</Text>
-        </View>
+              <Text className="text-text-muted mt-1">
+                {item.text}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        <View className="h-32" />
       </ScrollView>
+
     </View>
-  );
+  )
 }
 
