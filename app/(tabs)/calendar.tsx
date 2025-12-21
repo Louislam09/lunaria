@@ -1,10 +1,72 @@
-import React, { useState } from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
-import { Link, router } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MyImage } from '@/components/ui';
+import MyIcon from '@/components/ui/Icon';
 import { useOnboarding } from '@/context/OnboardingContext';
-import { getNextPeriodDate, getCycleDay, getCyclePhase, getFertileWindow } from '@/utils/predictions';
-import { formatDate } from '@/utils/dates';
+import { getCycleDay, getCyclePhase, getFertileWindow, getNextPeriodDate } from '@/utils/predictions';
+import { router } from 'expo-router';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Calendar } from 'react-native-calendars';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { colors } from '@/utils/colors';
+
+function buildMarkedDates() {
+  return {
+    // Period (4–8)
+    "2023-10-04": { startingDay: true, color: colors.period },
+    "2023-10-05": { color: colors.period },
+    "2023-10-06": { color: colors.period },
+    "2023-10-07": { color: colors.period },
+    "2023-10-08": { endingDay: true, color: colors.period },
+
+    // Fertile window
+    "2023-10-13": { marked: true, dotColor: colors.fertile },
+    "2023-10-14": { marked: true, dotColor: colors.fertile },
+    "2023-10-16": { marked: true, dotColor: colors.fertile },
+
+    // Ovulation
+    "2023-10-15": {
+      customStyles: {
+        container: {
+          borderWidth: 2,
+          borderColor: colors.ovulation,
+          backgroundColor: "#f5f3ff",
+        },
+        text: {
+          color: colors.ovulation,
+          fontWeight: "700",
+        },
+      },
+    },
+
+    // Today
+    "2023-10-17": {
+      selected: true,
+      selectedColor: colors.lavender,
+    },
+  }
+}
+
+function LegendDot({ color, label }: any) {
+  return (
+    <View className="items-center gap-1">
+      <View
+        style={{ backgroundColor: color, width: 12, height: 12, borderRadius: 12 }}
+      />
+      <Text className="text-base text-text-muted">{label}</Text>
+    </View>
+  )
+}
+
+function LegendRing({ color, label }: any) {
+  return (
+    <View className="items-center gap-1">
+      <View className="size-3 rounded-full border-2 border-primary" />
+      <Text className="text-base text-text-muted">{label}</Text>
+    </View>
+  )
+}
+
 
 export default function CalendarScreen() {
   const insets = useSafeAreaInsets();
@@ -12,7 +74,7 @@ export default function CalendarScreen() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   // Redirect to onboarding if not complete
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isLoading && !isComplete) {
       router.replace('/onboarding/info');
     }
@@ -164,176 +226,126 @@ export default function CalendarScreen() {
     (nextPeriodResult.date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
   );
 
+  const markedDates = useMemo(buildMarkedDates, [])
+
   return (
-    <View className="flex-1 bg-background">
-      {/* Top App Bar */}
-      <View className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-gray-100" style={{ paddingTop: insets.top + 16 }}>
-        <View className="flex-row items-center p-4 justify-between">
-          <Pressable onPress={() => {
-            const prevMonth = new Date(currentMonth);
-            prevMonth.setMonth(prevMonth.getMonth() - 1);
-            setCurrentMonth(prevMonth);
-          }}>
-            <Text className="text-text-primary text-2xl">←</Text>
-          </Pressable>
-          <Text className="text-text-primary text-lg font-bold leading-tight tracking-tight text-center">
-            {monthName} {year}
-          </Text>
-          <Pressable onPress={() => setCurrentMonth(new Date())}>
-            <Text className="text-primary text-sm font-bold leading-normal tracking-wide px-3 py-1.5 rounded-full">
-              Hoy
+    <View className="flex-1 bg-background relative">
+      <View
+        className="absolute top-0 left-0 right-0 z-20 flex-row items-center justify-between px-6 pt-6 pb-2 bg-background/90 backdrop-blur-sm"
+      >
+        <View />
+        <Pressable className="size-10 items-center justify-center rounded-full hidden">
+          <MyIcon name="ChevronLeft" size={22} className="text-text-primary" />
+        </Pressable>
+
+        <Text className="text-lg font-bold text-text-primary">
+          {monthName} {year}
+        </Text>
+
+        <Pressable className="px-3 py-1.5 rounded-full bg-primary/10">
+          <Text className="text-primary font-bold text-sm">Hoy</Text>
+        </Pressable>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 120 }}
+        className="px-4"
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="h-20 " />
+
+
+        {/* ───── Calendar ───── */}
+        <View className="pt-2">
+          <Calendar
+            current={currentMonth.toISOString().split('T')[0]}
+            markingType="period"
+            markedDates={markedDates as any}
+            enableSwipeMonths
+            dayComponent={({ date, state }) => {
+              const isToday = date?.dateString === today.toDateString()
+
+              return (
+                <View className="items-center justify-center h-11">
+                  <View
+                    className={`size-9 items-center justify-center rounded-full ${isToday ? "bg-primary" : ""
+                      }`}
+                  >
+                    <Text
+                      className={`text-sm ${isToday
+                        ? "text-white font-bold"
+                        : "text-text-primary"
+                        }`}
+                    >
+                      {date?.day}
+                    </Text>
+                  </View>
+                  {isToday && (
+                    <Text className="text-[10px] text-primary font-bold mt-0.5">
+                      Hoy
+                    </Text>
+                  )}
+                </View>
+              )
+            }}
+            theme={{
+              // use colors
+              calendarBackground: "transparent",
+              monthTextColor: "text-text-primary",
+              textSectionTitleColor: "text-text-muted",
+              dayTextColor: "text-text-primary",
+              todayTextColor: "text-primary",
+              arrowColor: "text-primary",
+              textMonthFontWeight: "700",
+            }}
+          />
+        </View>
+
+        {/* ───── Legend ───── */}
+        <View className="p-5 pt-6 rounded-[32px]  flex-row justify-around  bg-white border border-gray-100 shadow-md">
+          <LegendDot key={colors.period} color={colors.period} label="Periodo" />
+          <LegendDot key={colors.fertile} color={colors.fertile} label="Fértil" />
+          <LegendRing color={colors.ovulation} label="Ovulación" />
+        </View>
+
+        {/* ───── Status Card ───── */}
+        <View className="pt-2">
+          <View className="flex-row gap-4 rounded-xl bg-white  p-5 border border-gray-100 shadow-md">
+            <View className="flex-1 gap-2">
+              <View className="flex-row items-center gap-2">
+                <Text className="text-[11px] font-bold uppercase text-green-600 bg-green-500/10 px-2 py-1 rounded-full">
+                  Fase Lútea
+                </Text>
+              </View>
+              <Text className="text-lg font-bold text-text-primary">
+                Día 17 del ciclo
+              </Text>
+              <Text className="text-base text-text-muted">
+                Probabilidad baja de embarazo. Tu próximo periodo se espera
+                en 11 días.
+              </Text>
+            </View>
+
+            <MyImage
+              source={{
+                uri: "https://lh3.googleusercontent.com/aida-public/AB6AXuB39TL-FgtOjPCzNKS56wzfQQnWiH_sdoFfT2uoUWcQGR2Xat7reUAsX0mJ9fGS0nIIDtqnTbmSxWaUu-4GXsJrUUYikiE0xkeNMHs3tpTLFjp6S_EWB_vkPSKYxmqAV33ApRQ_vPlivaGB9SjmNWyYagSXO03_g_0SvqAMFWeduRJxvQEXAuJ7AMrhuPj10k1sQYQBTThrs1QLw61Iain14BPMAOmhTpbKb7CDqKxiKh_X9LktDFoPdJMMraAgtgc4lxkgRmyTY_Q",
+              }}
+              className="w-24  rounded-xl object-cover"
+            />
+          </View>
+        </View>
+
+        {/* ───── FAB ───── */}
+        <View className="py-4">
+          <Pressable className="py-5 rounded-full bg-primary items-center justify-center flex-row shadow-lg">
+            <MyIcon name="Droplet" size={20} className="text-white fill-white" />
+            <Text className="ml-2 text-white font-bold">
+              Registrar Periodo
             </Text>
           </Pressable>
         </View>
-      </View>
-
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="px-4 py-2">
-          {/* Weekday Headers */}
-          <View className="flex-row mb-2">
-            {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((day, index) => (
-              <View key={index} className="flex-1 items-center justify-center h-8">
-                <Text className="text-slate-400 text-[13px] font-bold">{day}</Text>
-              </View>
-            ))}
-          </View>
-
-          {/* Calendar Days */}
-          <View className="flex-row flex-wrap">
-            {days.map((date, index) => {
-              if (!date) {
-                return <View key={index} className="h-11 flex-1" />;
-              }
-
-              const isPeriod = isPeriodDay(date);
-              const isFertile = isFertileDay(date);
-              const isOvul = isOvulationDay(date);
-              const isCurrentDay = isToday(date);
-
-              return (
-                <Pressable key={index} className="h-11 flex-1 items-center justify-center">
-                  {isPeriod ? (
-                    <View className="relative w-full h-full items-center justify-center">
-                      <View className="absolute inset-y-[4px] inset-x-0 bg-secondary/20 z-0" />
-                      <View className={`relative z-10 size-9 items-center justify-center rounded-full ${index % 7 === 0 || (index + 1) % 7 === 0
-                        ? 'bg-secondary'
-                        : 'bg-transparent'
-                        }`}>
-                        <Text className={`text-sm font-bold ${index % 7 === 0 || (index + 1) % 7 === 0
-                          ? 'text-white'
-                          : 'text-secondary'
-                          }`}>
-                          {date.getDate()}
-                        </Text>
-                      </View>
-                    </View>
-                  ) : (
-                    <View className="relative w-full h-full items-center justify-center">
-                      {isFertile && !isOvul && (
-                        <View className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-secondary" />
-                      )}
-                      {isOvul && (
-                        <View className="size-9 items-center justify-center rounded-full border-2 border-[#c084fc] bg-purple-50">
-                          <Text className="text-sm font-bold text-primary">
-                            {date.getDate()}
-                          </Text>
-                        </View>
-                      )}
-                      {!isOvul && (
-                        <View className={`size-9 items-center justify-center rounded-full ${isCurrentDay
-                          ? 'bg-primary'
-                          : 'bg-transparent'
-                          }`}>
-                          <Text className={`text-sm font-medium ${isCurrentDay
-                            ? 'text-white font-bold'
-                            : 'text-text-primary'
-                            }`}>
-                            {date.getDate()}
-                          </Text>
-                        </View>
-                      )}
-                      {isCurrentDay && (
-                        <View className="absolute -bottom-1.5">
-                          <Text className="text-[10px] font-bold text-primary">Hoy</Text>
-                        </View>
-                      )}
-                    </View>
-                  )}
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-
-        {/* Legend */}
-        <View className="px-4 py-2">
-          <View className="flex-row items-center justify-around rounded-xl bg-white border border-gray-100 p-4 shadow-sm">
-            <View className="flex flex-col items-center gap-1.5">
-              <View className="size-3 rounded-full bg-secondary" />
-              <Text className="text-xs font-medium text-slate-500">Periodo</Text>
-            </View>
-            {data.cycleType === 'regular' && (
-              <>
-                <View className="flex flex-col items-center gap-1.5">
-                  <View className="size-3 rounded-full bg-secondary" />
-                  <Text className="text-xs font-medium text-slate-500">Fértil</Text>
-                </View>
-                <View className="flex flex-col items-center gap-1.5">
-                  <View className="size-3 rounded-full border-2 border-[#c084fc]" />
-                  <Text className="text-xs font-medium text-slate-500">Ovulación</Text>
-                </View>
-              </>
-            )}
-            {data.cycleType === 'irregular' && (
-              <View className="flex flex-col items-center gap-1.5">
-                <Text className="text-xs font-medium text-slate-500 text-center px-2">
-                  Predicciones aproximadas
-                </Text>
-              </View>
-            )}
-          </View>
-        </View>
-
-        {/* Status Card */}
-        <View className="p-4 pt-2">
-          <View className="flex-row items-stretch justify-between gap-4 rounded-xl bg-white p-5 shadow-sm border border-gray-100">
-            <View className="flex flex-col gap-2 flex-2">
-              <View>
-                <View className="inline-block px-2.5 py-0.5 rounded-full bg-blue-50 mb-1">
-                  <Text className="text-blue-700 text-[11px] font-bold uppercase tracking-wider">
-                    {getPhaseName(phase)}
-                  </Text>
-                </View>
-                <Text className="text-text-primary text-lg font-bold leading-tight">
-                  Día {cycleDay} del ciclo
-                </Text>
-              </View>
-              <Text className="text-slate-500 text-sm font-normal leading-normal">
-                {daysUntilNext > 0
-                  ? `Tu próximo periodo se espera en ${daysUntilNext} días.`
-                  : 'Tu periodo debería estar comenzando.'}
-                {data.cycleType === 'irregular' && ' Las predicciones son aproximadas.'}
-              </Text>
-            </View>
-            <View className="w-24 bg-pink-50 rounded-xl shrink-0 flex items-center justify-center">
-              <Text className="text-4xl">🌸</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* FAB Section */}
-        <View className="flex justify-center px-5 pb-5">
-          <Link href="/registro" asChild>
-            <Pressable className="group relative flex w-full max-w-sm items-center justify-center overflow-hidden rounded-xl h-14 bg-primary shadow-lg">
-              <Text className="text-white text-xl mr-2">💧</Text>
-              <Text className="text-base font-bold leading-normal tracking-wide text-white">
-                Registrar Periodo
-              </Text>
-            </Pressable>
-          </Link>
-        </View>
       </ScrollView>
     </View>
-  );
+  )
 }
 

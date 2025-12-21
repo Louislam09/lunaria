@@ -1,4 +1,5 @@
 import { MyImage } from '@/components/ui';
+import { CircularProgress } from '@/components/ui/CircularProgress';
 import MyIcon from '@/components/ui/Icon';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { colors } from '@/utils/colors';
@@ -10,6 +11,8 @@ import { Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-nativ
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle } from 'react-native-svg';
 
+const RADIUS = 42
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS // ≈ 264
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -121,6 +124,7 @@ export default function HomeScreen() {
 
   const risk = getPregnancyRisk();
 
+  const progress = 60 // 0–100
 
   return (
     <View className="flex-1 bg-background">
@@ -158,35 +162,17 @@ export default function HomeScreen() {
 
           {/* Circular counter */}
           <View className="w-50 h-50 items-center justify-center">
-            <Svg width="100%" height="100%" viewBox="0 0 100 100">
-              <Circle
-                cx="50"
-                cy="50"
-                r="42"
-                stroke="#e5e7eb"
-                strokeWidth="6"
-                fill="none"
-              />
-              <Circle
-                cx="50"
-                cy="50"
-                r="42"
-                stroke={colors.lavender}
-                strokeWidth="6"
-                strokeDasharray="264"
-                strokeDashoffset="60"
-                strokeLinecap="round"
-                fill="none"
-                rotation="-90"
-                origin="50,50"
-              />
-            </Svg>
+            <CircularProgress
+              value={progress}
+              size={180}
+              color={colors.lavender}
+            />
 
             <View className="absolute items-center">
               <Text className="text-6xl font-bold text-text-primary">
                 5
               </Text>
-              <Text className="text-text-muted">días</Text>
+              <Text className="text-text-muted text-base">días</Text>
             </View>
           </View>
 

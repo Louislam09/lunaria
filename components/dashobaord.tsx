@@ -1,158 +1,184 @@
-import { View, Text, ScrollView, Pressable, Image } from "react-native"
-import Svg, { Circle } from "react-native-svg"
-import { MaterialIcons } from "@expo/vector-icons"
+import { View, Text, Pressable, Image, SafeAreaView } from "react-native"
+import { Calendar } from "react-native-calendars"
+import { useMemo } from "react"
+import { Ionicons } from "@expo/vector-icons"
 
-export default function DashboardScreen() {
+const colors = {
+    primary: "#256af4",
+    bgLight: "#f8f9fc",
+    bgDark: "#101622",
+    red: "#fb7185",
+    pink: "#f472b6",
+    purple: "#c084fc",
+}
+
+function buildMarkedDates() {
+    return {
+        // Period (4–8)
+        "2023-10-04": { startingDay: true, color: colors.red },
+        "2023-10-05": { color: colors.red },
+        "2023-10-06": { color: colors.red },
+        "2023-10-07": { color: colors.red },
+        "2023-10-08": { endingDay: true, color: colors.red },
+
+        // Fertile window
+        "2023-10-13": { marked: true, dotColor: colors.pink },
+        "2023-10-14": { marked: true, dotColor: colors.pink },
+        "2023-10-16": { marked: true, dotColor: colors.pink },
+
+        // Ovulation
+        "2023-10-15": {
+            customStyles: {
+                container: {
+                    borderWidth: 2,
+                    borderColor: colors.purple,
+                    backgroundColor: "#f5f3ff",
+                },
+                text: {
+                    color: colors.purple,
+                    fontWeight: "700",
+                },
+            },
+        },
+
+        // Today
+        "2023-10-17": {
+            selected: true,
+            selectedColor: colors.primary,
+        },
+    }
+}
+
+
+export default function CalendarScreen() {
+    const markedDates = useMemo(buildMarkedDates, [])
+
     return (
-        <View className="flex-1 bg-[#f5f6f8] dark:bg-[#101622]">
+        <SafeAreaView className="flex-1 bg-[#f8f9fc] dark:bg-[#101622]">
+            {/* ───── Top Bar ───── */}
+            <View className="sticky top-0 z-10 px-4 py-3 flex-row items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-[#f8f9fc]/95 dark:bg-[#101622]/95">
+                <Pressable className="size-10 items-center justify-center rounded-full">
+                    <Ionicons name="chevron-back" size={22} color="#111318" />
+                </Pressable>
 
-            {/* Header */}
-            <View className="px-4 pt-6 pb-2 flex-row justify-between items-center">
-                <View>
-                    <Text className="text-sm text-gray-500">Buenos días</Text>
-                    <Text className="text-2xl font-bold text-black dark:text-white">
-                        Hola, María
-                    </Text>
+                <Text className="text-lg font-bold dark:text-white">
+                    Octubre 2023
+                </Text>
+
+                <Pressable className="px-3 py-1.5 rounded-full bg-primary/10">
+                    <Text className="text-primary font-bold text-sm">Hoy</Text>
+                </Pressable>
+            </View>
+
+            {/* ───── Calendar ───── */}
+            <View className="px-4 pt-2">
+                <Calendar
+                    current="2023-10-01"
+                    markingType="period"
+                    markedDates={markedDates}
+                    enableSwipeMonths
+                    dayComponent={({ date, state }) => {
+                        const isToday = date?.dateString === "2023-10-17"
+
+                        return (
+                            <View className="items-center justify-center h-11">
+                                <View
+                                    className={`size-9 items-center justify-center rounded-full ${isToday ? "bg-[#256af4]" : ""
+                                        }`}
+                                >
+                                    <Text
+                                        className={`text-sm ${isToday
+                                            ? "text-white font-bold"
+                                            : "text-[#111318] dark:text-white"
+                                            }`}
+                                    >
+                                        {date?.day}
+                                    </Text>
+                                </View>
+                                {isToday && (
+                                    <Text className="text-[10px] text-primary font-bold mt-0.5">
+                                        Hoy
+                                    </Text>
+                                )}
+                            </View>
+                        )
+                    }}
+                    theme={{
+                        calendarBackground: "transparent",
+                        monthTextColor: "#111318",
+                        textSectionTitleColor: "#94a3b8",
+                        dayTextColor: "#111318",
+                        todayTextColor: colors.primary,
+                        arrowColor: colors.primary,
+                        textMonthFontWeight: "700",
+                    }}
+                />
+            </View>
+
+            {/* ───── Legend ───── */}
+            <View className="px-4 py-3">
+                <View className="flex-row justify-around rounded-xl bg-white dark:bg-gray-900 p-4 border border-gray-100 dark:border-gray-800">
+                    <LegendDot color={colors.red} label="Periodo" />
+                    <LegendDot color={colors.pink} label="Fértil" />
+                    <LegendRing color={colors.purple} label="Ovulación" />
                 </View>
+            </View>
 
-                <View className="flex-row gap-3">
-                    <Pressable className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-800 items-center justify-center">
-                        <MaterialIcons name="notifications-none" size={24} color="white" />
-                    </Pressable>
+            {/* ───── Status Card ───── */}
+            <View className="px-4 pt-2">
+                <View className="flex-row gap-4 rounded-xl bg-white dark:bg-gray-900 p-5 border border-gray-100 dark:border-gray-800">
+                    <View className="flex-1 gap-2">
+                        <Text className="text-[11px] font-bold uppercase text-green-600">
+                            Fase Lútea
+                        </Text>
+                        <Text className="text-lg font-bold dark:text-white">
+                            Día 17 del ciclo
+                        </Text>
+                        <Text className="text-sm text-slate-500">
+                            Probabilidad baja de embarazo. Tu próximo periodo se espera
+                            en 11 días.
+                        </Text>
+                    </View>
 
                     <Image
-                        source={{ uri: "https://i.pravatar.cc/100" }}
-                        className="h-10 w-10 rounded-full"
+                        source={{
+                            uri: "https://lh3.googleusercontent.com/aida-public/AB6AXuB39TL-FgtOjPCzNKS56wzfQQnWiH_sdoFfT2uoUWcQGR2Xat7reUAsX0mJ9fGS0nIIDtqnTbmSxWaUu-4GXsJrUUYikiE0xkeNMHs3tpTLFjp6S_EWB_vkPSKYxmqAV33ApRQ_vPlivaGB9SjmNWyYagSXO03_g_0SvqAMFWeduRJxvQEXAuJ7AMrhuPj10k1sQYQBTThrs1QLw61Iain14BPMAOmhTpbKb7CDqKxiKh_X9LktDFoPdJMMraAgtgc4lxkgRmyTY_Q",
+                        }}
+                        className="w-24 h-24 rounded-xl"
                     />
                 </View>
             </View>
 
-            {/* Scroll content */}
-            <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
-
-                {/* Next period card */}
-                <View className="mt-6 bg-white dark:bg-[#1a2230] rounded-[40px] p-6 items-center">
-                    <Text className="uppercase text-sm text-gray-400 mb-4">
-                        Próximo periodo
+            {/* ───── FAB ───── */}
+            <View className="px-5 py-4">
+                <Pressable className="h-14 rounded-xl bg-primary items-center justify-center flex-row shadow-lg">
+                    <Ionicons name="water" size={20} color="white" />
+                    <Text className="ml-2 text-white font-bold">
+                        Registrar Periodo
                     </Text>
-
-                    {/* Circular counter */}
-                    <View className="w-48 h-48 items-center justify-center">
-                        <Svg width="100%" height="100%" viewBox="0 0 100 100">
-                            <Circle
-                                cx="50"
-                                cy="50"
-                                r="42"
-                                stroke="#e5e7eb"
-                                strokeWidth="6"
-                                fill="none"
-                            />
-                            <Circle
-                                cx="50"
-                                cy="50"
-                                r="42"
-                                stroke="#256af4"
-                                strokeWidth="6"
-                                strokeDasharray="264"
-                                strokeDashoffset="60"
-                                strokeLinecap="round"
-                                fill="none"
-                                rotation="-90"
-                                origin="50,50"
-                            />
-                        </Svg>
-
-                        <View className="absolute items-center">
-                            <Text className="text-6xl font-bold text-black dark:text-white">
-                                5
-                            </Text>
-                            <Text className="text-gray-400">días</Text>
-                        </View>
-                    </View>
-
-                    <Text className="text-lg font-bold mt-4 dark:text-white">
-                        Jueves, 24 de Octubre
-                    </Text>
-
-                    <View className="mt-2 px-3 py-1 rounded-full bg-blue-100">
-                        <Text className="text-blue-600 text-sm font-semibold">
-                            Predicción regular
-                        </Text>
-                    </View>
-                </View>
-
-                {/* Current phase */}
-                <View className="mt-6 bg-blue-50 dark:bg-[#1a2230] rounded-[32px] p-5">
-                    <View className="flex-row items-center gap-2 mb-2">
-                        <MaterialIcons name="water-drop" size={20} color="#256af4" />
-                        <Text className="text-blue-600 font-bold uppercase text-sm">
-                            Estado actual
-                        </Text>
-                    </View>
-
-                    <Text className="text-2xl font-bold dark:text-white">
-                        Fase Lútea
-                    </Text>
-
-                    <Text className="text-gray-500 mt-2">
-                        Día 19 del ciclo. Tu energía puede empezar a disminuir.
-                    </Text>
-
-                    <Pressable className="mt-4 bg-blue-600 h-12 rounded-full items-center justify-center flex-row gap-2">
-                        <MaterialIcons name="edit-note" size={20} color="white" />
-                        <Text className="text-white font-bold">
-                            Registrar síntomas
-                        </Text>
-                    </Pressable>
-                </View>
-
-                {/* Insights */}
-                <Text className="mt-8 mb-4 text-xl font-bold dark:text-white">
-                    Resumen de hoy
-                </Text>
-
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    {[
-                        { icon: "wb-sunny", title: "Estado de ánimo", text: "Más introspectiva hoy" },
-                        { icon: "self-improvement", title: "Recomendación", text: "Yoga suave o meditación" }
-                    ].map((item, i) => (
-                        <View
-                            key={i}
-                            className="w-64 mr-4 bg-white dark:bg-[#1a2230] p-4 rounded-2xl"
-                        >
-                            <View className="h-10 w-10 rounded-full bg-orange-100 items-center justify-center mb-3">
-                                <MaterialIcons name={item.icon as any} size={20} />
-                            </View>
-
-                            <Text className="font-bold dark:text-white">
-                                {item.title}
-                            </Text>
-
-                            <Text className="text-gray-500 mt-1">
-                                {item.text}
-                            </Text>
-                        </View>
-                    ))}
-                </ScrollView>
-
-                <View className="h-32" />
-            </ScrollView>
-
-            {/* Bottom nav */}
-            <View className="absolute bottom-0 left-0 right-0 bg-white dark:bg-[#101622] border-t border-gray-200 px-6 py-3 flex-row justify-between">
-                {["home", "calendar-month", "bar-chart", "settings"].map((icon, i) => (
-                    <Pressable key={i} className="items-center">
-                        <MaterialIcons
-                            name={icon as any}
-                            size={26}
-                            color={i === 0 ? "#256af4" : "#9ca3af"}
-                        />
-                        <Text className={`text-xs ${i === 0 ? "text-blue-600" : "text-gray-400"}`}>
-                            {["Inicio", "Calendario", "Reportes", "Ajustes"][i]}
-                        </Text>
-                    </Pressable>
-                ))}
+                </Pressable>
             </View>
+        </SafeAreaView>
+    )
+}
+
+function LegendDot({ color, label }: any) {
+    return (
+        <View className="items-center gap-1">
+            <View className="size-3 rounded-full" style={{ backgroundColor: color }} />
+            <Text className="text-xs text-slate-500">{label}</Text>
+        </View>
+    )
+}
+
+function LegendRing({ color, label }: any) {
+    return (
+        <View className="items-center gap-1">
+            <View
+                className="size-3 rounded-full border-2"
+                style={{ borderColor: color }}
+            />
+            <Text className="text-xs text-slate-500">{label}</Text>
         </View>
     )
 }
