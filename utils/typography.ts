@@ -1,7 +1,7 @@
 export const fontFamily = {
-    regular: "DMSans_400Regular",
-    medium: "DMSans_500Medium",
-    bold: "DMSans_700Bold",
+    regular: "SplineSans_400Regular",
+    medium: "SplineSans_500Medium",
+    bold: "SplineSans_700Bold",
 };
 
 export const fontSize = {

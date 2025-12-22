@@ -15,18 +15,30 @@ import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function SettingsScreen() {
   const version = Constants.expoConfig?.version;
-  const { data, reset } = useOnboarding();
+  const { data, reset, isLoading, isComplete } = useOnboarding();
   const { user, logout } = useAuth();
-  const { averageCycleLength, cycleRangeMin, cycleRangeMax, periodLength } = data;
+  const { averageCycleLength = 28, cycleRangeMin, cycleRangeMax, periodLength = 5 } = data;
   const [remindersEnabled, setRemindersEnabled] = useState(true);
   const [aiPredictionEnabled, setAiPredictionEnabled] = useState(true);
 
   const userName = data.name || user?.name || 'Usuario';
   const userEmail = user?.email || 'usuario@email.com';
 
+  // Redirect to onboarding if not complete
+  useEffect(() => {
+    if (!isLoading && !isComplete) {
+      router.replace('/onboarding/wizard');
+    }
+  }, [isLoading, isComplete]);
+
   const handleLogout = async () => {
     await logout();
     router.replace('/splash');
+  };
+
+  const handleReset = async () => {
+    await reset();
+    // The useEffect will handle the redirection
   };
 
   return (
@@ -122,9 +134,7 @@ export default function SettingsScreen() {
             iconBg="bg-gray-100"
             iconColor="text-gray-500"
             title="Reiniciar Datos"
-            onPress={() => {
-              reset();
-            }}
+            onPress={handleReset}
           />
           <SettingsItem
             icon="LockKeyhole"

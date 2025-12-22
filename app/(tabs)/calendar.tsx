@@ -5,72 +5,178 @@ import { getCycleDay, getCyclePhase, getFertileWindow, getNextPeriodDate } from 
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { Platform, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { Calendar, CalendarUtils } from 'react-native-calendars';
+import { Calendar, CalendarUtils, LocaleConfig } from 'react-native-calendars';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '@/utils/colors';
+import { styled } from 'nativewind';
+import { Theme } from 'react-native-calendars/src/types';
+import { fontFamily } from '@/utils/typography';
 
+LocaleConfig.locales['es'] = {
+  monthNames: [
+    'Enero',
+    'Febrero',
+    'Marzo',
+    'Abril',
+    'Mayo',
+    'Junio',
+    'Julio',
+    'Agosto',
+    'Septiembre',
+    'Octubre',
+    'Noviembre',
+    'Diciembre'
+  ],
+  monthNamesShort: ['Ene.', 'Feb.', 'Mar.', 'Abr.', 'May.', 'Jun.', 'Jul.', 'Ago.', 'Sep.', 'Oct.', 'Nov.', 'Dic.'],
+  dayNames: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+  dayNamesShort: ['Dom.', 'Lun.', 'Mar.', 'Mié.', 'Jue.', 'Vie.', 'Sáb.'],
+  today: 'Hoy'
+};
 
-function LegendDot({ color, label }: any) {
-  return (
-    <View className="items-center gap-1">
-      <View
-        style={{ backgroundColor: color, width: 12, height: 12, borderRadius: 12 }}
-      />
-      <Text className="text-xs text-text-muted">{label}</Text>
-    </View>
-  )
-}
+LocaleConfig.defaultLocale = 'es';
 
-function LegendRing({ color, label }: any) {
-  return (
-    <View className="items-center gap-1">
-      <View className="size-3 rounded-full border-2 border-ovulation" />
-      <Text className="text-xs text-text-muted">{label}</Text>
-    </View>
-  )
-}
-
-
-export function getTheme() {
-  const disabledColor = 'grey';
-
+export function getTheme(): Theme {
   return {
-    // arrows
+
+    // all colors properties
+    backgroundColor: '#ffffff',
+    calendarBackground: '#ffffff',
+    textSectionTitleColor: colors.textPrimary,
+    dayTextColor: colors.textPrimary,
+    selectedDayBackgroundColor: colors.lavender,
+    selectedDayTextColor: colors.textPrimary,
+    textDisabledColor: colors.textMuted,
     arrowColor: colors.textPrimary,
+
+    // today
+    todayTextColor: '#ffffff',
+    todayBackgroundColor: colors.lavender,
+    // arrows
     arrowStyle: { padding: 0 },
     // knob
-    expandableKnobColor: colors.lavender,
+    // expandableKnobColor: colors.lavender,
     // month
     monthTextColor: colors.textPrimary,
     textMonthFontSize: 16,
     // textMonthFontFamily: 'DMSans_700Bold',
     textMonthFontWeight: 'bold' as const,
     // day names
-    textSectionTitleColor: colors.textPrimary,
     textDayHeaderFontSize: 12,
     // textDayHeaderFontFamily: 'DMSans_400Regular',
     textDayHeaderFontWeight: 'normal' as const,
     // dates
-    dayTextColor: colors.textPrimary,
-    todayTextColor: colors.lavender,
+
     textDayFontSize: 18,
-    // textDayFontFamily: 'DMSans_700Bold',
-    textDayFontWeight: 'bold' as const,
-    textDayStyle: { marginTop: Platform.OS === 'android' ? 2 : 4 },
-    // selected date
-    selectedDayBackgroundColor: colors.lavender,
-    selectedDayTextColor: 'white',
-    // disabled date
-    textDisabledColor: disabledColor,
+
     // dot (marked date)
-    dotColor: colors.lavender,
-    selectedDotColor: colors.lavender,
-    disabledDotColor: colors.textMuted,
-    dotStyle: { marginTop: -2 }
+    // dotColor: colors.lavender,
+    // selectedDotColor: colors.lavender,
+    // disabledDotColor: colors.textMuted,
+
   };
 }
 
+const MyCalendar = styled(Calendar, {
+  className: "style",
+})
+
+
+// const getDate = (count) => {
+//   const date = new Date('2025-12-03');
+//   const newDate = date.setDate(date.getDate() + count);
+//   return CalendarUtils.getCalendarDateString(newDate);
+// };
+
+// const GREEN = '#13ba7d';
+// const PINK = '#a68a9f';
+// const RED = '#ba1313';
+
+// const customMarks = useMemo(() => {
+//   return {
+//     [getDate(0)]: {
+//       customStyles: {
+//         container: {
+//           backgroundColor: 'white',
+//           elevation: 2
+//         },
+//         text: {
+//           color: RED,
+//           marginTop: 0
+//         }
+//       }
+//     },
+//     [getDate(1)]: {
+//       selected: true
+//     },
+//     [getDate(2)]: {
+//       customStyles: {
+//         container: {
+//           backgroundColor: RED,
+//           elevation: 4
+//         },
+//         text: {
+//           color: 'white'
+//         }
+//       }
+//     },
+//     [getDate(3)]: {
+//       customStyles: {
+//         container: {
+//           backgroundColor: GREEN
+//         },
+//         text: {
+//           color: 'white'
+//         }
+//       }
+//     },
+//     [getDate(4)]: {
+//       customStyles: {
+//         container: {
+//           backgroundColor: 'black',
+//           elevation: 2
+//         },
+//         text: {
+//           color: 'yellow'
+//         }
+//       }
+//     },
+//     [getDate(5)]: {
+//       disabled: true
+//     },
+//     [getDate(6)]: {
+//       customStyles: {
+//         text: {
+//           color: 'black',
+//           fontWeight: 'bold'
+//         }
+//       }
+//     },
+//     [getDate(7)]: {
+//       customStyles: {
+//         container: {
+//           backgroundColor: 'pink',
+//           elevation: 4,
+//           borderColor: 'purple',
+//           borderWidth: 5
+//         },
+//         text: {
+//           marginTop: 3,
+//           fontSize: 11,
+//           color: 'black'
+//         }
+//       }
+//     },
+//     [getDate(8)]: {
+//       customStyles: {
+//         container: {
+//           backgroundColor: 'orange',
+//           borderRadius: 0
+//         }
+//       }
+//     }
+//   };
+// }, []);
 
 export default function CalendarScreen() {
   const insets = useSafeAreaInsets();
@@ -152,17 +258,41 @@ export default function CalendarScreen() {
     const marked: any = {};
     const periodLen = data.periodLength || 5;
 
+    const ensureCustom = (dateStr: string) => {
+      if (!marked[dateStr]) marked[dateStr] = {};
+      if (!marked[dateStr].customStyles) {
+        marked[dateStr].customStyles = { container: {}, text: {} };
+      }
+    };
+
     // 1. Current Period
     const start = new Date(data.lastPeriodStart);
     for (let i = 0; i < periodLen; i++) {
       const d = new Date(start);
       d.setDate(d.getDate() + i);
       const dateStr = d.toISOString().split('T')[0];
-      marked[dateStr] = {
-        color: colors.period,
-        textColor: 'white',
-        startingDay: i === 0,
-        endingDay: i === periodLen - 1,
+      const isFirst = i === 0;
+      const isLast = i === periodLen - 1;
+
+      ensureCustom(dateStr);
+      marked[dateStr].customStyles = {
+        container: {
+          backgroundColor: colors.period + '33', // Light fill like the image
+          borderTopLeftRadius: isFirst ? 20 : 0,
+          borderBottomLeftRadius: isFirst ? 20 : 0,
+          borderTopRightRadius: isLast ? 20 : 0,
+          borderBottomRightRadius: isLast ? 20 : 0,
+          width: '100%',
+          height: 32,
+          justifyContent: 'center',
+          alignItems: 'center',
+          // If it's an edge day, maybe add a subtle border or solid color? 
+          // The image shows a very clean uniform pill.
+        },
+        text: {
+          color: colors.textPrimary,
+          fontWeight: '500',
+        },
       };
     }
 
@@ -172,12 +302,27 @@ export default function CalendarScreen() {
       const d = new Date(nextStart);
       d.setDate(d.getDate() + i);
       const dateStr = d.toISOString().split('T')[0];
+      const isFirst = i === 0;
+      const isLast = i === periodLen - 1;
+
       if (!marked[dateStr]) {
-        marked[dateStr] = {
-          color: colors.period + '40', // Semi-transparent
-          textColor: colors.textPrimary,
-          startingDay: i === 0,
-          endingDay: i === periodLen - 1,
+        ensureCustom(dateStr);
+        marked[dateStr].customStyles = {
+          container: {
+            backgroundColor: colors.period + '15', // Even lighter for prediction
+            borderTopLeftRadius: isFirst ? 20 : 0,
+            borderBottomLeftRadius: isFirst ? 20 : 0,
+            borderTopRightRadius: isLast ? 20 : 0,
+            borderBottomRightRadius: isLast ? 20 : 0,
+            width: '100%',
+            height: 32,
+            justifyContent: 'center',
+            alignItems: 'center',
+          },
+          text: {
+            color: colors.textPrimary,
+            opacity: 0.7,
+          },
         };
       }
     }
@@ -190,12 +335,22 @@ export default function CalendarScreen() {
         d.setDate(d.getDate() + i);
         const dateStr = d.toISOString().split('T')[0];
 
-        if (!marked[dateStr]) {
-          marked[dateStr] = { marked: true, dotColor: colors.fertile };
+        ensureCustom(dateStr);
+        if (!marked[dateStr].customStyles.container.backgroundColor) {
+          marked[dateStr].customStyles.container = {
+            ...marked[dateStr].customStyles.container,
+            borderWidth: 2,
+            borderColor: colors.fertile,
+            borderRadius: 20,
+          };
+          marked[dateStr].customStyles.text = {
+            ...marked[dateStr].customStyles.text,
+            color: colors.textPrimary,
+          };
         } else {
+          // If already in period, use a contrasting marker or dot
           marked[dateStr].marked = true;
-          // If it's already a period day, use white dot for visibility like in the user's example
-          marked[dateStr].dotColor = marked[dateStr].color ? 'white' : colors.fertile;
+          marked[dateStr].dotColor = 'white';
         }
       }
     }
@@ -203,34 +358,42 @@ export default function CalendarScreen() {
     // 4. Ovulation
     if (cycleData.ovulationDate) {
       const dateStr = cycleData.ovulationDate.toISOString().split('T')[0];
-      if (!marked[dateStr]) {
-        marked[dateStr] = { marked: true, dotColor: colors.ovulation };
-      } else {
-        marked[dateStr].marked = true;
-        marked[dateStr].dotColor = 'white';
-      }
+      ensureCustom(dateStr);
+      marked[dateStr].customStyles.container = {
+        ...marked[dateStr].customStyles.container,
+        borderWidth: 2,
+        borderColor: colors.ovulation,
+        borderRadius: 20,
+        backgroundColor: marked[dateStr].customStyles.container.backgroundColor || colors.ovulation + '20',
+      };
+      marked[dateStr].customStyles.text = {
+        ...marked[dateStr].customStyles.text,
+        color: marked[dateStr].customStyles.text.color || colors.ovulation,
+        fontWeight: 'bold',
+      };
     }
 
     // 5. Selected Day
     if (selected) {
-      if (!marked[selected]) {
-        marked[selected] = { selected: true, selectedColor: colors.lavender };
-      } else {
-        marked[selected].selected = true;
-        marked[selected].selectedColor = colors.lavender;
-      }
+      ensureCustom(selected);
+      marked[selected].customStyles = {
+        ...marked[selected].customStyles,
+        container: {
+          ...marked[selected].customStyles.container,
+          backgroundColor: colors.lavender,
+          borderRadius: 20,
+          elevation: 4,
+        },
+        text: {
+          ...marked[selected].customStyles.text,
+          color: 'white',
+          fontWeight: 'bold',
+        },
+      };
     }
 
     return marked;
   }, [cycleData, data, selected]);
-
-  if (isLoading || !isComplete || !cycleData) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Cargando...</Text>
-      </View>
-    );
-  }
 
   const monthNames = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -278,8 +441,19 @@ export default function CalendarScreen() {
     }
   };
 
-  const phaseDisplay = getPhaseDisplay(cycleData.phase);
+  const phaseDisplay = getPhaseDisplay(cycleData?.phase);
   // console.log(markedDates)
+
+
+
+
+  if (isLoading || !isComplete || !cycleData) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Cargando...</Text>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-background relative">
@@ -312,16 +486,26 @@ export default function CalendarScreen() {
 
         {/* ───── Calendar ───── */}
         <View className="bg-white rounded-3xl p-2 shadow-sm border border-gray-50">
-          <Calendar
+          <MyCalendar
             current={currentMonth.toISOString().split('T')[0]}
-            markingType={'period'}
-            markedDates={markedDates}
+            markingType='custom'
+            markedDates={markedDates as any}
             onMonthChange={(month) => {
               setCurrentMonth(new Date(month.timestamp))
             }}
             onDayPress={onDayPress}
             enableSwipeMonths
-          // theme={getTheme()}
+            theme={getTheme() as any}
+          // theme={{
+          //   backgroundColor: '#000000',
+          //   calendarBackground: '#000000',
+          //   textSectionTitleColor: '#ffffff',
+          //   selectedDayBackgroundColor: '#73ff00',
+          //   selectedDayTextColor: '#ff00b3',
+          //   todayTextColor: '#f51d00',
+          //   dayTextColor: "orange",
+          //   textDisabledColor: colors.textMuted
+          // }}
           />
         </View>
 
@@ -366,6 +550,26 @@ export default function CalendarScreen() {
           </Pressable>
         </View>
       </ScrollView>
+    </View>
+  )
+}
+
+function LegendDot({ color, label }: any) {
+  return (
+    <View className="items-center gap-1">
+      <View
+        style={{ backgroundColor: color, width: 12, height: 12, borderRadius: 12 }}
+      />
+      <Text className="text-xs text-text-muted">{label}</Text>
+    </View>
+  )
+}
+
+function LegendRing({ color, label }: any) {
+  return (
+    <View className="items-center gap-1">
+      <View style={{ borderColor: color, borderWidth: 2 }} className="size-3 rounded-full" />
+      <Text className="text-xs text-text-muted">{label}</Text>
     </View>
   )
 }

@@ -3,7 +3,7 @@ import { CircularProgress } from '@/components/ui/CircularProgress';
 import MyIcon from '@/components/ui/Icon';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { colors } from '@/utils/colors';
-import { getDaysUntil } from '@/utils/dates';
+import { formatDate, getDaysUntil } from '@/utils/dates';
 import { getCycleDay, getCyclePhase, getFertileWindow, getNextPeriodDate } from '@/utils/predictions';
 import { router } from 'expo-router';
 import React from 'react';
@@ -170,14 +170,16 @@ export default function HomeScreen() {
 
             <View className="absolute items-center">
               <Text className="text-6xl font-bold text-text-primary">
-                5
+                {/* 5 */}
+                {daysUntilPeriod}
               </Text>
               <Text className="text-text-muted text-base">días</Text>
             </View>
           </View>
 
           <Text className="text-lg font-bold mt-4 text-text-primary">
-            Jueves, 24 de Octubre
+            {/* Jueves, 24 de Octubre */}
+            {formatDate(nextPeriodResult.date, 'long')}
           </Text>
 
           <View className="mt-2 px-3 py-1 w-fit rounded-full bg-primary/20">
@@ -200,11 +202,13 @@ export default function HomeScreen() {
           </View>
 
           <Text className="text-2xl font-bold text-text-primary">
-            Fase Lútea
+            {/* Fase Lútea */}
+            {getPhaseName(phase)}
           </Text>
 
           <Text className="text-text-muted mt-2">
-            Día 19 del ciclo. Tu energía puede empezar a disminuir.
+            {/* Día 19 del ciclo. Tu energía puede empezar a disminuir. */}
+            {getPhaseDescription(phase, cycleDay)}
           </Text>
 
           <Pressable className="w-full mt-5 bg-primary py-5 rounded-full items-center justify-center flex-row gap-2">
@@ -224,13 +228,15 @@ export default function HomeScreen() {
                 Riesgo de embarazo
               </Text>
             </View>
-            <Text className="inline-flex self-start items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 text-base font-bold">
-              <View className="w-2 h-2 mr-1 rounded-full bg-green-500" />{" "}
-              Bajo
+            <Text className={`inline-flex self-start items-center gap-1.5 px-3 py-1 rounded-full bg-${risk.color}-100 text-${risk.color}-700 text-base font-bold`}>
+              <View className={`w-2 h-2 mr-1 rounded-full bg-${risk.color}-500`} />{" "}
+              {/* Bajo */}
+              {risk.label}
             </Text>
           </View>
-          <View className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center">
-            <MyIcon name="Shield" size={32} className="text-green-500 fill-green-500" />
+          <View className={`w-16 h-16 rounded-full bg-${risk.color}-50 flex items-center justify-center`}>
+            {/* <MyIcon name="Shield" size={32} className="text-green-500 fill-green-500" /> */}
+            <MyIcon name="Shield" size={32} className={`text-${risk.color}-500 fill-${risk.color}-500`} />
           </View>
         </View>
 
