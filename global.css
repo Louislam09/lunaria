@@ -28,7 +28,8 @@
     /* --color-primary: #b9a7e8; */
     --color-primary: #b19feb;
     --color-secondary: #f3b7c6;
-    --color-background: #f6f2fa;
+    /* --color-background: #f6f2fa; */
+    --color-background: #f9f9f9;
     --color-text-primary: #2e2a38;
     --color-text-muted: #8e8aa0;
 

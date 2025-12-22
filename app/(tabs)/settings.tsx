@@ -136,13 +136,13 @@ export default function SettingsScreen() {
             title="Reiniciar Datos"
             onPress={handleReset}
           />
-          <SettingsItem
+          {/* <SettingsItem
             icon="LockKeyhole"
             iconBg="bg-gray-100"
             iconColor="text-gray-500"
             title="Privacidad y Seguridad"
             showDivider={false}
-          />
+          /> */}
         </SettingsSection>
 
         {/* Footer */}

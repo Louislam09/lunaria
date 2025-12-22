@@ -2,6 +2,7 @@ import { colors } from "@/utils/colors";
 import { Icon, icons } from "lucide-react-native";
 import { Switch, Text, View } from "react-native";
 import MyIcon from "../ui/Icon";
+import * as Haptics from "expo-haptics";
 
 type ToggleRowProps = {
     icon: keyof typeof icons;
@@ -24,7 +25,11 @@ export function ToggleRow({
     showDivider = true,
     onChange,
 }: ToggleRowProps) {
-
+    // use expo-haptics
+    const handleChange = (value: boolean) => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        onChange(value);
+    };
     return (
         <View className="px-5 py-4">
             <View className="flex-row items-center justify-between">
@@ -45,7 +50,7 @@ export function ToggleRow({
                     </View>
                 </View>
 
-                <Switch value={value} onChange={({ nativeEvent: { value } }) => onChange(value)} thumbColor={colors.moonWhite} trackColor={{ true: colors.lavender, false: colors.textPrimary }} />
+                <Switch value={value} onChange={({ nativeEvent: { value } }) => handleChange(value)} thumbColor={colors.moonWhite} trackColor={{ true: colors.lavender, false: colors.textPrimary }} />
             </View>
 
             {showDivider && (
