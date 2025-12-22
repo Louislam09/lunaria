@@ -5,13 +5,23 @@
 
 @layer theme {
   @theme {
-    /* Fonts - DM Sans (Default) */
+    /* Font Family  - @expo-google-fonts/spline-sans*/
+    --font-display: "SplineSans_400Regular", sans-serif;
+
+    /* Fonts - Spline Sans  (Default) */
+    --font-sans: "SplineSans_400Regular", sans-serif;
+    --font-regular: "SplineSans_400Regular", sans-serif;
+    --font-medium: "SplineSans_500Medium", sans-serif;
+    --font-bold: "SplineSans_700Bold", sans-serif;
+    --font-rounded: "SplineSans_400Regular", sans-serif;
+
+    /* Fonts - DM Sans (Default)
     --font-sans: "DMSans_400Regular", sans-serif;
     --font-regular: "DMSans_400Regular", sans-serif;
     --font-medium: "DMSans_500Medium", sans-serif;
     --font-bold: "DMSans_700Bold", sans-serif;
     --font-rounded: "SF Pro Rounded", "Hiragino Maru Gothic ProN", Meiryo,
-      "MS PGothic", sans-serif;
+      "MS PGothic", sans-serif; */
 
     /* Custom Colors - Lunaria Theme */
     /* These colors can be used as: bg-primary, text-primary, border-primary, etc. */

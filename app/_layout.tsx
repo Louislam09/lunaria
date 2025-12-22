@@ -16,6 +16,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { colors } from "@/utils/colors";
 import { statusBarState$ } from "@/hooks/useHideStatusBar";
 import { useValue } from "@legendapp/state/react"
+
 SplashScreen.preventAutoHideAsync();
 
 const Layout = (props) => {

@@ -34,12 +34,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         slug: 'lunaria',
         version: '1.0.0',
         orientation: 'portrait',
-        icon: './assets/images/icon.webp',
+        icon: './assets/images/icon.png',
         scheme: 'lunaria',
         userInterfaceStyle: 'automatic',
         splash: {
-            image: './assets/images/splash.webp',
-            resizeMode: 'contain',
+            image: './assets/images/splash.png',
+            resizeMode: 'cover',
             backgroundColor: '#B9A7E8',
         },
         assetBundlePatterns: ['**/*'],
@@ -49,14 +49,19 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         },
         android: {
             adaptiveIcon: {
-                foregroundImage: './assets/images/adaptive-icon.webp',
+                foregroundImage: './assets/images/adaptive-icon.png',
                 backgroundColor: '#B9A7E8',
             },
             package: getUniqueIdentifier(),
+            splash: {
+                image: './assets/images/splash.png',
+                resizeMode: 'cover',
+                backgroundColor: '#B9A7E8',
+            }
         },
         web: {
             output: 'static',
-            favicon: './assets/images/icon.webp',
+            favicon: './assets/images/icon.png',
         },
         plugins: [
             'expo-router',
@@ -68,7 +73,18 @@ export default ({ config }: ConfigContext): ExpoConfig => {
             ],
             'expo-font',
             'expo-sqlite',
-            "@react-native-community/datetimepicker"
+            "@react-native-community/datetimepicker",
+            [
+                "expo-splash-screen",
+                {
+                    "backgroundColor": "#B9A7E8",
+                    "image": "./assets/images/splash.png",
+                    "dark": {
+                        "image": "./assets/images/splash.png",
+                        "backgroundColor": "#B9A7E8"
+                    },
+                }
+            ]
         ],
         extra: {
             eas: {

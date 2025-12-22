@@ -11,6 +11,7 @@ type SettingsItemProps = {
     subtitle?: string;
     showDivider?: boolean;
     showChevron?: boolean;
+    onPress?: () => void;
 }
 
 export function SettingsItem({
@@ -21,9 +22,10 @@ export function SettingsItem({
     subtitle,
     showDivider = true,
     showChevron = true,
+    onPress,
 }: SettingsItemProps) {
     return (
-        <TouchableOpacity className="flex-row items-center justify-between px-5 py-4">
+        <TouchableOpacity className="flex-row items-center justify-between px-5 py-4" onPress={onPress}>
             <View className="flex-row items-center gap-4">
                 <View
                     className={`h-10 w-10 items-center justify-center rounded-full ${iconBg}`}

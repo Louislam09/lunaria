@@ -15,7 +15,7 @@ import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function SettingsScreen() {
   const version = Constants.expoConfig?.version;
-  const { data } = useOnboarding();
+  const { data, reset } = useOnboarding();
   const { user, logout } = useAuth();
   const { averageCycleLength, cycleRangeMin, cycleRangeMax, periodLength } = data;
   const [remindersEnabled, setRemindersEnabled] = useState(true);
@@ -115,6 +115,16 @@ export default function SettingsScreen() {
             iconBg="bg-orange-100"
             iconColor="text-orange-500"
             title="Exportar Reporte"
+          />
+          {/* reset data */}
+          <SettingsItem
+            icon="RefreshCcw"
+            iconBg="bg-gray-100"
+            iconColor="text-gray-500"
+            title="Reiniciar Datos"
+            onPress={() => {
+              reset();
+            }}
           />
           <SettingsItem
             icon="LockKeyhole"

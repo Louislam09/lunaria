@@ -244,7 +244,7 @@ export default function HomeScreen() {
             <TouchableOpacity
               key={i}
               activeOpacity={0.6}
-              className="w-64 mr-4 bg-white p-4 rounded-2xl border border-gray-200 shadow-md"
+              className="w-64 mr-4 bg-white p-4 rounded-3xl border border-gray-200 shadow-md"
             >
               <View className={`h-10 w-10 rounded-full ${item.iconBg} items-center justify-center mb-3`}>
                 <MyIcon name={item.icon as any} size={20} className={`${item.iconColor} fill-${item.iconColor}`} />
