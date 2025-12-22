@@ -1,13 +1,11 @@
-import React from 'react';
-import { View, Text, Pressable, ScrollView, ImageBackground, TouchableOpacity } from 'react-native';
-import { router } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useOnboarding } from '@/context/OnboardingContext';
-import { getNextPeriodDate, getCycleDay, getCyclePhase, getFertileWindow } from '@/utils/predictions';
-import { formatDate, getDaysUntil } from '@/utils/dates';
-import PredictionsS from '@/components/predictionScreen';
-import { Bell, Egg, Flower, ShieldCheck } from 'lucide-react-native';
 import MyIcon from '@/components/ui/Icon';
+import { useOnboarding } from '@/context/OnboardingContext';
+import { formatDate, getDaysUntil } from '@/utils/dates';
+import { getCycleDay, getCyclePhase, getFertileWindow, getNextPeriodDate } from '@/utils/predictions';
+import { router } from 'expo-router';
+import React from 'react';
+import { ImageBackground, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function PredictionsScreen() {
   const insets = useSafeAreaInsets();
@@ -176,11 +174,21 @@ export default function PredictionsScreen() {
                 Tu próximo periodo
               </Text>
               <View className="flex-row items-end justify-between">
-                <Text className="text-4xl font-bold text-text-primary">{formatDate(nextPeriodResult.date, 'short')}</Text>
-                <View className="bg-primary px-3 py-1 rounded-full">
+                {nextPeriodResult.range ? (
+                  <View className="flex-1">
+                    <Text className="text-2xl font-bold text-text-primary">
+                      {formatDate(nextPeriodResult.range.start, 'short')} - {formatDate(nextPeriodResult.range.end, 'short')}
+                    </Text>
+                    <Text className="text-orange-600 text-xs font-medium mt-1">
+                      Rango aproximado
+                    </Text>
+                  </View>
+                ) : (
+                  <Text className="text-4xl font-bold text-text-primary">{formatDate(nextPeriodResult.date, 'short')}</Text>
+                )}
+                <View className={`px-3 py-1 rounded-full ${nextPeriodResult.precision === 'high' ? 'bg-primary' : 'bg-orange-500'}`}>
                   <Text className="text-white text-sm font-medium">
-                    {/* En 5 días */}
-                    {daysUntilPeriod} días
+                    {daysUntilPeriod > 0 ? `${daysUntilPeriod} días` : daysUntilPeriod === 0 ? 'Hoy' : 'Pasado'}
                   </Text>
                 </View>
               </View>
@@ -189,44 +197,43 @@ export default function PredictionsScreen() {
 
           {/* Week Strip */}
           <View className="flex-row justify-between px-4 py-4 border-t border-gray-100 ">
-            {[
-              { d: "L", n: 9, faded: true },
-              { d: "M", n: 10, faded: true },
-              { d: "X", n: 11, active: true },
-              { d: "J", n: 12 },
-              { d: "V", n: 13, highlight: true },
-              { d: "S", n: 14, period: true },
-              { d: "D", n: 15, period: true, soft: true },
-            ].map((day) => (
-              <View key={day.n} className="items-center gap-1">
-                <Text
-                  className={`text-xs ${day.active
-                    ? "text-primary font-bold"
-                    : "text-text-secondary"
-                    }`}
-                >
-                  {day.d}
-                </Text>
+            {weekDays.map((date, index) => {
+              const dayNames = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
+              const dayName = dayNames[date.getDay()];
+              const isPeriod = isPeriodDay(date);
+              const isCurrentDay = isToday(date);
 
-                <View
-                  className={`w-8 h-8 rounded-full items-center justify-center ${day.active
-                    ? "bg-primary"
-                    : day.period
-                      ? "bg-[#e96e7e]"
-                      : ""
-                    }`}
-                >
+              return (
+                <View key={index} className="items-center gap-1">
                   <Text
-                    className={`text-sm font-bold ${day.active || day.period
-                      ? "text-white"
-                      : "text-text-primary"
+                    className={`text-xs ${isCurrentDay
+                      ? "text-primary font-bold"
+                      : "text-text-secondary"
                       }`}
                   >
-                    {day.n}
+                    {dayName}
                   </Text>
+
+                  <View
+                    className={`w-8 h-8 rounded-full items-center justify-center ${isCurrentDay
+                      ? "bg-primary"
+                      : isPeriod
+                        ? "bg-[#e96e7e]"
+                        : ""
+                      }`}
+                  >
+                    <Text
+                      className={`text-sm font-bold ${isCurrentDay || isPeriod
+                        ? "text-white"
+                        : "text-text-primary"
+                        }`}
+                    >
+                      {date.getDate()}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         </View>
 
@@ -238,61 +245,90 @@ export default function PredictionsScreen() {
 
           <View className="flex-row gap-3">
             {/* Ovulation */}
-            <View className="flex-1 bg-white rounded-3xl p-5 shadow-md gap-3 border border-gray-200">
-              <View className="flex-row justify-between items-center">
-                <View className="w-10 h-10 rounded-full bg-purple-100 items-center justify-center">
-                  <MyIcon name="Droplet" className="text-purple-500" />
+            {ovulationDate ? (
+              <View className="flex-1 bg-white rounded-3xl p-5 shadow-md gap-3 border border-gray-200">
+                <View className="flex-row justify-between items-center">
+                  <View className="w-10 h-10 rounded-full bg-purple-100 items-center justify-center">
+                    <MyIcon name="Droplet" className="text-purple-500" />
+                  </View>
+                  <Text className="text-xs font-semibold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">
+                    Alta
+                  </Text>
                 </View>
-                <Text className="text-xs font-semibold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">
-                  Alta
+                <Text className="text-sm text-text-secondary">
+                  Ovulación
+                </Text>
+                <Text className="text-xl font-bold text-text-primary">
+                  {formatDate(ovulationDate, 'short')}
                 </Text>
               </View>
-              <Text className="text-sm text-text-secondary">
-                Ovulación
-              </Text>
-              <Text className="text-xl font-bold text-text-primary">
-                {/* 28 Oct */}
-                {formatDate(ovulationDate, 'short')}
-              </Text>
-            </View>
+            ) : (
+              <View className="flex-1 bg-white rounded-3xl p-5 shadow-md gap-3 border border-gray-200">
+                <View className="flex-row justify-between items-center">
+                  <View className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center">
+                    <MyIcon name="Info" className="text-gray-500" />
+                  </View>
+                </View>
+                <Text className="text-sm text-text-secondary">
+                  Ovulación
+                </Text>
+                <Text className="text-sm font-medium text-text-primary">
+                  No determinada
+                </Text>
+              </View>
+            )}
 
             {/* Fertile */}
-            <View className="flex-1 bg-white rounded-3xl p-5 shadow-md gap-3 border border-gray-200">
-              <View className="w-10 h-10 rounded-full bg-teal-100 items-center justify-center">
-                <MyIcon name="Flower" className="text-teal-500" />
+            {fertileWindowDates ? (
+              <View className="flex-1 bg-white rounded-3xl p-5 shadow-md gap-3 border border-gray-200">
+                <View className="w-10 h-10 rounded-full bg-teal-100 items-center justify-center">
+                  <MyIcon name="Flower" className="text-teal-500" />
+                </View>
+                <Text className="text-sm text-text-secondary">
+                  Ventana fértil
+                </Text>
+                <Text className="text-xl font-bold text-text-primary">
+                  {formatDate(fertileWindowDates.start, 'short')} - {formatDate(fertileWindowDates.end, 'short')}
+                </Text>
               </View>
-              <Text className="text-sm text-text-secondary">
-                Ventana fértil
-              </Text>
-              <Text className="text-xl font-bold text-text-primary">
-                {/* 24 – 29 Oct */}
-                {formatDate(fertileWindowDates?.start, 'short')} - {formatDate(fertileWindowDates?.end, 'short')}
-              </Text>
-            </View>
+            ) : (
+              <View className="flex-1 bg-white rounded-3xl p-5 shadow-md gap-3 border border-gray-200">
+                <View className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center">
+                  <MyIcon name="Info" className="text-gray-500" />
+                </View>
+                <Text className="text-sm text-text-secondary">
+                  Ventana fértil
+                </Text>
+                <Text className="text-sm font-medium text-text-primary">
+                  No determinada
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
         {/* Contraceptive */}
-        <View className="bg-blue-50 rounded-3xl p-5 gap-4 border border-gray-200 shadow-md">
-          <View className="flex-row gap-3">
-            <MyIcon name="ShieldCheck" className="text-blue-500" />
-            <View className="flex-1 gap-1">
-              <Text className="font-bold text-text-primary">
-                Método anticonceptivo
-              </Text>
-              <Text className="text-sm text-text-secondary">
-                Tu método actual (Píldora) reduce significativamente el riesgo de
-                embarazo.
-              </Text>
+        {data.contraceptiveMethod && data.contraceptiveMethod !== 'none' && (
+          <View className="bg-blue-50 rounded-3xl p-5 gap-4 border border-gray-200 shadow-md">
+            <View className="flex-row gap-3">
+              <MyIcon name="ShieldCheck" className="text-blue-500" />
+              <View className="flex-1 gap-1">
+                <Text className="font-bold text-text-primary">
+                  Método anticonceptivo
+                </Text>
+                <Text className="text-sm text-text-secondary">
+                  Tu método actual ({getContraceptiveLabel()}) puede afectar tu ciclo y las predicciones.
+                </Text>
+              </View>
             </View>
-          </View>
 
-          <TouchableOpacity className="self-start bg-primary px-5 py-2 rounded-full" activeOpacity={0.6}>
-            <Text className="text-white font-bold text-sm">
-              Ver detalles
-            </Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity className="self-start bg-primary px-5 py-2 rounded-full" activeOpacity={0.6}>
+              <Text className="text-white font-bold text-sm">
+                Ver detalles
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
