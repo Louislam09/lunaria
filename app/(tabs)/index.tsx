@@ -213,7 +213,7 @@ export default function HomeScreen() {
             {getPhaseDescription(phase, cycleDay)}
           </Text>
 
-          <TouchableOpacity activeOpacity={0.6} className="w-full mt-5 bg-primary py-5 rounded-full items-center justify-center flex-row gap-2">
+          <TouchableOpacity onPress={() => router.push('/registro')} activeOpacity={0.6} className="w-full mt-5 bg-primary py-5 rounded-full items-center justify-center flex-row gap-2">
             <MyIcon name="NotebookPen" size={20} className="text-white " />
             <Text className="text-white font-bold text-base">
               Registrar síntomas
