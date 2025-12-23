@@ -1,17 +1,7 @@
 import { getDatabase } from './database';
-
-// Dynamic imports for optional packages
-let FileSystem: any;
-let Sharing: any;
-let DocumentPicker: any;
-
-try {
-  FileSystem = require('expo-file-system');
-  Sharing = require('expo-sharing');
-  DocumentPicker = require('expo-document-picker');
-} catch (error) {
-  console.warn('File system packages not available. Install: expo-file-system expo-sharing expo-document-picker');
-}
+import { File, Paths } from 'expo-file-system';
+import * as DocumentPicker from 'expo-document-picker';
+import * as Sharing from 'expo-sharing';
 
 export interface ExportData {
   version: string;
@@ -23,10 +13,6 @@ export interface ExportData {
 
 // Export all user data to JSON
 export async function exportData(userId: string): Promise<string> {
-  if (!FileSystem || !Sharing) {
-    throw new Error('Paquetes de sistema de archivos no disponibles. Instala: expo-file-system expo-sharing');
-  }
-
   const db = await getDatabase();
 
   // Fetch all data
@@ -60,41 +46,52 @@ export async function exportData(userId: string): Promise<string> {
 
   const jsonString = JSON.stringify(exportData, null, 2);
   const fileName = `lunaria-export-${new Date().toISOString().split('T')[0]}.json`;
-  const fileUri = `${FileSystem.documentDirectory}${fileName}`;
 
-  // Write file
-  await FileSystem.writeAsStringAsync(fileUri, jsonString);
+  // Create file using new File API
+  const file = new File(Paths.document, fileName);
+  file.write(jsonString);
 
   // Share file
+  // Check if sharing is available (required for web compatibility)
   if (await Sharing.isAvailableAsync()) {
-    await Sharing.shareAsync(fileUri, {
-      mimeType: 'application/json',
-      dialogTitle: 'Exportar datos de Lunaria',
-    });
+    try {
+      await Sharing.shareAsync(file.uri, {
+        mimeType: 'application/json', // Android
+        UTI: 'public.json', // iOS - Uniform Type Identifier for JSON
+        dialogTitle: 'Exportar datos de Lunaria', // Android & Web
+      });
+    } catch (error) {
+      // If sharing fails, still return the file URI so user can access it
+      console.warn('Sharing failed:', error);
+      // File is still saved and URI is returned below
+    }
+  } else {
+    // Sharing not available (e.g., web without HTTPS)
+    console.warn('Sharing API not available. File saved at:', file.uri);
   }
 
-  return fileUri;
+  return file.uri;
 }
 
 // Import data from JSON file
 export async function importData(userId: string): Promise<{ imported: number; errors: number }> {
-  if (!FileSystem || !DocumentPicker) {
-    throw new Error('Paquetes de sistema de archivos no disponibles. Instala: expo-file-system expo-document-picker');
-  }
-
   try {
     // Pick file
+    // copyToCacheDirectory: true ensures file is accessible by expo-file-system immediately
     const result = await DocumentPicker.getDocumentAsync({
       type: 'application/json',
       copyToCacheDirectory: true,
     });
 
-    if (result.canceled) {
+    // Check if user canceled
+    if (result.canceled || !result.assets || result.assets.length === 0) {
       throw new Error('Importación cancelada');
     }
 
-    // Read file
-    const fileContent = await FileSystem.readAsStringAsync(result.assets[0].uri);
+    // Read file using new File API
+    // With copyToCacheDirectory: true, the file is available immediately
+    const file = new File(result.assets[0].uri);
+    const fileContent = await file.text();
     const importData: ExportData = JSON.parse(fileContent);
 
     // Validate version

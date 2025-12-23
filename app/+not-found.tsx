@@ -39,9 +39,7 @@ export default function NotFoundScreen() {
 
                         <View className="relative rounded-3xl w-64 h-64 overflow-hidden shadow-sm">
                             <Image
-                                source={{
-                                    uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDD7cXPVdJfmIRmGeA5Gk2KyN8OWVmSJnbvWmx6V5wn57Lh1MaXIrREIYkPpkOe5w1vZe_-kQ3zzyYE2d-OVLYJllvIMZpLR_Ce6IqfYflrYB4SavXNocip6xDYinE_RIYwsFcxhYzBYslwTzocmQpfAPekuuyq0SafVs3HvzhA3ZsuZN51szN449OJX6HdGhnaaTtgilgWmDI-y_t6Bxkxik8ZqBLAnuEOzHhQpHXEi__pKjQcnNFDZ9rZqeNj_AuD-kEgGXF0UDrW',
-                                }}
+                                source={require('@/assets/images/not-found.webp')}
                                 contentFit="cover"
                                 style={{ width: '100%', height: '100%' }}
                             />

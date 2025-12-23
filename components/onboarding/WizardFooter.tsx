@@ -1,5 +1,7 @@
 import { ALL_STEPS, STEPS } from '@/constants/onboarding';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { useAuth } from '@/context/AuthContext';
+import { ProfilesService } from '@/services/dataService';
 import { colors } from '@/utils/colors';
 import { router } from 'expo-router';
 import { ArrowLeft, ArrowRight } from 'lucide-react-native';
@@ -8,6 +10,7 @@ import { Pressable, Text, View } from 'react-native';
 
 export default function WizardFooter() {
   const { actualStep, actualSubStep, setActualStep, setActualSubStep, data, completeOnboarding } = useOnboarding();
+  const { user, localUserId } = useAuth();
 
   const step = STEPS[actualStep];
   const currentSubStep = step.subSteps[actualSubStep];
@@ -32,8 +35,32 @@ export default function WizardFooter() {
       setActualStep(actualStep + 1);
       setActualSubStep(0);
     } else {
-      // Last step - mark onboarding as complete before navigating
+      // Last step - mark onboarding as complete and save profile to database
       await completeOnboarding();
+      
+      // Save onboarding data to profiles table in database
+      const userId = user?.id || localUserId;
+      if (userId && data.name && data.birthDate && data.lastPeriodStart && data.cycleType && data.periodLength) {
+        try {
+          await ProfilesService.save({
+            user_id: userId,
+            name: data.name,
+            birth_date: data.birthDate.toISOString().split('T')[0],
+            cycle_type: data.cycleType,
+            average_cycle_length: data.averageCycleLength,
+            cycle_range_min: data.cycleRangeMin,
+            cycle_range_max: data.cycleRangeMax,
+            period_length: data.periodLength,
+            contraceptive_method: data.contraceptiveMethod,
+            wants_pregnancy: data.wantsPregnancy,
+            pcos_symptoms: data.symptoms || [],
+          });
+        } catch (error) {
+          console.error('Error saving profile to database:', error);
+          // Continue even if profile save fails
+        }
+      }
+      
       router.replace('/(tabs)');
     }
   };

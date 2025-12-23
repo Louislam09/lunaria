@@ -330,13 +330,13 @@ export default function CalendarScreen() {
 
       // Preserve period marking if exists, but override container style for selected
       marked[selected].selected = true;
-      marked[selected].selectedColor = colors.lavender;
+      // marked[selected].selectedColor = colors.lavender;
       marked[selected].customContainerStyle = {
         ...marked[selected].customContainerStyle,
       };
       marked[selected].customTextStyle = {
         ...marked[selected].customTextStyle,
-        color: colors.lavender,
+        // color: 'white',
         fontWeight: 'bold',
       };
     }
@@ -360,7 +360,8 @@ export default function CalendarScreen() {
           color: 'text-rose-600',
           bgColor: 'bg-rose-500/10',
           chance: 'Probabilidad muy baja de embarazo.',
-          image: "https://lh3.googleusercontent.com/aida-public/AB6AXuB39TL-FgtOjPCzNKS56wzfQQnWiH_sdoFfT2uoUWcQGR2Xat7reUAsX0mJ9fGS0nIIDtqnTbmSxWaUu-4GXsJrUUYikiE0xkeNMHs3tpTLFjp6S_EWB_vkPSKYxmqAV33ApRQ_vPlivaGB9SjmNWyYagSXO03_g_0SvqAMFWeduRJxvQEXAuJ7AMrhuPj10k1sQYQBTThrs1QLw61Iain14BPMAOmhTpbKb7CDqKxiKh_X9LktDFoPdJMMraAgtgc4lxkgRmyTY_Q"
+          image: require('@/assets/images/flower.webp'),
+          // image: "https://lh3.googleusercontent.com/aida-public/AB6AXuB39TL-FgtOjPCzNKS56wzfQQnWiH_sdoFfT2uoUWcQGR2Xat7reUAsX0mJ9fGS0nIIDtqnTbmSxWaUu-4GXsJrUUYikiE0xkeNMHs3tpTLFjp6S_EWB_vkPSKYxmqAV33ApRQ_vPlivaGB9SjmNWyYagSXO03_g_0SvqAMFWeduRJxvQEXAuJ7AMrhuPj10k1sQYQBTThrs1QLw61Iain14BPMAOmhTpbKb7CDqKxiKh_X9LktDFoPdJMMraAgtgc4lxkgRmyTY_Q"
         };
       case 'follicular':
         return {
@@ -368,7 +369,7 @@ export default function CalendarScreen() {
           color: 'text-blue-600',
           bgColor: 'bg-blue-500/10',
           chance: 'Probabilidad baja de embarazo.',
-          image: "https://lh3.googleusercontent.com/aida-public/AB6AXuB39TL-FgtOjPCzNKS56wzfQQnWiH_sdoFfT2uoUWcQGR2Xat7reUAsX0mJ9fGS0nIIDtqnTbmSxWaUu-4GXsJrUUYikiE0xkeNMHs3tpTLFjp6S_EWB_vkPSKYxmqAV33ApRQ_vPlivaGB9SjmNWyYagSXO03_g_0SvqAMFWeduRJxvQEXAuJ7AMrhuPj10k1sQYQBTThrs1QLw61Iain14BPMAOmhTpbKb7CDqKxiKh_X9LktDFoPdJMMraAgtgc4lxkgRmyTY_Q"
+          image: require('@/assets/images/flower.webp'),
         };
       case 'ovulatory':
         return {
@@ -376,7 +377,7 @@ export default function CalendarScreen() {
           color: 'text-purple-600',
           bgColor: 'bg-purple-500/10',
           chance: 'Probabilidad alta de embarazo.',
-          image: "https://lh3.googleusercontent.com/aida-public/AB6AXuB39TL-FgtOjPCzNKS56wzfQQnWiH_sdoFfT2uoUWcQGR2Xat7reUAsX0mJ9fGS0nIIDtqnTbmSxWaUu-4GXsJrUUYikiE0xkeNMHs3tpTLFjp6S_EWB_vkPSKYxmqAV33ApRQ_vPlivaGB9SjmNWyYagSXO03_g_0SvqAMFWeduRJxvQEXAuJ7AMrhuPj10k1sQYQBTThrs1QLw61Iain14BPMAOmhTpbKb7CDqKxiKh_X9LktDFoPdJMMraAgtgc4lxkgRmyTY_Q"
+          image: require('@/assets/images/flower.webp'),
         };
       case 'luteal':
       default:
@@ -385,7 +386,7 @@ export default function CalendarScreen() {
           color: 'text-green-600',
           bgColor: 'bg-green-500/10',
           chance: 'Probabilidad baja de embarazo.',
-          image: "https://lh3.googleusercontent.com/aida-public/AB6AXuB39TL-FgtOjPCzNKS56wzfQQnWiH_sdoFfT2uoUWcQGR2Xat7reUAsX0mJ9fGS0nIIDtqnTbmSxWaUu-4GXsJrUUYikiE0xkeNMHs3tpTLFjp6S_EWB_vkPSKYxmqAV33ApRQ_vPlivaGB9SjmNWyYagSXO03_g_0SvqAMFWeduRJxvQEXAuJ7AMrhuPj10k1sQYQBTThrs1QLw61Iain14BPMAOmhTpbKb7CDqKxiKh_X9LktDFoPdJMMraAgtgc4lxkgRmyTY_Q"
+          image: require('@/assets/images/flower.webp'),
         };
     }
   };
@@ -482,8 +483,8 @@ export default function CalendarScreen() {
             </View>
 
             <MyImage
-              source={{ uri: phaseDisplay.image }}
-              className="w-20 h-20 rounded-2xl"
+              source={phaseDisplay.image}
+              className="w-20 h-full rounded-2xl"
             />
           </View>
         </View>

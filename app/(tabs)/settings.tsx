@@ -21,7 +21,7 @@ import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 export default function SettingsScreen() {
   const version = Constants.expoConfig?.version;
   const { data, reset, isLoading, isComplete } = useOnboarding();
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, localUserId } = useAuth();
   const { sync, setSyncFrequency, frequency, pendingItems, lastSyncTime, isSyncing } = useSync();
   const { averageCycleLength = 28, cycleRangeMin, cycleRangeMax, periodLength = 5 } = data;
   const [remindersEnabled, setRemindersEnabled] = useState(true);
@@ -128,14 +128,15 @@ export default function SettingsScreen() {
   };
 
   const handleExport = async () => {
-    if (!isAuthenticated || !user) {
-      Alert.alert('Autenticación requerida', 'Debes iniciar sesión para exportar tus datos.');
+    const userId = isAuthenticated && user ? user.id : localUserId;
+    if (!userId) {
+      Alert.alert('Error', 'No se pudo identificar el usuario.');
       return;
     }
 
     setIsExporting(true);
     try {
-      await exportData(user.id);
+      await exportData(userId);
       Alert.alert('Éxito', 'Datos exportados correctamente.');
     } catch (error: any) {
       Alert.alert('Error', error.message || 'No se pudieron exportar los datos.');
@@ -145,8 +146,9 @@ export default function SettingsScreen() {
   };
 
   const handleImport = async () => {
-    if (!isAuthenticated || !user) {
-      Alert.alert('Autenticación requerida', 'Debes iniciar sesión para importar datos.');
+    const userId = isAuthenticated && user ? user.id : localUserId;
+    if (!userId) {
+      Alert.alert('Error', 'No se pudo identificar el usuario.');
       return;
     }
 
@@ -161,7 +163,7 @@ export default function SettingsScreen() {
           onPress: async () => {
             setIsImporting(true);
             try {
-              const result = await importData(user.id);
+              const result = await importData(userId);
               Alert.alert(
                 'Éxito',
                 `Importados ${result.imported} elementos.${result.errors > 0 ? ` ${result.errors} error(es).` : ''}`
@@ -339,11 +341,13 @@ export default function SettingsScreen() {
 
         {/* Footer */}
         <View className="mt-10 items-center gap-3">
-          <TouchableOpacity className="w-full max-w-[200px] py-5 font-bold text-sm bg-red-100 rounded-full transition-colors" onPress={handleLogout}>
-            <Text className="text-center text-base font-bold text-red-500">
-              Cerrar Sesión
-            </Text>
-          </TouchableOpacity>
+          {isAuthenticated && (
+            <TouchableOpacity className="w-full max-w-[200px] py-5 font-bold text-sm bg-red-100 rounded-full transition-colors" onPress={handleLogout}>
+              <Text className="text-center text-base font-bold text-red-500">
+                Cerrar Sesión
+              </Text>
+            </TouchableOpacity>
+          )}
 
           <Text className="text-sm font-medium text-text-muted">
             Versión {version}

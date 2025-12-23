@@ -163,9 +163,7 @@ export default function PredictionsScreen() {
         <View className="h-24" />
         <View className="rounded-3xl overflow-hidden bg-white shadow-sm border border-gray-200">
           <ImageBackground
-            source={{
-              uri: "https://lh3.googleusercontent.com/aida-public/AB6AXuADYt505TH4cOvY-57cAwJi2Vv46C1raokpDxZt5LAS5I4EYOjjIpVN0YP-D6XznmqCAksIi1YOrp7WqMamK-G3UvxnTw8T72pOL19-zLZEafz9sj8GKsC9vsiIqdjMUb8iqvzkk6G99zpaLKzS1ryMPObUxbAhBhYOjGuFm8H7e8NM3H_iAELoSQMJEyfi3Mo_8d2c4j7b5gXTsqS4UevZfb3Miq1EpQnT7OwoSNdZoCw9XkLnhkajqgMhNSRUKtzU1CW9rmnh6ns",
-            }}
+            source={require("@/assets/images/predictions.webp")}
             className="h-48 justify-end"
           >
             <View className="absolute inset-0 bg-linear-to-t from-background/90 to-transparent" />

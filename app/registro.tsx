@@ -34,7 +34,7 @@ enum Flow {
 
 export default function RegisterScreen() {
   const { data, isLoading, isComplete } = useOnboarding();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, localUserId } = useAuth();
   const [flow, setFlow] = useState(Flow.MEDIO);
   const [moods, setMoods] = useState<Moods[]>([Moods.FELIZ]);
   const [symptoms, setSymptoms] = useState<string[]>([]);
@@ -57,17 +57,18 @@ export default function RegisterScreen() {
     setSelectedDate(new Date());
   };
 
-  // Load existing log for selected date if authenticated
+  // Load existing log for selected date
   useEffect(() => {
-    if (isAuthenticated && user) {
-      loadExistingLog();
+    const userId = isAuthenticated && user ? user.id : localUserId;
+    if (userId) {
+      loadExistingLog(userId);
     }
-  }, [selectedDate, isAuthenticated, user]);
+  }, [selectedDate, isAuthenticated, user, localUserId]);
 
-  const loadExistingLog = async () => {
+  const loadExistingLog = async (userId: string) => {
     try {
       const dateStr = selectedDate.toISOString().split('T')[0];
-      const existing = await DailyLogsService.getByDate(user!.id, dateStr);
+      const existing = await DailyLogsService.getByDate(userId, dateStr);
       if (existing) {
         setFlow(existing.flow as Flow);
         setMoods(existing.mood ? existing.mood.split(',') as Moods[] : [Moods.FELIZ]);
@@ -132,10 +133,11 @@ export default function RegisterScreen() {
   };
 
   const handleSave = async () => {
-    if (!isAuthenticated || !user) {
+    const userId = isAuthenticated && user ? user.id : localUserId;
+    if (!userId) {
       Alert.alert(
-        'Autenticación requerida',
-        'Debes iniciar sesión para guardar tus registros.',
+        'Error',
+        'No se pudo identificar el usuario.',
         [{ text: 'OK' }]
       );
       return;
@@ -148,7 +150,7 @@ export default function RegisterScreen() {
       const dateStr = selectedDate.toISOString().split('T')[0];
 
       await DailyLogsService.save({
-        user_id: user.id,
+        user_id: userId,
         date: dateStr,
         symptoms: symptoms,
         flow: flow,
@@ -158,7 +160,7 @@ export default function RegisterScreen() {
 
       Alert.alert(
         'Guardado',
-        'Registro guardado correctamente. Se sincronizará automáticamente según tu configuración.',
+        'Registro guardado correctamente.',
         [
           {
             text: 'OK',

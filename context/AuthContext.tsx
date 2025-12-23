@@ -11,6 +11,7 @@ interface User {
 interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
+  localUserId: string | null;
   loginEmail: (email: string, password: string) => Promise<void>;
   loginGoogle: () => Promise<void>;
   logout: () => Promise<void>;
@@ -22,6 +23,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [localUserId, setLocalUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,18 +35,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const authData = await Storage.getItem('authData');
       if (authData) {
         const parsed = JSON.parse(authData);
-        pb.authStore.save(parsed.token, parsed.model);
-        setIsAuthenticated(pb.authStore.isValid);
-        if (pb.authStore.model) {
-          setUser({
-            id: pb.authStore.model.id,
-            email: pb.authStore.model.email || '',
-            name: pb.authStore.model.name,
-          });
+        try {
+          pb.authStore.save(parsed.token, parsed.model);
+          setIsAuthenticated(pb.authStore.isValid);
+          if (pb.authStore.model) {
+            setUser({
+              id: pb.authStore.model.id,
+              email: pb.authStore.model.email || '',
+              name: pb.authStore.model.name,
+            });
+          }
+        } catch (pbError) {
+          // PocketBase not available or connection failed - work locally
+          console.log('PocketBase not available, working locally');
+          setIsAuthenticated(false);
+          setUser(null);
+        }
+      } else {
+        // No auth data - create local user ID for MVP
+        const savedLocalUserId = await Storage.getItem('localUserId');
+        if (!savedLocalUserId) {
+          const newLocalUserId = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          await Storage.setItem('localUserId', newLocalUserId);
+          setLocalUserId(newLocalUserId);
+        } else {
+          setLocalUserId(savedLocalUserId);
         }
       }
     } catch (error) {
       console.error('Auth check error:', error);
+      // Continue working locally even if there's an error
     } finally {
       setLoading(false);
     }
@@ -64,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: authData.record.name,
       });
     } catch (error: any) {
-      throw new Error(error.message || 'Error al iniciar sesión');
+      throw new Error(error.message || 'Error al iniciar sesión. PocketBase no está disponible.');
     }
   };
 
@@ -84,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
       }
     } catch (error: any) {
-      throw new Error(error.message || 'Error al iniciar sesión con Google');
+      throw new Error(error.message || 'Error al iniciar sesión con Google. PocketBase no está disponible.');
     }
   };
 
@@ -96,7 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, loginEmail, loginGoogle, logout, loading }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, localUserId, loginEmail, loginGoogle, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
