@@ -7,19 +7,16 @@ import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 export default function WizardFooter() {
-  const { actualStep, actualSubStep, setActualStep, setActualSubStep, data } = useOnboarding();
+  const { actualStep, actualSubStep, setActualStep, setActualSubStep, data, completeOnboarding } = useOnboarding();
 
   const step = STEPS[actualStep];
   const currentSubStep = step.subSteps[actualSubStep];
   const { wizard, key: stepKey } = currentSubStep;
 
-  // Calculate progress
-  const totalSteps = ALL_STEPS.length - 1;
-
   const isFirstStep = actualStep === 0;
-  const isLastStep = actualStep === totalSteps;
+  const isLastStep = actualStep === STEPS.length - 1 && actualSubStep === step.subSteps.length - 1;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (wizard.skipTo) {
       const targetStepIndex = STEPS.findIndex(s => s.title === wizard.skipTo);
       if (targetStepIndex > -1) {
@@ -35,6 +32,8 @@ export default function WizardFooter() {
       setActualStep(actualStep + 1);
       setActualSubStep(0);
     } else {
+      // Last step - mark onboarding as complete before navigating
+      await completeOnboarding();
       router.replace('/(tabs)');
     }
   };

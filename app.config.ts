@@ -84,6 +84,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
                         "backgroundColor": "#B9A7E8"
                     },
                 }
+            ],
+            [
+                "expo-document-picker",
+                {
+                    "iCloudContainerEnvironment": "Production"
+                }
             ]
         ],
         extra: {

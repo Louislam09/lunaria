@@ -12,9 +12,9 @@ export default function SplashScreen() {
   const { isComplete, isLoading } = useOnboarding();
 
   useEffect(() => {
-    // If onboarding is already complete, redirect to home
+    // If onboarding is already complete, redirect to tabs
     if (!isLoading && isComplete) {
-      router.replace('/home');
+      router.replace('/(tabs)');
     }
   }, [isComplete, isLoading]);
 

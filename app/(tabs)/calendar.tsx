@@ -1,5 +1,6 @@
 import { MyImage } from '@/components/ui';
 import MyIcon from '@/components/ui/Icon';
+import { SyncStatusIndicator } from '@/components/ui/SyncStatusIndicator';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { getCycleDay, getCyclePhase, getFertileWindow, getNextPeriodDate } from '@/utils/predictions';
 import { router } from 'expo-router';
@@ -408,16 +409,19 @@ export default function CalendarScreen() {
           Calendario
         </Text>
 
-        <TouchableOpacity
-          onPress={() => {
-            const now = new Date();
-            setCurrentMonth(now);
-            setSelected(CalendarUtils.getCalendarDateString(now));
-          }}
-          className="h-10 w-10 items-center justify-center rounded-full bg-background"
-        >
-          <MyIcon name="Calendar" className="text-text-primary" />
-        </TouchableOpacity>
+        <View className="flex-row gap-3 items-center">
+          <SyncStatusIndicator />
+          <TouchableOpacity
+            onPress={() => {
+              const now = new Date();
+              setCurrentMonth(now);
+              setSelected(CalendarUtils.getCalendarDateString(now));
+            }}
+            className="h-10 w-10 items-center justify-center rounded-full bg-background"
+          >
+            <MyIcon name="Calendar" className="text-text-primary" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView

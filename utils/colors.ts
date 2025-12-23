@@ -1,17 +1,11 @@
 export const colors = {
-  // lavender: "#B9A7E8",
   lavender: "#b19feb",
   blush: "#F3B7C6",
-  // moonWhite: "#F6F2FA",
   moonWhite: "#f9f9f9",
   textPrimary: "#2E2A38",
   textMuted: "#8E8AA0",
   period: "#fb7185",
-  // light green
   fertile: "#4BAA4E",
-  // light blue
-  // fertile: "#f6c4df",
-  // light purple
   ovulation: "#c58ffc",
 };
 

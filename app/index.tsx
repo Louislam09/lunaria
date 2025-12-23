@@ -4,6 +4,7 @@ import { View, Text } from "react-native";
 
 export default function Index() {
   const { isComplete, isLoading } = useOnboarding();
+  console.log({ isComplete, isLoading })
 
   // Show loading state while checking onboarding status
   if (isLoading) {

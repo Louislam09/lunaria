@@ -7,4 +7,3 @@ export const pb = new PocketBase(PB_URL);
 
 // Enable auto cancellation for all pending requests
 pb.autoCancellation(false);
-

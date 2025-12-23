@@ -1,5 +1,6 @@
 import { AuthProvider } from "@/context/AuthContext";
 import { OnboardingProvider } from "@/context/OnboardingContext";
+import { SyncProvider } from "@/context/SyncContext";
 import { Slot, Stack } from "expo-router";
 import { StatusBar, View } from "react-native";
 import { useFonts } from "expo-font";
@@ -43,19 +44,21 @@ const Layout = (props) => {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
-        <OnboardingProvider>
-          <View style={{ paddingBottom: bottom, flex: 1, paddingTop: isStatusBarHiddenState ? 0 : top }}>
-            <StatusBar barStyle="dark-content" backgroundColor={colors.lavender} />
-            {/* <Slot /> */}
-            <StatusBar barStyle="dark-content" backgroundColor={colors.lavender} />
-            <Stack
-              initialRouteName="(tabs)"
-              screenOptions={{
-                headerShown: false,
-              }}
-            />
-          </View>
-        </OnboardingProvider>
+        <SyncProvider>
+          <OnboardingProvider>
+            <View style={{ paddingBottom: bottom, flex: 1, paddingTop: isStatusBarHiddenState ? 0 : top }}>
+              <StatusBar barStyle="dark-content" backgroundColor={colors.lavender} />
+              {/* <Slot /> */}
+              <StatusBar barStyle="dark-content" backgroundColor={colors.lavender} />
+              <Stack
+                initialRouteName="index"
+                screenOptions={{
+                  headerShown: false,
+                }}
+              />
+            </View>
+          </OnboardingProvider>
+        </SyncProvider>
       </AuthProvider>
     </GestureHandlerRootView>
   );

@@ -32,6 +32,7 @@ type OnboardingContextType = {
   data: Partial<OnboardingData>;
   updateData: (values: Partial<OnboardingData>) => void;
   reset: () => void;
+  completeOnboarding: () => Promise<void>;
   isComplete: boolean;
   isLoading: boolean;
   // Wizard navigation
@@ -76,9 +77,6 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         if (parsed.birthDate) parsed.birthDate = new Date(parsed.birthDate);
         if (parsed.lastPeriodStart) parsed.lastPeriodStart = new Date(parsed.lastPeriodStart);
         setData(parsed);
-
-        // Check completion after loading data
-        checkCompletion(parsed);
       }
 
       if (completeStatus === 'true') {
@@ -128,25 +126,23 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Error saving onboarding data:', error);
     }
-
-    // Check if onboarding is complete
-    checkCompletion(newData);
   };
 
-  const checkCompletion = async (checkData: Partial<OnboardingData>) => {
+  const completeOnboarding = async () => {
+    // Verify required fields are present before marking as complete
     const required = [
-      checkData.name,
-      checkData.birthDate,
-      checkData.lastPeriodStart,
-      checkData.cycleType,
-      checkData.periodLength,
+      data.name,
+      data.birthDate,
+      data.lastPeriodStart,
+      data.cycleType,
+      data.periodLength,
     ];
 
     // For cycle type, need either averageCycleLength OR (cycleRangeMin + cycleRangeMax)
     const cycleComplete =
-      checkData.cycleType === 'regular'
-        ? !!checkData.averageCycleLength
-        : !!(checkData.cycleRangeMin && checkData.cycleRangeMax);
+      data.cycleType === 'regular'
+        ? !!data.averageCycleLength
+        : !!(data.cycleRangeMin && data.cycleRangeMax);
 
     const allRequired = required.every(Boolean) && cycleComplete;
 
@@ -158,9 +154,10 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         console.error('Error saving completion status:', error);
       }
     } else {
-      setIsComplete(false);
+      console.warn('Cannot complete onboarding: required fields missing');
     }
   };
+
 
   const reset = async () => {
     setData({});
@@ -182,6 +179,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       data,
       updateData,
       reset,
+      completeOnboarding,
       isComplete,
       isLoading,
       actualStep,

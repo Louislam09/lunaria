@@ -1,25 +1,35 @@
 import { ProfileCard } from '@/components/settings/ProfileCard';
 import { SettingsItem } from '@/components/settings/SettingsItem';
 import { SettingsSection } from '@/components/settings/SettingsSection';
+import { SyncFrequencyPicker } from '@/components/settings/SyncFrequencyPicker';
+import { ConflictResolutionModal } from '@/components/settings/ConflictResolutionModal';
 import { ToggleRow } from '@/components/settings/ToggleRow';
 import MyIcon from '@/components/ui/Icon';
 import { useAuth } from '@/context/AuthContext';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { useSync } from '@/context/SyncContext';
+import { exportData, importData } from '@/services/exportImport';
+import { detectConflicts, resolveConflictLocal, resolveConflictRemote, Conflict } from '@/services/conflictResolution';
 import { colors } from '@/utils/colors';
 import { formatDate } from '@/utils/dates';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { Bell } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function SettingsScreen() {
   const version = Constants.expoConfig?.version;
   const { data, reset, isLoading, isComplete } = useOnboarding();
-  const { user, logout } = useAuth();
+  const { user, logout, isAuthenticated } = useAuth();
+  const { sync, setSyncFrequency, frequency, pendingItems, lastSyncTime, isSyncing } = useSync();
   const { averageCycleLength = 28, cycleRangeMin, cycleRangeMax, periodLength = 5 } = data;
   const [remindersEnabled, setRemindersEnabled] = useState(true);
   const [aiPredictionEnabled, setAiPredictionEnabled] = useState(true);
+  const [conflicts, setConflicts] = useState<Conflict[]>([]);
+  const [showConflictModal, setShowConflictModal] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
 
   const userName = data.name || user?.name || 'Usuario';
   const userEmail = user?.email || 'usuario@email.com';
@@ -32,13 +42,159 @@ export default function SettingsScreen() {
   }, [isLoading, isComplete]);
 
   const handleLogout = async () => {
-    await logout();
-    router.replace('/splash');
+    Alert.alert(
+      'Cerrar Sesión',
+      '¿Estás seguro que deseas cerrar sesión?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Cerrar Sesión',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout();
+              // Navigate directly to splash screen
+              router.replace('/splash');
+            } catch (error) {
+              console.error('Logout error:', error);
+              Alert.alert('Error', 'No se pudo cerrar sesión');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleReset = async () => {
-    await reset();
-    // The useEffect will handle the redirection
+    Alert.alert(
+      'Reiniciar Datos',
+      '¿Estás seguro? Esto eliminará todos tus datos locales y te llevará al inicio.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Reiniciar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await reset();
+              // Navigate directly to splash screen
+              router.replace('/splash');
+            } catch (error) {
+              console.error('Reset error:', error);
+              Alert.alert('Error', 'No se pudieron reiniciar los datos');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleSync = async () => {
+    if (!isAuthenticated || !user) {
+      Alert.alert('Autenticación requerida', 'Debes iniciar sesión para sincronizar tus datos.');
+      return;
+    }
+
+    try {
+      await sync();
+
+      // Check for conflicts
+      const detectedConflicts = await detectConflicts(user.id);
+      if (detectedConflicts.length > 0) {
+        setConflicts(detectedConflicts);
+        setShowConflictModal(true);
+      } else {
+        Alert.alert('Éxito', 'Datos sincronizados correctamente.');
+      }
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'No se pudo sincronizar. Intenta más tarde.');
+    }
+  };
+
+  const handleResolveConflict = async (conflict: Conflict, keepLocal: boolean) => {
+    try {
+      if (keepLocal) {
+        await resolveConflictLocal(conflict);
+      } else {
+        await resolveConflictRemote(conflict);
+      }
+      setConflicts(prev => prev.filter(c => c.id !== conflict.id));
+      if (conflicts.length === 1) {
+        setShowConflictModal(false);
+      }
+    } catch (error: any) {
+      Alert.alert('Error', 'No se pudo resolver el conflicto.');
+    }
+  };
+
+  const handleExport = async () => {
+    if (!isAuthenticated || !user) {
+      Alert.alert('Autenticación requerida', 'Debes iniciar sesión para exportar tus datos.');
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      await exportData(user.id);
+      Alert.alert('Éxito', 'Datos exportados correctamente.');
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'No se pudieron exportar los datos.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImport = async () => {
+    if (!isAuthenticated || !user) {
+      Alert.alert('Autenticación requerida', 'Debes iniciar sesión para importar datos.');
+      return;
+    }
+
+    Alert.alert(
+      'Importar Datos',
+      '¿Estás seguro? Esto sobrescribirá tus datos existentes.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Importar',
+          style: 'destructive',
+          onPress: async () => {
+            setIsImporting(true);
+            try {
+              const result = await importData(user.id);
+              Alert.alert(
+                'Éxito',
+                `Importados ${result.imported} elementos.${result.errors > 0 ? ` ${result.errors} error(es).` : ''}`
+              );
+            } catch (error: any) {
+              Alert.alert('Error', error.message || 'No se pudieron importar los datos.');
+            } finally {
+              setIsImporting(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleSyncFrequencyChange = async (newFrequency: 'daily' | 'weekly' | 'monthly') => {
+    try {
+      await setSyncFrequency(newFrequency);
+    } catch (error: any) {
+      Alert.alert('Error', 'No se pudo actualizar la frecuencia de sincronización.');
+    }
+  };
+
+  const formatLastSync = () => {
+    if (!lastSyncTime) return 'Nunca';
+    const now = new Date();
+    const diff = now.getTime() - lastSyncTime.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) return `Hace ${days} día${days > 1 ? 's' : ''}`;
+    if (hours > 0) return `Hace ${hours} hora${hours > 1 ? 's' : ''}`;
+    return 'Hace unos minutos';
   };
 
   return (
@@ -120,29 +276,65 @@ export default function SettingsScreen() {
           />
         </SettingsSection>
 
+        {/* Sincronización */}
+        {isAuthenticated && (
+          <SettingsSection title="Sincronización">
+            <SyncFrequencyPicker
+              value={frequency}
+              onChange={handleSyncFrequencyChange}
+            />
+            <SettingsItem
+              icon="Cloud"
+              iconBg="bg-blue-100"
+              iconColor="text-blue-500"
+              title="Sincronizar Ahora"
+              subtitle={isSyncing ? 'Sincronizando...' : `Última sincronización: ${formatLastSync()}`}
+              onPress={handleSync}
+              showDivider={false}
+            />
+            {pendingItems > 0 && (
+              <View className="px-5 py-3 bg-yellow-50 border-t border-yellow-200">
+                <Text className="text-xs font-medium text-yellow-700">
+                  {pendingItems} elemento{pendingItems > 1 ? 's' : ''} pendiente{pendingItems > 1 ? 's' : ''} de sincronizar
+                </Text>
+              </View>
+            )}
+          </SettingsSection>
+        )}
+
         {/* Datos */}
         <SettingsSection title="Datos">
           <SettingsItem
             icon="Download"
             iconBg="bg-orange-100"
             iconColor="text-orange-500"
-            title="Exportar Reporte"
+            title="Exportar Datos"
+            subtitle={isExporting ? 'Exportando...' : 'Guardar copia de seguridad'}
+            onPress={handleExport}
+            showDivider
           />
-          {/* reset data */}
+          <SettingsItem
+            icon="Upload"
+            iconBg="bg-blue-100"
+            iconColor="text-blue-500"
+            title="Importar Datos"
+            subtitle={isImporting ? 'Importando...' : 'Restaurar desde archivo'}
+            onPress={handleImport}
+            showDivider={false}
+          />
+        </SettingsSection>
+
+        {/* Reset */}
+        <SettingsSection title="Opciones Avanzadas">
           <SettingsItem
             icon="RefreshCcw"
             iconBg="bg-gray-100"
             iconColor="text-gray-500"
             title="Reiniciar Datos"
+            subtitle="Eliminar todos los datos locales"
             onPress={handleReset}
-          />
-          {/* <SettingsItem
-            icon="LockKeyhole"
-            iconBg="bg-gray-100"
-            iconColor="text-gray-500"
-            title="Privacidad y Seguridad"
             showDivider={false}
-          /> */}
+          />
         </SettingsSection>
 
         {/* Footer */}
@@ -158,6 +350,14 @@ export default function SettingsScreen() {
           </Text>
         </View>
       </ScrollView>
+
+      {/* Conflict Resolution Modal */}
+      <ConflictResolutionModal
+        visible={showConflictModal}
+        conflicts={conflicts}
+        onResolve={handleResolveConflict}
+        onClose={() => setShowConflictModal(false)}
+      />
     </View>
   );
 }

@@ -1,6 +1,7 @@
 import { MyImage } from '@/components/ui';
 import { CircularProgress } from '@/components/ui/CircularProgress';
 import MyIcon from '@/components/ui/Icon';
+import { SyncStatusIndicator } from '@/components/ui/SyncStatusIndicator';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { colors } from '@/utils/colors';
 import { formatDate, getDaysUntil } from '@/utils/dates';
@@ -138,7 +139,8 @@ export default function HomeScreen() {
           </Text>
         </View>
 
-        <View className="flex-row gap-3">
+        <View className="flex-row gap-3 items-center">
+          <SyncStatusIndicator />
           <Pressable className="h-10 w-10 rounded-full bg-background items-center justify-center">
             <MyIcon name="Bell" size={24} className="text-text-primary fill-white" />
           </Pressable>

@@ -1,11 +1,13 @@
 import { KeyboardPaddingView } from "@/components/keyboard-padding";
 import MyIcon from "@/components/ui/Icon";
+import { useAuth } from "@/context/AuthContext";
 import { useOnboarding } from "@/context/OnboardingContext";
+import { DailyLogsService } from "@/services/dataService";
 import { formatDate } from "@/utils/dates";
 import { getCycleDay } from "@/utils/predictions";
 import { router, Stack } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Keyboard, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Keyboard, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 enum Moods {
   FELIZ = "feliz",
@@ -32,11 +34,56 @@ enum Flow {
 
 export default function RegisterScreen() {
   const { data, isLoading, isComplete } = useOnboarding();
+  const { user, isAuthenticated } = useAuth();
   const [flow, setFlow] = useState(Flow.MEDIO);
   const [moods, setMoods] = useState<Moods[]>([Moods.FELIZ]);
   const [symptoms, setSymptoms] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const scrollViewRef = useRef<ScrollView>(null);
+
+  const navigateDate = (direction: 'prev' | 'next') => {
+    const newDate = new Date(selectedDate);
+    if (direction === 'prev') {
+      newDate.setDate(newDate.getDate() - 1);
+    } else {
+      newDate.setDate(newDate.getDate() + 1);
+    }
+    setSelectedDate(newDate);
+  };
+
+  const goToToday = () => {
+    setSelectedDate(new Date());
+  };
+
+  // Load existing log for selected date if authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      loadExistingLog();
+    }
+  }, [selectedDate, isAuthenticated, user]);
+
+  const loadExistingLog = async () => {
+    try {
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      const existing = await DailyLogsService.getByDate(user!.id, dateStr);
+      if (existing) {
+        setFlow(existing.flow as Flow);
+        setMoods(existing.mood ? existing.mood.split(',') as Moods[] : [Moods.FELIZ]);
+        setSymptoms(existing.symptoms);
+        setNotes(existing.notes);
+      } else {
+        // Reset to defaults
+        setFlow(Flow.MEDIO);
+        setMoods([Moods.FELIZ]);
+        setSymptoms([]);
+        setNotes("");
+      }
+    } catch (error) {
+      console.error('Failed to load existing log:', error);
+    }
+  };
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
@@ -84,13 +131,47 @@ export default function RegisterScreen() {
     );
   };
 
-  const handleSave = () => {
-    console.log("Guardar Registro", {
-      flow,
-      moods,
-      symptoms,
-      notes,
-    });
+  const handleSave = async () => {
+    if (!isAuthenticated || !user) {
+      Alert.alert(
+        'Autenticación requerida',
+        'Debes iniciar sesión para guardar tus registros.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    if (isSaving) return;
+
+    setIsSaving(true);
+    try {
+      const dateStr = selectedDate.toISOString().split('T')[0];
+
+      await DailyLogsService.save({
+        user_id: user.id,
+        date: dateStr,
+        symptoms: symptoms,
+        flow: flow,
+        mood: moods.join(','),
+        notes: notes,
+      });
+
+      Alert.alert(
+        'Guardado',
+        'Registro guardado correctamente. Se sincronizará automáticamente según tu configuración.',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.back(),
+          },
+        ]
+      );
+    } catch (error: any) {
+      console.error('Save failed:', error);
+      Alert.alert('Error', error.message || 'No se pudo guardar el registro. Intenta más tarde.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -100,20 +181,31 @@ export default function RegisterScreen() {
         {/* Top App Bar */}
         <View className="absolute top-0 left-0 right-0 z-20 flex-row items-center justify-between px-6 pt-6 pb-2 bg-background/90 backdrop-blur-sm">
           <Pressable
-            onPress={() => router.back()}
+            onPress={() => navigateDate('prev')}
             className="h-10 w-10 items-center justify-center rounded-full"
           >
             <MyIcon name="ChevronLeft" size={26} className="text-text-primary" />
           </Pressable>
-          <View className="items-center">
+          <Pressable
+            onPress={goToToday}
+            className="items-center flex-1"
+          >
             <Text className="text-lg font-bold text-text-primary">
-              {formatDate(data.lastPeriodStart, 'long')}
+              {formatDate(selectedDate, 'long')}
             </Text>
             <Text className="text-sm font-bold uppercase tracking-wider text-primary">
-              Día {getCycleDay(data.lastPeriodStart)} del ciclo
+              Día {getCycleDay(data.lastPeriodStart || selectedDate)} del ciclo
             </Text>
-          </View>
-          <Pressable className="h-10 w-10 items-center justify-center rounded-full">
+            {selectedDate.toDateString() !== new Date().toDateString() && (
+              <Text className="text-xs text-text-muted mt-1">
+                Toca para ir a hoy
+              </Text>
+            )}
+          </Pressable>
+          <Pressable
+            onPress={() => navigateDate('next')}
+            className="h-10 w-10 items-center justify-center rounded-full"
+          >
             <MyIcon name="ChevronRight" size={26} className="text-text-primary" />
           </Pressable>
         </View>
@@ -238,11 +330,28 @@ export default function RegisterScreen() {
           {/* Save */}
         </ScrollView>
         <View className="px-4 absolute bottom-0 left-0 right-0 z-20 flex-row items-center justify-between pt-6 pb-2 bg-background/90 backdrop-blur-sm">
-          <TouchableOpacity activeOpacity={0.6} onPress={handleSave} className="w-full mt-5 bg-primary py-5 rounded-full items-center justify-center flex-row gap-2">
-            <MyIcon name="Check" size={20} className="text-white" />
-            <Text className="text-white font-bold text-base">
-              Guardar Registro
-            </Text>
+          <TouchableOpacity
+            activeOpacity={0.6}
+            onPress={handleSave}
+            disabled={isSaving}
+            className={`w-full mt-5 py-5 rounded-full items-center justify-center flex-row gap-2 ${isSaving ? 'bg-gray-400' : 'bg-primary'
+              }`}
+          >
+            {isSaving ? (
+              <>
+                <MyIcon name="Loader" size={20} className="text-white" />
+                <Text className="text-white font-bold text-base">
+                  Guardando...
+                </Text>
+              </>
+            ) : (
+              <>
+                <MyIcon name="Check" size={20} className="text-white" />
+                <Text className="text-white font-bold text-base">
+                  Guardar Registro
+                </Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
       </View>
