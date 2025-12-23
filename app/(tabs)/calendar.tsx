@@ -417,7 +417,6 @@ export default function CalendarScreen() {
           className="h-10 w-10 items-center justify-center rounded-full bg-background"
         >
           <MyIcon name="Calendar" className="text-text-primary" />
-          {/* <Text className="text-text-primary font-bold text-sm">Hoy</Text> */}
         </TouchableOpacity>
       </View>
 
@@ -487,7 +486,10 @@ export default function CalendarScreen() {
 
         {/* ───── FAB ───── */}
         <View className="mt-6 mb-10">
-          <Pressable className="py-4 rounded-2xl bg-primary items-center justify-center flex-row shadow-lg active:opacity-90">
+          <Pressable
+            onPress={() => router.push('/registro')}
+            className="py-4 rounded-2xl bg-primary items-center justify-center flex-row shadow-lg active:opacity-90"
+          >
             <MyIcon name="Droplet" size={20} className="text-white" />
             <Text className="ml-2 text-white font-bold text-lg">
               Registrar Periodo

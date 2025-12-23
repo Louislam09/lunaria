@@ -168,9 +168,10 @@ export default function PredictionsScreen() {
             }}
             className="h-48 justify-end"
           >
-            <View className="absolute inset-0 bg-linear-to-br from-primary/10 to-primary/20" />
+            <View className="absolute inset-0 bg-linear-to-t from-background/90 to-transparent" />
+            {/* <View className="absolute inset-0 bg-linear-to-bl from-black/10 to-white/20" /> */}
             <View className="p-4">
-              <Text className="text-xs uppercase tracking-wider text-text-primary mb-1">
+              <Text className="text-text-secondary text-sm font-medium uppercase tracking-wider mb-1">
                 Tu próximo periodo
               </Text>
               <View className="flex-row items-end justify-between">
@@ -308,7 +309,8 @@ export default function PredictionsScreen() {
         </View>
 
         {/* Contraceptive */}
-        {data.contraceptiveMethod && data.contraceptiveMethod !== 'none' && (
+        {/* {data.contraceptiveMethod && data.contraceptiveMethod !== 'none' && ( */}
+        {(
           <View className="bg-blue-50 rounded-3xl p-5 gap-4 border border-gray-200 shadow-md">
             <View className="flex-row gap-3">
               <MyIcon name="ShieldCheck" className="text-blue-500" />
@@ -322,6 +324,12 @@ export default function PredictionsScreen() {
               </View>
             </View>
 
+            {/* <TouchableOpacity activeOpacity={0.6} className="w-full  bg-primary py-5 rounded-full items-center justify-center flex-row gap-2">
+              <MyIcon name="ArrowRight" size={20} className="text-white " />
+              <Text className="text-white font-bold text-base">
+                Ver detalles
+              </Text>
+            </TouchableOpacity> */}
             <TouchableOpacity className="self-start bg-primary px-5 py-2 rounded-full" activeOpacity={0.6}>
               <Text className="text-white font-bold text-sm">
                 Ver detalles
@@ -332,259 +340,5 @@ export default function PredictionsScreen() {
       </ScrollView>
     </View>
   );
-  // return (
-  //   <View className="flex-1 bg-background">
-  //     {/* Header */}
-  //     <View className="flex-row items-center bg-background p-4 pb-2 justify-between sticky top-0 z-20" style={{ paddingTop: insets.top + 16 }}>
-  //       <Text className="text-text-primary text-2xl font-bold leading-tight tracking-tight flex-1">
-  //         Predicciones
-  //       </Text>
-  //       <View className="flex-row gap-2">
-  //         <Pressable className="p-2 rounded-full">
-  //           <Text className="text-text-primary text-xl">🔔</Text>
-  //         </Pressable>
-  //       </View>
-  //     </View>
-
-  //     {/* Main Content */}
-  //     <ScrollView className="px-4 flex flex-col gap-6 pt-2" showsVerticalScrollIndicator={false}>
-  //       {/* Precision Disclaimer for Irregular Cycles */}
-  //       {data.cycleType === 'irregular' && (
-  //         <View className="rounded-xl border border-orange-200 bg-orange-50/50 p-4">
-  //           <View className="flex-row items-start gap-3">
-  //             <Text className="text-2xl">⚠️</Text>
-  //             <View className="flex-1">
-  //               <Text className="text-orange-800 text-sm font-bold mb-1">
-  //                 Predicciones aproximadas
-  //               </Text>
-  //               <Text className="text-orange-700 text-xs font-normal leading-relaxed">
-  //                 Tu ciclo es irregular. Las predicciones son estimaciones basadas en rangos y pueden variar.
-  //               </Text>
-  //             </View>
-  //           </View>
-  //         </View>
-  //       )}
-
-  //       {/* Hero Prediction Card */}
-  //       <View>
-  //         <View className="flex flex-col items-stretch justify-start rounded-xl shadow-lg bg-white overflow-hidden">
-  //           {/* Gradient background */}
-  //           <View className="relative w-full h-48 bg-linear-to-br from-pink-200 via-purple-200 to-blue-200">
-  //             <View className="absolute bottom-4 left-4 right-4">
-  //               <Text className="text-text-muted text-sm font-medium uppercase tracking-wider mb-1">
-  //                 Tu próximo periodo
-  //               </Text>
-  //               <View className="flex-row items-end justify-between">
-  //                 {nextPeriodResult.range ? (
-  //                   <View className="flex-1">
-  //                     <Text className="text-text-primary text-2xl font-bold tracking-tight">
-  //                       {formatDate(nextPeriodResult.range.start, 'short')} - {formatDate(nextPeriodResult.range.end, 'short')}
-  //                     </Text>
-  //                     <Text className="text-orange-600 text-xs font-medium mt-1">
-  //                       Rango aproximado
-  //                     </Text>
-  //                   </View>
-  //                 ) : (
-  //                   <Text className="text-text-primary text-4xl font-bold tracking-tight">
-  //                     {formatDate(nextPeriodResult.date, 'short')}
-  //                   </Text>
-  //                 )}
-  //                 <View className={`px-3 py-1 rounded-full mb-1 ${nextPeriodResult.precision === 'high'
-  //                   ? 'bg-primary'
-  //                   : 'bg-orange-500'
-  //                   }`}>
-  //                   <Text className="text-white text-sm font-medium">
-  //                     En {daysUntilPeriod} días
-  //                   </Text>
-  //                 </View>
-  //               </View>
-  //             </View>
-  //           </View>
-
-  //           {/* Week Calendar Strip inside Card */}
-  //           <View className="p-4 pt-0">
-  //             <View className="flex-row justify-between items-center gap-2 pt-4 border-t border-gray-100">
-  //               {weekDays.map((date, index) => {
-  //                 const dayName = ['D', 'L', 'M', 'X', 'J', 'V', 'S'][date.getDay()];
-  //                 const isPeriod = isPeriodDay(date);
-  //                 const isCurrentDay = isToday(date);
-
-  //                 return (
-  //                   <View key={index} className="flex flex-col items-center gap-1">
-  //                     <Text className={`text-xs font-medium ${isCurrentDay ? 'text-primary font-bold' : 'text-text-muted'
-  //                       }`}>
-  //                       {dayName}
-  //                     </Text>
-  //                     <View className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold ${isCurrentDay
-  //                       ? 'bg-primary text-white shadow-lg'
-  //                       : isPeriod
-  //                         ? 'bg-secondary text-white'
-  //                         : 'bg-transparent text-text-primary'
-  //                       }`}>
-  //                       <Text className={`text-sm font-bold ${isCurrentDay || isPeriod ? 'text-white' : 'text-text-primary'
-  //                         }`}>
-  //                         {date.getDate()}
-  //                       </Text>
-  //                     </View>
-  //                     {isPeriod && <View className="absolute -bottom-1 w-1 h-1 bg-secondary rounded-full" />}
-  //                   </View>
-  //                 );
-  //               })}
-  //             </View>
-  //           </View>
-  //         </View>
-  //       </View>
-
-  //       {/* Stats Grid */}
-  //       <View>
-  //         <Text className="text-text-primary text-lg font-bold leading-tight mb-3">
-  //           Detalles del ciclo
-  //         </Text>
-  //         <View className="flex-row gap-3">
-  //           {/* Ovulation Card - Only for regular cycles */}
-  //           {ovulationDate ? (
-  //             <View className="flex-1 gap-4 rounded-xl border border-transparent bg-white p-5 flex-col shadow-sm">
-  //               <View className="flex-row items-center justify-between">
-  //                 <View className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-  //                   <Text className="text-xl">🥚</Text>
-  //                 </View>
-  //                 <View className="bg-purple-50 px-2 py-0.5 rounded-full">
-  //                   <Text className="text-xs font-semibold text-purple-600">Alta</Text>
-  //                 </View>
-  //               </View>
-  //               <View className="flex flex-col gap-1">
-  //                 <Text className="text-text-muted text-sm font-normal leading-normal">
-  //                   Ovulación
-  //                 </Text>
-  //                 <Text className="text-text-primary text-xl font-bold leading-tight">
-  //                   {formatDate(ovulationDate, 'short')}
-  //                 </Text>
-  //               </View>
-  //             </View>
-  //           ) : (
-  //             <View className="flex-1 gap-4 rounded-xl border border-transparent bg-white p-5 flex-col shadow-sm">
-  //               <View className="flex-row items-center justify-between">
-  //                 <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-  //                   <Text className="text-xl">❓</Text>
-  //                 </View>
-  //               </View>
-  //               <View className="flex flex-col gap-1">
-  //                 <Text className="text-text-muted text-sm font-normal leading-normal">
-  //                   Ovulación
-  //                 </Text>
-  //                 <Text className="text-text-primary text-sm font-medium leading-tight">
-  //                   No determinada
-  //                 </Text>
-  //               </View>
-  //             </View>
-  //           )}
-
-  //           {/* Fertile Window Card - Only for regular cycles */}
-  //           {fertileWindowDates ? (
-  //             <View className="flex-1 gap-4 rounded-xl border border-transparent bg-white p-5 flex-col shadow-sm">
-  //               <View className="flex-row items-center justify-between">
-  //                 <View className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center">
-  //                   <Text className="text-xl">🌿</Text>
-  //                 </View>
-  //               </View>
-  //               <View className="flex flex-col gap-1">
-  //                 <Text className="text-text-muted text-sm font-normal leading-normal">
-  //                   Ventana fértil
-  //                 </Text>
-  //                 <Text className="text-text-primary text-xl font-bold leading-tight">
-  //                   {formatDate(fertileWindowDates.start, 'short')} - {formatDate(fertileWindowDates.end, 'short')}
-  //                 </Text>
-  //               </View>
-  //             </View>
-  //           ) : (
-  //             <View className="flex-1 gap-4 rounded-xl border border-transparent bg-white p-5 flex-col shadow-sm">
-  //               <View className="flex-row items-center justify-between">
-  //                 <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-  //                   <Text className="text-xl">❓</Text>
-  //                 </View>
-  //               </View>
-  //               <View className="flex flex-col gap-1">
-  //                 <Text className="text-text-muted text-sm font-normal leading-normal">
-  //                   Ventana fértil
-  //                 </Text>
-  //                 <Text className="text-text-primary text-sm font-medium leading-tight">
-  //                   No determinada
-  //                 </Text>
-  //               </View>
-  //             </View>
-  //           )}
-  //         </View>
-  //       </View>
-
-  //       {/* Cycle Info Card */}
-  //       <View>
-  //         <View className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-  //           <Text className="text-[#111318] text-base font-bold mb-3">Información del ciclo</Text>
-  //           <View className="flex flex-col gap-2">
-  //             <View className="flex-row justify-between">
-  //               <Text className="text-[#606e8a] text-sm">Día actual del ciclo</Text>
-  //               <Text className="text-[#111318] text-sm font-bold">{cycleDay}</Text>
-  //             </View>
-  //             <View className="flex-row justify-between">
-  //               <Text className="text-[#606e8a] text-sm">Fase actual</Text>
-  //               <Text className="text-[#111318] text-sm font-bold">
-  //                 {phase === 'menstrual' ? 'Menstruación' :
-  //                   phase === 'follicular' ? 'Fase Folicular' :
-  //                     phase === 'ovulatory' ? 'Ovulación' :
-  //                       'Fase Lútea'}
-  //               </Text>
-  //             </View>
-  //             <View className="flex-row justify-between">
-  //               <Text className="text-[#606e8a] text-sm">Tipo de ciclo</Text>
-  //               <Text className="text-[#111318] text-sm font-bold">
-  //                 {data.cycleType === 'regular' ? 'Regular' : 'Irregular'}
-  //               </Text>
-  //             </View>
-  //             {data.cycleType === 'regular' && data.averageCycleLength && (
-  //               <View className="flex-row justify-between">
-  //                 <Text className="text-[#606e8a] text-sm">Duración promedio</Text>
-  //                 <Text className="text-[#111318] text-sm font-bold">{data.averageCycleLength} días</Text>
-  //               </View>
-  //             )}
-  //             {data.cycleType === 'irregular' && data.cycleRangeMin && data.cycleRangeMax && (
-  //               <View className="flex-row justify-between">
-  //                 <Text className="text-[#606e8a] text-sm">Rango de duración</Text>
-  //                 <Text className="text-[#111318] text-sm font-bold">
-  //                   {data.cycleRangeMin} - {data.cycleRangeMax} días
-  //                 </Text>
-  //               </View>
-  //             )}
-  //           </View>
-  //         </View>
-  //       </View>
-
-  //       {/* Contraceptive Warning - Only if method is set */}
-  //       {data.contraceptiveMethod && data.contraceptiveMethod !== 'none' && (
-  //         <View>
-  //           <View className="flex-1 flex-col items-start justify-between gap-4 rounded-xl border border-blue-100 bg-blue-50/50 p-5">
-  //             <View className="flex-row gap-4">
-  //               <View className="shrink-0 mt-1 text-[#256af4]">
-  //                 <Text className="text-2xl">🛡️</Text>
-  //               </View>
-  //               <View className="flex flex-col gap-1">
-  //                 <Text className="text-[#111318] text-base font-bold leading-tight">
-  //                   Método anticonceptivo
-  //                 </Text>
-  //                 <Text className="text-text-muted text-sm font-normal leading-normal">
-  //                   Tu método actual ({getContraceptiveLabel()}) puede afectar tu ciclo y las predicciones.
-  //                 </Text>
-  //               </View>
-  //             </View>
-  //             <Pressable className="flex min-w-[84px] items-center justify-center overflow-hidden rounded-full h-9 px-5 bg-[#256af4]">
-  //               <Text className="truncate text-white text-sm font-medium">Ver detalles</Text>
-  //             </Pressable>
-  //           </View>
-  //         </View>
-  //       )}
-
-  //       <View className="h-10" />
-  //     </ScrollView>
-  //   </View>
-  // );
 }
 

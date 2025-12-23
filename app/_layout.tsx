@@ -1,6 +1,6 @@
 import { AuthProvider } from "@/context/AuthContext";
 import { OnboardingProvider } from "@/context/OnboardingContext";
-import { Slot } from "expo-router";
+import { Slot, Stack } from "expo-router";
 import { StatusBar, View } from "react-native";
 import { useFonts } from "expo-font";
 import {
@@ -46,7 +46,14 @@ const Layout = (props) => {
         <OnboardingProvider>
           <View style={{ paddingBottom: bottom, flex: 1, paddingTop: isStatusBarHiddenState ? 0 : top }}>
             <StatusBar barStyle="dark-content" backgroundColor={colors.lavender} />
-            <Slot />
+            {/* <Slot /> */}
+            <StatusBar barStyle="dark-content" backgroundColor={colors.lavender} />
+            <Stack
+              initialRouteName="(tabs)"
+              screenOptions={{
+                headerShown: false,
+              }}
+            />
           </View>
         </OnboardingProvider>
       </AuthProvider>

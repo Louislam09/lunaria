@@ -1,237 +1,252 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView } from 'react-native';
-import { Link, router } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-// DateTimePicker will need to be installed: @react-native-community/datetimepicker
+import { KeyboardPaddingView } from "@/components/keyboard-padding";
+import MyIcon from "@/components/ui/Icon";
+import { useOnboarding } from "@/context/OnboardingContext";
+import { formatDate } from "@/utils/dates";
+import { getCycleDay } from "@/utils/predictions";
+import { router, Stack } from "expo-router";
+import { useEffect, useRef, useState } from "react";
+import { Keyboard, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 
-export default function RegistroScreen() {
-  const insets = useSafeAreaInsets();
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [flow, setFlow] = useState<'leve' | 'medio' | 'alto' | 'mancha' | null>('medio');
-  const [moods, setMoods] = useState<string[]>(['triste']);
-  const [symptoms, setSymptoms] = useState<string[]>(['cólicos']);
-  const [notes, setNotes] = useState('');
+enum Moods {
+  FELIZ = "feliz",
+  TRISTE = "triste",
+  IRRITABLE = "irritable",
+  SENSIBLE = "sensible",
+  ANSIOSA = "ansiosa",
+}
+
+enum Symptoms {
+  CÓLICOS = "cólicos",
+  ACNÉ = "acné",
+  FATIGA = "fatiga",
+  DOLOR_DE_CABEZA = "dolor de cabeza",
+  DOLOR_DE_ESPALDA = "dolor de espalda",
+}
+
+enum Flow {
+  LEVE = "leve",
+  MEDIO = "medio",
+  ALTO = "alto",
+  MANCHA = "mancha",
+}
+
+export default function RegisterScreen() {
+  const { data, isLoading, isComplete } = useOnboarding();
+  const [flow, setFlow] = useState(Flow.MEDIO);
+  const [moods, setMoods] = useState<Moods[]>([Moods.FELIZ]);
+  const [symptoms, setSymptoms] = useState<string[]>([]);
+  const [notes, setNotes] = useState("");
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => scrollViewRef.current?.scrollToEnd({ animated: true })
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+    };
+  }, []);
+
+  const toggleMood = (mood: Moods) => {
+    setMoods((prev) =>
+      prev.includes(mood) ? prev.filter((m) => m !== mood) : [...prev, mood]
+    );
+  };
 
   const flowOptions = [
-    { id: 'leve', label: 'Leve' },
-    { id: 'medio', label: 'Medio' },
-    { id: 'alto', label: 'Alto' },
-    { id: 'mancha', label: 'Mancha' },
+    { label: "Leve", value: Flow.LEVE },
+    { label: "Medio", value: Flow.MEDIO },
+    { label: "Alto", value: Flow.ALTO },
+    { label: "Mancha", value: Flow.MANCHA },
   ];
 
   const moodOptions = [
-    { id: 'feliz', label: 'Feliz', icon: '😊', color: 'yellow' },
-    { id: 'triste', label: 'Triste', icon: '😢', color: 'blue' },
-    { id: 'irritable', label: 'Irritable', icon: '😠', color: 'red' },
-    { id: 'sensible', label: 'Sensible', icon: '💧', color: 'blue' },
-    { id: 'ansiosa', label: 'Ansiosa', icon: '😰', color: 'purple' },
+    { key: Moods.FELIZ, label: "Feliz", icon: 'Smile', color: "text-[#facc15]", border: "border-[#facc15]" },
+    { key: Moods.TRISTE, label: "Triste", icon: 'Frown', color: "text-[#256af4]", border: "border-[#256af4]" },
+    { key: Moods.IRRITABLE, label: "Irritable", icon: 'Angry', color: "text-[#ef4444]", border: "border-[#ef4444]" },
+    { key: Moods.SENSIBLE, label: "Sensible", icon: 'Droplet', color: "text-[#60a5fa]", border: "border-[#60a5fa]" },
+    { key: Moods.ANSIOSA, label: "Ansiosa", icon: 'CircleAlert', color: "text-[#a855f7]", border: "border-[#a855f7]" }
   ];
 
   const symptomOptions = [
-    { id: 'cólicos', label: 'Cólicos', icon: '🌿' },
-    { id: 'headache', label: 'Dolor de cabeza', icon: '🧠' },
-    { id: 'acne', label: 'Acné', icon: '😐' },
-    { id: 'back', label: 'Dolor de espalda', icon: '👤' },
-    { id: 'fatigue', label: 'Fatiga', icon: '🔋' },
-  ];
+    { label: Symptoms.CÓLICOS, icon: 'Activity' },
+    { label: Symptoms.ACNÉ, icon: 'CircleAlert' },
+    { label: Symptoms.FATIGA, icon: 'BatteryLow' },
+    { label: Symptoms.DOLOR_DE_CABEZA, icon: 'Brain' },
+    { label: Symptoms.DOLOR_DE_ESPALDA, icon: 'Activity' },
+  ]
 
-  const toggleMood = (id: string) => {
-    setMoods(prev =>
-      prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]
+  const toggleSymptom = (symptom: Symptoms) => {
+    setSymptoms((prev) =>
+      prev.includes(symptom) ? prev.filter((s) => s !== symptom.toString()) : [...prev, symptom.toString()]
     );
   };
 
-  const toggleSymptom = (id: string) => {
-    setSymptoms(prev =>
-      prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
-    );
-  };
-
-  const formatDate = (date: Date) => {
-    const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]}`;
+  const handleSave = () => {
+    console.log("Guardar Registro", {
+      flow,
+      moods,
+      symptoms,
+      notes,
+    });
   };
 
   return (
-    <View className="flex-1 bg-[#f5f6f8] pb-28">
-      {/* Top App Bar */}
-      <View className="sticky top-0 z-20 bg-[#f5f6f8]/90 backdrop-blur-md border-b border-slate-200" style={{ paddingTop: insets.top + 16 }}>
-        <View className="flex-row items-center p-4 justify-between">
-          <Pressable onPress={() => router.back()}>
-            <Text className="text-2xl">←</Text>
+    <View className="flex-1">
+      <Stack.Screen options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom' }} />
+      <View className="flex-1 bg-background">
+        {/* Top App Bar */}
+        <View className="absolute top-0 left-0 right-0 z-20 flex-row items-center justify-between px-6 pt-6 pb-2 bg-background/90 backdrop-blur-sm">
+          <Pressable
+            onPress={() => router.back()}
+            className="h-10 w-10 items-center justify-center rounded-full"
+          >
+            <MyIcon name="ChevronLeft" size={26} className="text-text-primary" />
           </Pressable>
-          <View className="flex flex-col items-center">
-            <Text className="text-slate-900 text-lg font-bold leading-tight tracking-tight">
-              {formatDate(selectedDate)}
+          <View className="items-center">
+            <Text className="text-lg font-bold text-text-primary">
+              {formatDate(data.lastPeriodStart, 'long')}
             </Text>
-            <Text className="text-xs font-medium text-[#256af4] uppercase tracking-wider">
-              Ciclo Día 14
+            <Text className="text-sm font-bold uppercase tracking-wider text-primary">
+              Día {getCycleDay(data.lastPeriodStart)} del ciclo
             </Text>
           </View>
-          <Pressable onPress={() => setShowDatePicker(true)}>
-            <Text className="text-2xl">→</Text>
+          <Pressable className="h-10 w-10 items-center justify-center rounded-full">
+            <MyIcon name="ChevronRight" size={26} className="text-text-primary" />
           </Pressable>
         </View>
-        {showDatePicker && (
-          <Pressable onPress={() => setShowDatePicker(false)}>
-            <Text>Date picker - install @react-native-community/datetimepicker</Text>
-          </Pressable>
-        )}
-      </View>
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 120 }}
+          className="px-4"
+          showsVerticalScrollIndicator={false}
+          ref={scrollViewRef}
+        >
+          <View className="h-24" />
+          {/* Prediction */}
+          <View className="flex-row items-center bg-primary/30 rounded-2xl p-4 gap-3 border border-primary/60 shadow-md">
+            <MyIcon name="Sparkles" size={18} className="text-primary" />
+            <Text className="text-base font-medium text-text-primary">
+              Predicción: Posible inicio de periodo hoy.
+            </Text>
+          </View>
 
-      {/* Main Content */}
-      <ScrollView className="flex flex-col px-4 pt-4 gap-6" showsVerticalScrollIndicator={false}>
-        {/* Prediction Message */}
-        <View className="bg-[#256af4]/10 rounded-2xl p-4 flex-row items-center gap-3 border border-[#256af4]/20">
-          <Text className="text-[#256af4] text-xl">✨</Text>
-          <Text className="text-sm text-slate-700 font-medium">
-            Predicción: Posible inicio de periodo hoy.
-          </Text>
-        </View>
-
-        {/* Section: Menstruation Flow */}
-        <View>
-          <Text className="text-slate-900 text-lg font-bold mb-3 px-1">Menstruación</Text>
-          <View className="bg-white rounded-xl p-1.5 shadow-sm border border-slate-100">
-            <View className="flex-row">
-              {flowOptions.map((option) => (
+          {/* Menstruación */}
+          <View className="mt-6">
+            <Text className="text-lg font-bold mb-3 text-text-primary">
+              Menstruación
+            </Text>
+            <View className="flex-row bg-background rounded-full p-1.5 border border-gray-200 shadow-md">
+              {flowOptions.map(({ label, value }) => (
                 <Pressable
-                  key={option.id}
-                  onPress={() => setFlow(option.id as any)}
-                  className={`flex-1 items-center justify-center py-2.5 rounded-lg ${
-                    flow === option.id
-                      ? 'bg-[#256af4]'
-                      : 'bg-transparent'
-                  }`}
+                  key={value}
+                  onPress={() => setFlow(value)}
+                  className={`flex-1 py-2.5 rounded-full ${flow === value ? "bg-primary" : ""
+                    }`}
                 >
-                  <Text className={`text-sm font-medium ${
-                    flow === option.id ? 'text-white' : 'text-slate-500'
-                  }`}>
-                    {option.label}
+                  <Text
+                    className={`text-center text-sm font-medium ${flow === value
+                      ? "text-white"
+                      : "text-text-muted"
+                      }`}
+                  >
+                    {label}
                   </Text>
                 </Pressable>
               ))}
             </View>
           </View>
-        </View>
-
-        {/* Section: Mood */}
-        <View>
-          <Text className="text-slate-900 text-lg font-bold mb-3 px-1">Estado de Ánimo</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-3 -mx-4 px-4">
-            {moodOptions.map((mood) => {
-              const isSelected = moods.includes(mood.id);
-              return (
-                <Pressable
-                  key={mood.id}
-                  onPress={() => toggleMood(mood.id)}
-                  className={`flex flex-col items-center justify-center w-20 h-24 gap-2 rounded-2xl bg-white border ${
-                    isSelected
-                      ? 'border-[#256af4] bg-[#256af4]/5'
-                      : 'border-slate-100'
-                  }`}
-                >
-                  <Text className={`text-3xl ${isSelected ? 'scale-110' : ''}`}>
-                    {mood.icon}
-                  </Text>
-                  <Text className={`text-xs font-medium ${
-                    isSelected ? 'text-[#256af4] font-bold' : 'text-slate-600'
-                  }`}>
-                    {mood.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-        </View>
-
-        {/* Section: Symptoms */}
-        <View>
-          <Text className="text-slate-900 text-lg font-bold mb-3 px-1">Síntomas Físicos</Text>
-          <View className="flex-row flex-wrap gap-2">
-            {symptomOptions.map((symptom) => {
-              const isSelected = symptoms.includes(symptom.id);
-              return (
-                <Pressable
-                  key={symptom.id}
-                  onPress={() => toggleSymptom(symptom.id)}
-                  className={`flex-row items-center gap-2 px-4 py-2 rounded-full bg-white border ${
-                    isSelected
-                      ? 'bg-[#256af4] border-[#256af4]'
-                      : 'border-slate-200'
-                  } shadow-sm`}
-                >
-                  <Text className="text-lg">{symptom.icon}</Text>
-                  <Text className={`text-sm font-medium ${
-                    isSelected ? 'text-white' : 'text-slate-600'
-                  }`}>
-                    {symptom.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
+          {/* Estado de ánimo */}
+          <View className="mt-6">
+            <Text className="text-lg font-bold mb-3 text-text-primary">
+              Estado de Ánimo
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-3 px-4 py-1" className="-mx-4 ">
+              <View className="flex-row gap-3">
+                {moodOptions.map(({ key, label, icon: IconName, color, border }) => {
+                  const active = moods.includes(key);
+                  return (
+                    <TouchableOpacity activeOpacity={0.6}
+                      key={key}
+                      onPress={() => toggleMood(key)}
+                      className={`w-20 h-24 shadow-md rounded-2xl items-center justify-center gap-2 border ${active
+                        ? `bg-primary/10 border-primary`
+                        : "border-gray-200 bg-background"
+                        }`}
+                    >
+                      <MyIcon
+                        name={IconName as any}
+                        size={28}
+                        className={color}
+                      />
+                      <Text
+                        className={`text-sm ${active
+                          ? `font-bold text-`
+                          : "font-medium text-text-muted"
+                          }`}
+                      >
+                        {label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
           </View>
-        </View>
-
-        {/* Section: Notes */}
-        <View>
-          <Text className="text-slate-900 text-lg font-bold mb-3 px-1">Notas</Text>
-          <View className="relative">
-            <TextInput
-              className="w-full bg-white border-none rounded-2xl p-4 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-[#256af4] shadow-sm"
-              placeholder="¿Algo más que notar hoy?"
-              multiline
-              numberOfLines={4}
-              value={notes}
-              onChangeText={setNotes}
-              style={{ minHeight: 100 }}
-            />
-            <View className="absolute bottom-3 right-3 pointer-events-none">
-              <Text className="text-slate-400 text-xl">✏️</Text>
+          {/* Síntomas */}
+          <View className="mt-6">
+            <Text className="text-lg font-bold mb-3 text-text-primary">
+              Síntomas Físicos
+            </Text>
+            <View className="flex-row flex-wrap gap-2">
+              {symptomOptions.map(({ label, icon: Icon }) => (
+                <TouchableOpacity activeOpacity={0.6}
+                  onPress={() => toggleSymptom(label)}
+                  key={label}
+                  className={`flex-row items-center gap-2 px-4 py-3 rounded-full bg-background border border-gray-200 shadow-md ${symptoms.includes(label) ? "bg-primary border-primary" : "bg-background border-gray-200"}`}
+                >
+                  <MyIcon name={Icon as any} size={16} className={symptoms.includes(label) ? "text-white" : "text-text-primary"} />
+                  <Text className={`text-sm font-medium ${symptoms.includes(label) ? "text-white" : "text-text-primary"}`}>
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
           </View>
-        </View>
-
-        {/* Save Button */}
-        <Pressable className="w-full bg-[#256af4] text-white font-bold py-4 rounded-full shadow-lg mt-2 flex-row items-center justify-center gap-2">
-          <Text className="text-white text-xl">✓</Text>
-          <Text className="text-white font-bold">Guardar Registro</Text>
-        </Pressable>
-      </ScrollView>
-
-      {/* Bottom Navigation */}
-      <View className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-lg border-t border-slate-200 pb-safe" style={{ paddingBottom: insets.bottom + 16 }}>
-        <View className="flex-row justify-around items-center h-16">
-          <Link href="/calendar" asChild>
-            <Pressable className="flex flex-col items-center justify-center w-full h-full gap-1">
-              <Text className="text-2xl text-slate-400">📅</Text>
-              <Text className="text-[10px] font-medium text-slate-400">Calendario</Text>
-            </Pressable>
-          </Link>
-
-          <Pressable className="flex flex-col items-center justify-center w-full h-full gap-1 text-[#256af4]">
-            <Text className="text-2xl font-bold text-[#256af4]">📝</Text>
-            <Text className="text-[10px] font-bold text-[#256af4]">Registro</Text>
-          </Pressable>
-
-          <Link href="/predictions" asChild>
-            <Pressable className="flex flex-col items-center justify-center w-full h-full gap-1">
-              <Text className="text-2xl text-slate-400">📊</Text>
-              <Text className="text-[10px] font-medium text-slate-400">Reportes</Text>
-            </Pressable>
-          </Link>
-
-          <Link href="/settings" asChild>
-            <Pressable className="flex flex-col items-center justify-center w-full h-full gap-1">
-              <Text className="text-2xl text-slate-400">⚙️</Text>
-              <Text className="text-[10px] font-medium text-slate-400">Ajustes</Text>
-            </Pressable>
-          </Link>
+          {/* Notas */}
+          <View className="my-6">
+            <Text className="text-lg font-bold mb-3 text-text-primary">
+              Notas
+            </Text>
+            <View className="relative h-[100px] bg-background w-full px-4  rounded-2xl text-text-primary shadow-md border border-blue-400">
+              <TextInput
+                multiline
+                numberOfLines={4}
+                placeholder="¿Algo más que notar hoy?"
+                placeholderTextColor="text-text-muted"
+                className="relative h-full w-full"
+                style={{ textAlignVertical: 'top', textAlign: 'left' }}
+                value={notes}
+                onChangeText={setNotes}
+              />
+              <View className="absolute bottom-3 right-3">
+                <MyIcon name="PencilLine" size={18} className="text-primary" />
+              </View>
+            </View>
+          </View>
+          {/* Save */}
+        </ScrollView>
+        <View className="px-4 absolute bottom-0 left-0 right-0 z-20 flex-row items-center justify-between pt-6 pb-2 bg-background/90 backdrop-blur-sm">
+          <TouchableOpacity activeOpacity={0.6} onPress={handleSave} className="w-full mt-5 bg-primary py-5 rounded-full items-center justify-center flex-row gap-2">
+            <MyIcon name="Check" size={20} className="text-white" />
+            <Text className="text-white font-bold text-base">
+              Guardar Registro
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
+      <KeyboardPaddingView />
     </View>
   );
 }
-
