@@ -1,28 +1,25 @@
 import { AuthProvider } from "@/context/AuthContext";
 import { OnboardingProvider } from "@/context/OnboardingContext";
 import { SyncProvider } from "@/context/SyncContext";
-import { Slot, Stack } from "expo-router";
-import { StatusBar, View } from "react-native";
-import { useFonts } from "expo-font";
+import { colors } from "@/utils/colors";
 import {
   DMSans_400Regular,
   DMSans_500Medium,
   DMSans_700Bold,
 } from "@expo-google-fonts/dm-sans";
+import { useFonts } from "expo-font";
+import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useState } from "react";
-import "../global.css";
+import { useEffect } from "react";
+import { StatusBar, View } from "react-native";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { GestureHandlerRootView } from 'react-native-gesture-handler'
-import { colors } from "@/utils/colors";
-import { statusBarState$ } from "@/hooks/useHideStatusBar";
-import { useValue } from "@legendapp/state/react"
+import "../global.css";
 
 SplashScreen.preventAutoHideAsync();
 
 const Layout = (props) => {
   const { bottom, top } = useSafeAreaInsets();
-  const isStatusBarHiddenState = useValue(() => statusBarState$.hide.get())
 
   const [fontsLoaded] = useFonts({
     DMSans_400Regular,
@@ -46,7 +43,7 @@ const Layout = (props) => {
       <AuthProvider>
         <SyncProvider>
           <OnboardingProvider>
-            <View style={{ paddingBottom: bottom, flex: 1, paddingTop: isStatusBarHiddenState ? 0 : top }}>
+            <View style={{ paddingBottom: bottom, flex: 1, paddingTop: top }}>
               <StatusBar barStyle="dark-content" backgroundColor={colors.lavender} />
               {/* <Slot /> */}
               <StatusBar barStyle="dark-content" backgroundColor={colors.lavender} />

@@ -1,7 +1,7 @@
 import { colors } from '@/utils/colors';
 import { Tabs } from 'expo-router';
-import { Home, Calendar, TrendingUp, Settings, History, CalendarDays } from 'lucide-react-native';
-import { Easing, Platform } from 'react-native';
+import { CalendarDays, Home, Settings, TrendingUp } from 'lucide-react-native';
+import { Platform } from 'react-native';
 
 export default function TabsLayout() {
   return (
@@ -23,14 +23,6 @@ export default function TabsLayout() {
           fontWeight: '600',
         },
         animation: 'shift',
-        // transitionSpec: {
-        //   animation: 'spring',
-        //   config: {
-        //     damping: 10,
-        //     mass: 1,
-        //     stiffness: 100,
-        //   },
-        // }
       }}
     >
       <Tabs.Screen

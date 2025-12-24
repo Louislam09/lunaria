@@ -298,22 +298,20 @@ export default function MethodDetailScreen() {
                 )}
 
                 {/* Action */}
+                <TouchableOpacity
+                    onPress={() => router.push('/edit-method')}
+                    activeOpacity={0.6}
+                    className="w-full mt-5 bg-primary py-5 rounded-full items-center justify-center flex-row gap-2"
+                >
+                    <MyIcon name="RefreshCcw" size={20} className="text-white " />
+                    <Text className="text-white font-bold text-base">
+                        {method === 'none' ? 'Seleccionar método anticonceptivo' : 'Cambiar método anticonceptivo'}
+                    </Text>
+                </TouchableOpacity>
                 {method !== 'none' && (
-                    <>
-                        <TouchableOpacity
-                            onPress={() => router.push('/onboarding/wizard')}
-                            activeOpacity={0.6}
-                            className="w-full mt-5 bg-primary py-5 rounded-full items-center justify-center flex-row gap-2"
-                        >
-                            <MyIcon name="RefreshCcw" size={20} className="text-white " />
-                            <Text className="text-white font-bold text-base">
-                                Cambiar método anticonceptivo
-                            </Text>
-                        </TouchableOpacity>
-                        <Text className="text-xs text-center text-text-muted mt-3 px-6">
-                            Consulta siempre con un especialista antes de cambiar tu método.
-                        </Text>
-                    </>
+                    <Text className="text-xs text-center text-text-muted mt-3 px-6">
+                        Consulta siempre con un especialista antes de cambiar tu método.
+                    </Text>
                 )}
             </ScrollView>
         </View>

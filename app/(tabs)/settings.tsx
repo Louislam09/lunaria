@@ -1,20 +1,18 @@
+import { ConflictResolutionModal } from '@/components/settings/ConflictResolutionModal';
 import { ProfileCard } from '@/components/settings/ProfileCard';
 import { SettingsItem } from '@/components/settings/SettingsItem';
 import { SettingsSection } from '@/components/settings/SettingsSection';
 import { SyncFrequencyPicker } from '@/components/settings/SyncFrequencyPicker';
-import { ConflictResolutionModal } from '@/components/settings/ConflictResolutionModal';
 import { ToggleRow } from '@/components/settings/ToggleRow';
 import MyIcon from '@/components/ui/Icon';
 import { useAuth } from '@/context/AuthContext';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { useSync } from '@/context/SyncContext';
+import { Conflict, detectConflicts, resolveConflictLocal, resolveConflictRemote } from '@/services/conflictResolution';
 import { exportData, importData } from '@/services/exportImport';
-import { detectConflicts, resolveConflictLocal, resolveConflictRemote, Conflict } from '@/services/conflictResolution';
-import { colors } from '@/utils/colors';
 import { formatDate } from '@/utils/dates';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
-import { Bell } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 

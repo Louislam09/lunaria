@@ -1,11 +1,9 @@
-import { useEffect } from 'react';
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard';
 import { useOnboarding } from '@/context/OnboardingContext';
-import useHideStatusBar from '@/hooks/useHideStatusBar';
+import { useEffect } from 'react';
 
 export default function OnboardingWizardScreen() {
   const { actualStep, actualSubStep, setActualStep, setActualSubStep, isComplete } = useOnboarding();
-  useHideStatusBar(false);
 
   // Initialize step position if not set
   useEffect(() => {

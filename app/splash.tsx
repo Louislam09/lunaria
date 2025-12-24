@@ -1,5 +1,4 @@
 import { useOnboarding } from '@/context/OnboardingContext';
-import useHideStatusBar from '@/hooks/useHideStatusBar';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { ArrowRight } from 'lucide-react-native';
@@ -8,7 +7,6 @@ import { Pressable, Text, View } from 'react-native';
 
 export default function SplashScreen() {
   const router = useRouter();
-  useHideStatusBar(true);
   const { isComplete, isLoading } = useOnboarding();
 
   useEffect(() => {
