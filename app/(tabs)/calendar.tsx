@@ -2,7 +2,8 @@ import { MyImage } from '@/components/ui';
 import MyIcon from '@/components/ui/Icon';
 import { SyncStatusIndicator } from '@/components/ui/SyncStatusIndicator';
 import { useOnboarding } from '@/context/OnboardingContext';
-import { getCycleDay, getCyclePhase, getFertileWindow, getNextPeriodDate } from '@/utils/predictions';
+import { useCyclePredictions } from '@/hooks/useCyclePredictions';
+import { getCycleDay } from '@/utils/predictions';
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { Platform, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -105,56 +106,35 @@ export default function CalendarScreen() {
     }
   }, [isLoading, isComplete]);
 
+  // Get cycle predictions from hook
+  const cyclePredictions = useCyclePredictions(data);
+
   // Calculations
   const cycleData = useMemo(() => {
     if (!data.lastPeriodStart || !data.cycleType || !data.periodLength) return null;
 
-    const predictionInput = {
-      lastPeriodStart: new Date(data.lastPeriodStart),
-      cycleType: data.cycleType as 'regular' | 'irregular',
-      averageCycleLength: data.averageCycleLength,
-      cycleRangeMin: data.cycleRangeMin,
-      cycleRangeMax: data.cycleRangeMax,
-      periodLength: data.periodLength,
-    };
-
-    const nextPeriodResult = getNextPeriodDate(predictionInput);
     const cycleDay = getCycleDay(new Date(data.lastPeriodStart), today);
-
-    const cycleLength = data.cycleType === 'regular' && data.averageCycleLength
-      ? data.averageCycleLength
-      : data.cycleRangeMin && data.cycleRangeMax
-        ? Math.round((data.cycleRangeMin + data.cycleRangeMax) / 2)
-        : 28;
-
-    const phase = getCyclePhase(cycleDay, cycleLength);
-
-    const fertileWindow = data.cycleType === 'regular' && data.averageCycleLength
-      ? getFertileWindow(data.averageCycleLength)
-      : null;
 
     const ovulationDate = data.cycleType === 'regular' && data.averageCycleLength
       ? (() => {
-        const ov = new Date(nextPeriodResult.date);
+        const ov = new Date(cyclePredictions.nextPeriodResult.date);
         ov.setDate(ov.getDate() - 14);
         return ov;
       })()
       : null;
 
-    const daysUntilNext = Math.ceil(
-      (nextPeriodResult.date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-    );
+    const daysUntilNext = cyclePredictions.daysUntilPeriod;
 
     return {
-      nextPeriodResult,
+      nextPeriodResult: cyclePredictions.nextPeriodResult,
       cycleDay,
-      cycleLength,
-      phase,
-      fertileWindow,
+      cycleLength: cyclePredictions.cycleLength,
+      phase: cyclePredictions.phase,
+      fertileWindow: cyclePredictions.fertileWindow,
       ovulationDate,
       daysUntilNext
     };
-  }, [data, today]);
+  }, [data, today, cyclePredictions]);
 
   const markedDates = useMemo(() => {
     if (!cycleData || !data.lastPeriodStart) return {};
@@ -344,11 +324,6 @@ export default function CalendarScreen() {
     return marked;
   }, [cycleData, data, selected]);
 
-  const monthNames = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-  ];
-
   // const monthName = monthNames[currentMonth.getMonth()];
   // const year = currentMonth.getFullYear();
 
@@ -361,7 +336,6 @@ export default function CalendarScreen() {
           bgColor: 'bg-rose-500/10',
           chance: 'Probabilidad muy baja de embarazo.',
           image: require('@/assets/images/flower.webp'),
-          // image: "https://lh3.googleusercontent.com/aida-public/AB6AXuB39TL-FgtOjPCzNKS56wzfQQnWiH_sdoFfT2uoUWcQGR2Xat7reUAsX0mJ9fGS0nIIDtqnTbmSxWaUu-4GXsJrUUYikiE0xkeNMHs3tpTLFjp6S_EWB_vkPSKYxmqAV33ApRQ_vPlivaGB9SjmNWyYagSXO03_g_0SvqAMFWeduRJxvQEXAuJ7AMrhuPj10k1sQYQBTThrs1QLw61Iain14BPMAOmhTpbKb7CDqKxiKh_X9LktDFoPdJMMraAgtgc4lxkgRmyTY_Q"
         };
       case 'follicular':
         return {
@@ -414,13 +388,12 @@ export default function CalendarScreen() {
           <SyncStatusIndicator />
           <TouchableOpacity
             onPress={() => {
-              const now = new Date();
-              setCurrentMonth(now);
-              setSelected(CalendarUtils.getCalendarDateString(now));
+              // nav to history screen
+              router.push('/history');
             }}
             className="h-10 w-10 items-center justify-center rounded-full bg-background"
           >
-            <MyIcon name="Calendar" className="text-text-primary" />
+            <MyIcon name="History" className="text-text-primary" />
           </TouchableOpacity>
         </View>
       </View>
@@ -459,7 +432,7 @@ export default function CalendarScreen() {
         </View>
 
         {/* ───── Legend ───── */}
-        <View className="mt-6 p-4 rounded-3xl flex-row justify-around items-center bg-white border border-gray-100 shadow-sm">
+        <View className="mt-6 p-4 rounded-3xl flex-row justify-around items-center bg-white border border-gray-100 shadow-md">
           <LegendDot color={colors.period} label="Periodo" />
           <LegendDot color={colors.fertile} label="Fértil" />
           <LegendRing color={colors.ovulation} label="Ovulación" />
@@ -467,7 +440,7 @@ export default function CalendarScreen() {
 
         {/* ───── Status Card ───── */}
         <View className="mt-4">
-          <View className="flex-row gap-4 rounded-3xl bg-white p-5 border border-gray-100 shadow-sm">
+          <View className="flex-row gap-4 rounded-3xl bg-white p-5 border border-gray-100 shadow-md">
             <View className="flex-1 gap-2">
               <View className="flex-row items-center">
                 <Text className={`text-[10px] font-bold uppercase ${phaseDisplay.color} ${phaseDisplay.bgColor} px-2.5 py-1 rounded-full`}>

@@ -1,13 +1,14 @@
+import { colors } from '@/utils/colors';
 import { Tabs } from 'expo-router';
-import { Home, Calendar, TrendingUp, Settings } from 'lucide-react-native';
-import { Platform } from 'react-native';
+import { Home, Calendar, TrendingUp, Settings, History, CalendarDays } from 'lucide-react-native';
+import { Easing, Platform } from 'react-native';
 
 export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#B9A7E8',
+        tabBarActiveTintColor: colors.lavender,
         tabBarInactiveTintColor: '#8E8AA0',
         tabBarStyle: {
           backgroundColor: '#ffffff',
@@ -21,6 +22,15 @@ export default function TabsLayout() {
           fontSize: 10,
           fontWeight: '600',
         },
+        animation: 'shift',
+        // transitionSpec: {
+        //   animation: 'spring',
+        //   config: {
+        //     damping: 10,
+        //     mass: 1,
+        //     stiffness: 100,
+        //   },
+        // }
       }}
     >
       <Tabs.Screen
@@ -34,7 +44,7 @@ export default function TabsLayout() {
         name="calendar"
         options={{
           title: 'Calendario',
-          tabBarIcon: ({ color, size }) => <Calendar size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <CalendarDays size={size} color={color} />,
         }}
       />
       <Tabs.Screen

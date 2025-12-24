@@ -1,6 +1,4 @@
 import { getDatabase } from './database';
-import { pb } from './pocketbase';
-import * as SQLite from 'expo-sqlite';
 
 // Daily Logs Service
 export const DailyLogsService = {
@@ -61,7 +59,7 @@ export const DailyLogsService = {
     notes: string;
   }>): Promise<void> {
     const db = await getDatabase();
-    
+
     // Get existing log
     const existing = await db.getFirstAsync<{
       user_id: string;
@@ -170,7 +168,7 @@ export const DailyLogsService = {
   async delete(id: string): Promise<void> {
     const db = await getDatabase();
     await db.runAsync(`DELETE FROM daily_logs WHERE id = ?`, [id]);
-    
+
     // Queue delete for sync
     await db.runAsync(
       `INSERT INTO sync_queue (id, table_name, record_id, operation, data)

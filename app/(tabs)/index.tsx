@@ -3,9 +3,9 @@ import { CircularProgress } from '@/components/ui/CircularProgress';
 import MyIcon from '@/components/ui/Icon';
 import { SyncStatusIndicator } from '@/components/ui/SyncStatusIndicator';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { useCyclePredictions } from '@/hooks/useCyclePredictions';
 import { colors } from '@/utils/colors';
-import { formatDate, getDaysUntil } from '@/utils/dates';
-import { getCycleDay, getCyclePhase, getFertileWindow, getNextPeriodDate } from '@/utils/predictions';
+import { formatDate } from '@/utils/dates';
 import { router } from 'expo-router';
 import React from 'react';
 import { Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -34,98 +34,25 @@ export default function HomeScreen() {
     );
   }
 
-  // Prepare prediction input
-  const predictionInput = {
-    lastPeriodStart: data.lastPeriodStart,
-    cycleType: data.cycleType,
-    averageCycleLength: data.averageCycleLength,
-    cycleRangeMin: data.cycleRangeMin,
-    cycleRangeMax: data.cycleRangeMax,
-    periodLength: data.periodLength,
-  };
-
-  // Get predictions
-  const nextPeriodResult = getNextPeriodDate(predictionInput);
-  const cycleDay = getCycleDay(data.lastPeriodStart);
-  const cycleLength = data.cycleType === 'regular' && data.averageCycleLength
-    ? data.averageCycleLength
-    : data.cycleRangeMin && data.cycleRangeMax
-      ? Math.round((data.cycleRangeMin + data.cycleRangeMax) / 2)
-      : 28; // fallback
-  const phase = getCyclePhase(cycleDay, cycleLength);
-  const fertileWindow = data.cycleType === 'regular' && data.averageCycleLength
-    ? getFertileWindow(data.averageCycleLength)
-    : null;
-
-  // Calculate days until next period
-  const daysUntilPeriod = getDaysUntil(nextPeriodResult.date);
-
-  // Get user name
-  const userName = data.name || 'Usuario';
-
-  // Get greeting based on time
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Buenos días';
-    if (hour < 18) return 'Buenas tardes';
-    return 'Buenas noches';
-  };
-
-  // Get phase name in Spanish
-  const getPhaseName = (phase: string) => {
-    const phases: Record<string, string> = {
-      menstrual: 'Menstruación',
-      follicular: 'Fase Folicular',
-      ovulatory: 'Ovulación',
-      luteal: 'Fase Lútea',
-    };
-    return phases[phase] || phase;
-  };
-
-  // Get phase description
-  const getPhaseDescription = (phase: string, day: number) => {
-    const descriptions: Record<string, string> = {
-      menstrual: 'Tu cuerpo se está limpiando. Descansa y cuídate.',
-      follicular: 'Tu energía está aumentando. Es un buen momento para actividades activas.',
-      ovulatory: 'Días de máxima fertilidad. Tu energía está en su punto más alto.',
-      luteal: 'Tu energía puede disminuir ligeramente. Es normal sentirse más introspectiva.',
-    };
-    return descriptions[phase] || `Día ${day} del ciclo.`;
-  };
-
-  // Calculate pregnancy risk (simplified MVP)
-  const getPregnancyRisk = () => {
-    if (data.wantsPregnancy === false) {
-      if (data.cycleType === 'irregular') {
-        return { level: 'indeterminado', label: 'No determinado', color: 'gray' };
-      }
-      if (fertileWindow && cycleDay >= fertileWindow.startDay && cycleDay <= fertileWindow.endDay) {
-        return { level: 'high', label: 'Alto', color: 'red' };
-      }
-      if (phase === 'ovulatory') {
-        return { level: 'high', label: 'Alto', color: 'red' };
-      }
-      if (phase === 'luteal' && cycleDay < cycleLength - 7) {
-        return { level: 'medium', label: 'Medio', color: 'orange' };
-      }
-      return { level: 'low', label: 'Bajo', color: 'green' };
-    } else if (data.wantsPregnancy === true) {
-      if (fertileWindow && cycleDay >= fertileWindow.startDay && cycleDay <= fertileWindow.endDay) {
-        return { level: 'fertile', label: 'Ventana fértil', color: 'purple' };
-      }
-      return { level: 'normal', label: 'Normal', color: 'blue' };
-    }
-    return { level: 'low', label: 'Bajo', color: 'green' };
-  };
+  const {
+    nextPeriodResult,
+    cycleDay,
+    phase,
+    daysUntilPeriod,
+    progress,
+    userName,
+    greeting,
+    getPhaseName,
+    getPhaseDescription,
+    pregnancyRisk,
+  } = useCyclePredictions(data);
 
   const resumeInsights = [
     { emoji: "☀️", icon: "Sun", title: "Estado de ánimo", text: "Es normal sentirse más introspectiva hoy.", iconBg: "bg-orange-100", iconColor: "text-orange-600" },
     { emoji: "💖", icon: "Heart", title: "Recomendación", text: "Ideal para yoga suave o meditación.", iconBg: "bg-purple-100", iconColor: "text-purple-600" }
   ];
 
-  const risk = getPregnancyRisk();
-
-  const progress = 60 // 0–100
+  const risk = pregnancyRisk;
 
   return (
     <View className="flex-1 bg-background">
@@ -133,7 +60,7 @@ export default function HomeScreen() {
       {/* Header */}
       <View className="px-4 pt-6 pb-2 flex-row justify-between items-center">
         <View>
-          <Text className="text-sm text-gray-500">{getGreeting()}</Text>
+          <Text className="text-sm text-gray-500">{greeting}</Text>
           <Text className="text-2xl font-bold text-text-primary">
             Hola, {userName}
           </Text>

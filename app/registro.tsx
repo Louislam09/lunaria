@@ -217,7 +217,7 @@ export default function RegisterScreen() {
           showsVerticalScrollIndicator={false}
           ref={scrollViewRef}
         >
-          <View className="h-24" />
+          <View className="h-26" />
           {/* Prediction */}
           <View className="flex-row items-center bg-primary/30 rounded-2xl p-4 gap-3 border border-primary/60 shadow-md">
             <MyIcon name="Sparkles" size={18} className="text-primary" />

@@ -1,7 +1,7 @@
 import MyIcon from '@/components/ui/Icon';
 import { useOnboarding } from '@/context/OnboardingContext';
-import { formatDate, getDaysUntil } from '@/utils/dates';
-import { getCycleDay, getCyclePhase, getFertileWindow, getNextPeriodDate } from '@/utils/predictions';
+import { useCyclePredictions } from '@/hooks/useCyclePredictions';
+import { formatDate } from '@/utils/dates';
 import { router } from 'expo-router';
 import React from 'react';
 import { ImageBackground, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -26,27 +26,12 @@ export default function PredictionsScreen() {
     );
   }
 
-  // Prepare prediction input
-  const predictionInput = {
-    lastPeriodStart: data.lastPeriodStart,
-    cycleType: data.cycleType,
-    averageCycleLength: data.averageCycleLength,
-    cycleRangeMin: data.cycleRangeMin,
-    cycleRangeMax: data.cycleRangeMax,
-    periodLength: data.periodLength,
-  };
-
-  const nextPeriodResult = getNextPeriodDate(predictionInput);
-  const cycleDay = getCycleDay(data.lastPeriodStart);
-  const cycleLength = data.cycleType === 'regular' && data.averageCycleLength
-    ? data.averageCycleLength
-    : data.cycleRangeMin && data.cycleRangeMax
-      ? Math.round((data.cycleRangeMin + data.cycleRangeMax) / 2)
-      : 28;
-  const phase = getCyclePhase(cycleDay, cycleLength);
-  const fertileWindow = data.cycleType === 'regular' && data.averageCycleLength
-    ? getFertileWindow(data.averageCycleLength)
-    : null;
+  const {
+    nextPeriodResult,
+    cycleLength,
+    fertileWindow,
+    daysUntilPeriod,
+  } = useCyclePredictions(data);
 
   // Calculate ovulation date (for regular cycles)
   const ovulationDate = data.cycleType === 'regular' && data.averageCycleLength
@@ -68,8 +53,6 @@ export default function PredictionsScreen() {
       return { start, end };
     })()
     : null;
-
-  const daysUntilPeriod = getDaysUntil(nextPeriodResult.date);
 
   // Week calendar data
   const today = new Date();
