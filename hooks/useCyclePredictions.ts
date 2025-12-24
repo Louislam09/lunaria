@@ -1,9 +1,34 @@
 import { useMemo } from 'react';
 import { getDaysUntil } from '@/utils/dates';
-import { getCycleDay, getCyclePhase, getFertileWindow, getNextPeriodDate } from '@/utils/predictions';
+import { getCycleDay, getCyclePhase, getFertileWindow, getNextPeriodDate, NextPeriodResult } from '@/utils/predictions';
 import { OnboardingData } from '@/context/OnboardingContext';
 
-export function useCyclePredictions(data: Partial<OnboardingData>) {
+export type CyclePrediction = {
+  // Current cycle data
+  lastPeriodStart: Date;
+
+  // Predictions
+  nextPeriodResult: NextPeriodResult;
+  cycleDay: number;
+  cycleLength: number;
+  phase: string;
+  fertileWindow: { startDay: number; endDay: number };
+  daysUntilPeriod: number;
+  progress: number;
+
+  // User info
+  userName: string;
+  greeting: string;
+
+  // Helpers
+  getPhaseName: (phase: string) => string;
+  getPhaseDescription: (phase: string, day: number) => string;
+
+  // Risk
+  pregnancyRisk: { level: string; label: string; color: string };
+};
+
+export function useCyclePredictions(data: Partial<OnboardingData>): CyclePrediction {
   // Prepare prediction input
   const predictionInput = useMemo(() => ({
     lastPeriodStart: data.lastPeriodStart!,
@@ -24,7 +49,7 @@ export function useCyclePredictions(data: Partial<OnboardingData>) {
   // Get predictions
   const nextPeriodResult = useMemo(() => getNextPeriodDate(predictionInput), [predictionInput]);
   const cycleDay = useMemo(() => getCycleDay(data.lastPeriodStart!), [data.lastPeriodStart]);
-  
+
   const cycleLength = useMemo(() => {
     if (data.cycleType === 'regular' && data.averageCycleLength) {
       return data.averageCycleLength;
@@ -36,7 +61,7 @@ export function useCyclePredictions(data: Partial<OnboardingData>) {
   }, [data.cycleType, data.averageCycleLength, data.cycleRangeMin, data.cycleRangeMax]);
 
   const phase = useMemo(() => getCyclePhase(cycleDay, cycleLength), [cycleDay, cycleLength]);
-  
+
   const fertileWindow = useMemo(() => {
     if (data.cycleType === 'regular' && data.averageCycleLength) {
       return getFertileWindow(data.averageCycleLength);
@@ -112,6 +137,9 @@ export function useCyclePredictions(data: Partial<OnboardingData>) {
   }, [data.wantsPregnancy, data.cycleType, fertileWindow, cycleDay, phase, cycleLength]);
 
   return {
+    // Current cycle data
+    lastPeriodStart: data.lastPeriodStart,
+
     // Predictions
     nextPeriodResult,
     cycleDay,
@@ -120,15 +148,15 @@ export function useCyclePredictions(data: Partial<OnboardingData>) {
     fertileWindow,
     daysUntilPeriod,
     progress,
-    
+
     // User info
     userName,
     greeting,
-    
+
     // Helpers
     getPhaseName,
     getPhaseDescription,
-    
+
     // Risk
     pregnancyRisk,
   };

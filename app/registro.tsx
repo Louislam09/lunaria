@@ -5,7 +5,7 @@ import { useOnboarding } from "@/context/OnboardingContext";
 import { DailyLogsService } from "@/services/dataService";
 import { formatDate } from "@/utils/dates";
 import { getCycleDay } from "@/utils/predictions";
-import { router, Stack } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Alert, Keyboard, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 
@@ -33,6 +33,7 @@ enum Flow {
 }
 
 export default function RegisterScreen() {
+  const params = useLocalSearchParams<{ date?: string; id?: string }>();
   const { data, isLoading, isComplete } = useOnboarding();
   const { user, isAuthenticated, localUserId } = useAuth();
   const [flow, setFlow] = useState(Flow.MEDIO);
@@ -40,7 +41,13 @@ export default function RegisterScreen() {
   const [symptoms, setSymptoms] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(() => {
+    // Initialize with date from params if provided
+    if (params.date) {
+      return new Date(params.date);
+    }
+    return new Date();
+  });
   const scrollViewRef = useRef<ScrollView>(null);
 
   const navigateDate = (direction: 'prev' | 'next') => {
@@ -56,6 +63,14 @@ export default function RegisterScreen() {
   const goToToday = () => {
     setSelectedDate(new Date());
   };
+
+  // Update selectedDate when params.date changes
+  useEffect(() => {
+    if (params.date) {
+      const dateFromParams = new Date(params.date);
+      setSelectedDate(dateFromParams);
+    }
+  }, [params.date]);
 
   // Load existing log for selected date
   useEffect(() => {

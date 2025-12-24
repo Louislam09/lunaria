@@ -324,8 +324,6 @@ export default function CalendarScreen() {
     return marked;
   }, [cycleData, data, selected]);
 
-  // const monthName = monthNames[currentMonth.getMonth()];
-  // const year = currentMonth.getFullYear();
 
   const getPhaseDisplay = (phase: string) => {
     switch (phase) {

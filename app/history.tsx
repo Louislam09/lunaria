@@ -1,8 +1,10 @@
 import MyIcon from '@/components/ui/Icon';
 import { useAuth } from '@/context/AuthContext';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { useCyclePredictions } from '@/hooks/useCyclePredictions';
 import { DailyLogsService } from '@/services/dataService';
 import { colors } from '@/utils/colors';
+import { getCycleDay } from '@/utils/predictions';
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -91,7 +93,7 @@ function FilterChip({ label, active = false, onPress }: { label: string, active:
   );
 }
 
-const HistoryItem = ({ log, onPress }: { log: DailyLog, onPress: () => void }) => {
+const HistoryItem = ({ log, onPress, lastPeriodStart }: { log: DailyLog, onPress: () => void, lastPeriodStart: Date }) => {
   const getDayName = (dateStr: string): string => {
     const date = new Date(dateStr);
     const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -104,8 +106,7 @@ const HistoryItem = ({ log, onPress }: { log: DailyLog, onPress: () => void }) =
   };
 
   const isPeriodStart = (log: DailyLog): boolean => {
-    // Check if this is the start of a period (you might want to add logic based on flow)
-    return log.flow === 'alto' || log.flow === 'abundante';
+    return getCycleDay(lastPeriodStart, new Date(log.date)) === 1;
   };
 
   const flowColors = FLOW_COLORS[log.flow?.toLowerCase() || ''] || FLOW_COLORS.medio;
@@ -186,7 +187,7 @@ const HistoryItem = ({ log, onPress }: { log: DailyLog, onPress: () => void }) =
   );
 }
 
-function MonthSection({ group, groupIndex }: { group: GroupedLogs, groupIndex: number }) {
+function MonthSection({ group, groupIndex, lastPeriodStart }: { group: GroupedLogs, groupIndex: number, lastPeriodStart: Date }) {
   return (
     <View key={group.month} className={groupIndex > 0 ? 'mt-6' : ''}>
       <View className="flex-row items-center justify-between mb-4">
@@ -199,14 +200,16 @@ function MonthSection({ group, groupIndex }: { group: GroupedLogs, groupIndex: n
       </View>
 
       <View className="flex-col gap-3">
-        {group.logs.map((log) => (
+        {group.logs.map((log, index) => (
           <HistoryItem
-            key={log.id}
+            key={index}
             log={log}
+            lastPeriodStart={lastPeriodStart}
             onPress={() => router.push({
               pathname: '/registro',
               params: {
                 date: log.date,
+                id: log.id,
               },
             })} />
         ))}
@@ -223,11 +226,12 @@ export default function HistoryScreen() {
   const [filter, setFilter] = useState<FilterType>('all');
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const { lastPeriodStart } = useCyclePredictions(data);
 
   const userId = isAuthenticated && user ? user.id : localUserId;
 
   // Redirect to onboarding if not complete
-  React.useEffect(() => {
+  useEffect(() => {
     if (!onboardingLoading && !isComplete) {
       router.replace('/onboarding/wizard');
     }
@@ -363,9 +367,9 @@ export default function HistoryScreen() {
 
         {/* Filters */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName='gap-2 py-1' className="flex-row mt-4 w-full ">
-          {filters.map(({ label, value }) => (
+          {filters.map(({ label, value }, index) => (
             <FilterChip
-              key={value}
+              key={index}
               label={label}
               active={value === filter}
               onPress={() => setFilter(value as FilterType)}
@@ -379,7 +383,7 @@ export default function HistoryScreen() {
         className="flex-1 px-4 py-6"
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.lavender} />
+          <RefreshControl className='z-50' refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.lavender} />
         }
       >
         <View className="h-32" />
@@ -395,7 +399,12 @@ export default function HistoryScreen() {
         ) : (
           <>
             {groupedLogs.map((group, groupIndex) => (
-              <MonthSection key={group.month} group={group} groupIndex={groupIndex} />
+              <MonthSection
+                key={groupIndex}
+                group={group}
+                groupIndex={groupIndex}
+                lastPeriodStart={lastPeriodStart}
+              />
             ))}
 
             {/* End of list */}
