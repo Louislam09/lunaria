@@ -1,3 +1,4 @@
+import { ProfileMenu } from '@/components/ProfileMenu';
 import { MyImage } from '@/components/ui';
 import { CircularProgress } from '@/components/ui/CircularProgress';
 import MyIcon from '@/components/ui/Icon';
@@ -81,9 +82,7 @@ export default function HomeScreen() {
             }
             isVisible={isTooltipVisible}
             onClose={() => setIsTooltipVisible(false)}>
-            <View className="w-350 max-w-full bg-background rounded-lg p-0">
-              <Text>Hola</Text>
-            </View>
+            <ProfileMenu onMenuClose={() => setIsTooltipVisible(false)} />
           </Tooltip>
         </View>
       </View>

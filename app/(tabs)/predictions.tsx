@@ -305,13 +305,7 @@ export default function PredictionsScreen() {
               </View>
             </View>
 
-            {/* <TouchableOpacity activeOpacity={0.6} className="w-full  bg-primary py-5 rounded-full items-center justify-center flex-row gap-2">
-              <MyIcon name="ArrowRight" size={20} className="text-white " />
-              <Text className="text-white font-bold text-base">
-                Ver detalles
-              </Text>
-            </TouchableOpacity> */}
-            <TouchableOpacity className="self-start bg-primary px-5 py-2 rounded-full" activeOpacity={0.6}>
+            <TouchableOpacity onPress={() => router.push('/method-detail')} className="self-start bg-primary px-5 py-2 rounded-full" activeOpacity={0.6}>
               <Text className="text-white font-bold text-sm">
                 Ver detalles
               </Text>

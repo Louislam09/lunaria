@@ -27,7 +27,7 @@ const Tooltip = ({
             onRequestClose={onClose}
             popoverStyle={{ backgroundColor: colors.moonWhite, borderRadius: 10, padding: 0 }}
         >
-            <View className="w-350 max-w-full bg-background rounded-lg p-0">{children}</View>
+            <View className="bg-background rounded-3xl shadow-xl border border-gray-100 overflow-hidden">{children}</View>
         </Popover>
     );
 };
