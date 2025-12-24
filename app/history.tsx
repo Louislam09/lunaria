@@ -5,12 +5,12 @@ import { useCyclePredictions } from '@/hooks/useCyclePredictions';
 import { DailyLogsService } from '@/services/dataService';
 import { colors } from '@/utils/colors';
 import { getCycleDay } from '@/utils/predictions';
-import { router } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-type FilterType = 'all' | 'flow' | 'symptoms' | 'mood';
+type FilterType = 'all' | 'period' | 'thisWeek' | 'thisMonth' | 'last3Months';
 
 interface DailyLog {
   id: string;
@@ -115,7 +115,7 @@ const HistoryItem = ({ log, onPress, lastPeriodStart }: { log: DailyLog, onPress
   const dayNumber = getDayNumber(log.date);
 
   // React Compiler will automatically memoize this computation
-  const moodChips = !log.mood ? [] : log.mood.split(',').map((mood) => ({
+  const moodChips = !log.mood ? [] : log?.mood?.split(',').map((mood) => ({
     emoji: MOOD_EMOJIS[mood.trim().toLowerCase()],
     name: getMoodLabel(mood.trim()),
   }));
@@ -155,12 +155,12 @@ const HistoryItem = ({ log, onPress, lastPeriodStart }: { log: DailyLog, onPress
           )}
 
           {moodChips.map((mood, index) => (
-            <>
-              <Text key={index} className="text-sm font-medium text-text-primary">
+            <React.Fragment key={`${mood.name}-${index}`}>
+              <Text className="text-sm font-medium text-text-primary">
                 {mood.emoji} {mood.name}
               </Text>
               {index < moodChips.length - 1 && <View className={`w-2 h-2 rounded-full ${FLOW_COLORS.mancha.dot}`} />}
-            </>
+            </React.Fragment>
           ))}
         </View>
 
@@ -189,7 +189,7 @@ const HistoryItem = ({ log, onPress, lastPeriodStart }: { log: DailyLog, onPress
 
 function MonthSection({ group, groupIndex, lastPeriodStart }: { group: GroupedLogs, groupIndex: number, lastPeriodStart: Date }) {
   return (
-    <View key={group.month} className={groupIndex > 0 ? 'mt-6' : ''}>
+    <View className={groupIndex > 0 ? 'mt-6' : ''}>
       <View className="flex-row items-center justify-between mb-4">
         <Text className="text-lg font-bold text-text-primary">{group.month}</Text>
         {group.cycle && (
@@ -202,7 +202,7 @@ function MonthSection({ group, groupIndex, lastPeriodStart }: { group: GroupedLo
       <View className="flex-col gap-3">
         {group.logs.map((log, index) => (
           <HistoryItem
-            key={index}
+            key={index + log.id}
             log={log}
             lastPeriodStart={lastPeriodStart}
             onPress={() => router.push({
@@ -274,11 +274,41 @@ export default function HistoryScreen() {
 
   // Group logs by month
   const groupedLogs = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     const filtered = logs.filter(log => {
-      if (filter === 'flow' && !log.flow) return false;
-      if (filter === 'symptoms' && (!log.symptoms || log.symptoms.length === 0)) return false;
-      if (filter === 'mood' && !log.mood) return false;
-      return true;
+      const logDate = new Date(log.date);
+      logDate.setHours(0, 0, 0, 0);
+
+      switch (filter) {
+        case 'all':
+          return true;
+        case 'period':
+          // Filter days with flow (period days)
+          return !!log.flow && log.flow.trim() !== '' &&
+            (log.flow.toLowerCase() === 'leve' ||
+              log.flow.toLowerCase() === 'ligero' ||
+              log.flow.toLowerCase() === 'medio' ||
+              log.flow.toLowerCase() === 'alto' ||
+              log.flow.toLowerCase() === 'abundante');
+        case 'thisWeek':
+          // Filter logs from the last 7 days
+          const weekAgo = new Date(today);
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          return logDate >= weekAgo && logDate <= today;
+        case 'thisMonth':
+          // Filter logs from current month
+          return logDate.getMonth() === today.getMonth() &&
+            logDate.getFullYear() === today.getFullYear();
+        case 'last3Months':
+          // Filter logs from last 3 months
+          const threeMonthsAgo = new Date(today);
+          threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+          return logDate >= threeMonthsAgo && logDate <= today;
+        default:
+          return true;
+      }
     });
 
     const grouped: GroupedLogs[] = [];
@@ -326,33 +356,26 @@ export default function HistoryScreen() {
       value: 'all',
     },
     {
-      label: 'Flujo',
-      value: 'flow',
+      label: 'Días de periodo',
+      value: 'period',
     },
     {
-      label: 'Síntomas',
-      value: 'symptoms',
+      label: 'Esta semana',
+      value: 'thisWeek',
     },
     {
-      label: 'Estado de ánimo',
-      value: 'mood',
+      label: 'Este mes',
+      value: 'thisMonth',
+    },
+    {
+      label: 'Últimos 3 meses',
+      value: 'last3Months',
     },
   ];
 
-  if (onboardingLoading || isLoading) {
-    return (
-      <View className="flex-1 bg-background items-center justify-center">
-        <Text className="text-text-muted">Cargando...</Text>
-      </View>
-    );
-  }
-
-  if (!isComplete) {
-    return null;
-  }
-
   return (
     <View className="flex-1 bg-background">
+      <Stack.Screen options={{ headerShown: false, animation: 'slide_from_right', presentation: 'pageSheet' }} />
       {/* Header */}
       <View className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-6 pt-6 pb-2 bg-background/90 backdrop-blur-sm">
         <View className="flex-row items-center justify-between w-full">

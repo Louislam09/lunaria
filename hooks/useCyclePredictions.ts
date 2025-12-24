@@ -25,7 +25,7 @@ export type CyclePrediction = {
   getPhaseDescription: (phase: string, day: number) => string;
 
   // Risk
-  pregnancyRisk: { level: string; label: string; color: string };
+  pregnancyRisk: { level: string; label: string; color: string, bgColor: string, textColor: string, borderColor: string };
 };
 
 export function useCyclePredictions(data: Partial<OnboardingData>): CyclePrediction {
@@ -115,25 +115,25 @@ export function useCyclePredictions(data: Partial<OnboardingData>): CyclePredict
   const pregnancyRisk = useMemo(() => {
     if (data.wantsPregnancy === false) {
       if (data.cycleType === 'irregular') {
-        return { level: 'indeterminado', label: 'No determinado', color: 'gray' };
+        return { level: 'indeterminado', label: 'No determinado', color: 'gray', bgColor: 'bg-gray-50', textColor: 'text-gray-500', borderColor: 'border-gray-200' };
       }
       if (fertileWindow && cycleDay >= fertileWindow.startDay && cycleDay <= fertileWindow.endDay) {
-        return { level: 'high', label: 'Alto', color: 'red' };
+        return { level: 'high', label: 'Alto', color: 'red', bgColor: 'bg-red-50', textColor: 'text-red-500', borderColor: 'border-red-200' };
       }
       if (phase === 'ovulatory') {
-        return { level: 'high', label: 'Alto', color: 'red' };
+        return { level: 'high', label: 'Alto', color: 'red', bgColor: 'bg-red-50', textColor: 'text-red-500', borderColor: 'border-red-200' };
       }
       if (phase === 'luteal' && cycleDay < cycleLength - 7) {
-        return { level: 'medium', label: 'Medio', color: 'orange' };
+        return { level: 'medium', label: 'Medio', color: 'orange', bgColor: 'bg-orange-50', textColor: 'text-orange-500', borderColor: 'border-orange-100' };
       }
-      return { level: 'low', label: 'Bajo', color: 'green' };
+      return { level: 'low', label: 'Bajo', color: 'green', bgColor: 'bg-green-50', textColor: 'text-green-500', borderColor: 'border-green-200' };
     } else if (data.wantsPregnancy === true) {
       if (fertileWindow && cycleDay >= fertileWindow.startDay && cycleDay <= fertileWindow.endDay) {
-        return { level: 'fertile', label: 'Ventana fértil', color: 'purple' };
+        return { level: 'fertile', label: 'Ventana fértil', color: 'purple', bgColor: 'bg-purple-50', textColor: 'text-purple-500', borderColor: 'border-purple-200' };
       }
-      return { level: 'normal', label: 'Normal', color: 'blue' };
+      return { level: 'normal', label: 'Normal', color: 'blue', bgColor: 'bg-blue-50', textColor: 'text-blue-500', borderColor: 'border-blue-200' };
     }
-    return { level: 'low', label: 'Bajo', color: 'green' };
+    return { level: 'low', label: 'Bajo', color: 'green', bgColor: 'bg-green-50', textColor: 'text-green-500', borderColor: 'border-green-200' };
   }, [data.wantsPregnancy, data.cycleType, fertileWindow, cycleDay, phase, cycleLength]);
 
   return {

@@ -1,47 +1,27 @@
-export function formatDate(date: Date | undefined | null, format: 'short' | 'long' = 'short'): string {
-  if (!date) return '-';
+import { format, differenceInDays, startOfDay, isValid } from 'date-fns';
+import { es } from 'date-fns/locale';
 
-  const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-  const months = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-  ];
+export function formatDate(date: Date | undefined | null, formatType: 'short' | 'long' = 'short'): string {
+  if (!date || !isValid(date)) return '-';
 
-  const d = new Date(date);
-  if (isNaN(d.getTime())) return '-';
-
-  const dayName = days[d.getDay()];
-  const day = d.getDate();
-  const month = months[d.getMonth()];
-
-  if (format === 'short') {
-    return `${day} ${month.substring(0, 3)}`;
+  if (formatType === 'short') {
+    return format(date, 'd MMM', { locale: es });
   }
 
-  return `${dayName}, ${day} de ${month}`;
+  return format(date, 'EEEE, d \'de\' MMMM', { locale: es });
 }
 
 export function getDayOfCycle(lastPeriodStart: Date): number {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = startOfDay(new Date());
+  const lastPeriod = startOfDay(lastPeriodStart);
 
-  const lastPeriod = new Date(lastPeriodStart);
-  lastPeriod.setHours(0, 0, 0, 0);
-
-  const diffTime = today.getTime() - lastPeriod.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-  return diffDays + 1;
+  return differenceInDays(today, lastPeriod) + 1;
 }
 
 export function getDaysUntil(date: Date): number {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = startOfDay(new Date());
+  const target = startOfDay(date);
 
-  const target = new Date(date);
-  target.setHours(0, 0, 0, 0);
-
-  const diffTime = target.getTime() - today.getTime();
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return differenceInDays(target, today);
 }
 

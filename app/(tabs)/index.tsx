@@ -2,37 +2,24 @@ import { MyImage } from '@/components/ui';
 import { CircularProgress } from '@/components/ui/CircularProgress';
 import MyIcon from '@/components/ui/Icon';
 import { SyncStatusIndicator } from '@/components/ui/SyncStatusIndicator';
+import Tooltip from '@/components/ui/Tooltip';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { useCyclePredictions } from '@/hooks/useCyclePredictions';
 import { colors } from '@/utils/colors';
 import { formatDate } from '@/utils/dates';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Circle } from 'react-native-svg';
-
-const RADIUS = 42
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS // ≈ 264
 
 export default function HomeScreen() {
-  const insets = useSafeAreaInsets();
   const { data, isLoading, isComplete } = useOnboarding();
 
   // Redirect to onboarding if not complete
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isLoading && !isComplete) {
       router.replace('/onboarding/info');
     }
   }, [isLoading, isComplete]);
-
-  if (isLoading || !isComplete || !data.lastPeriodStart || !data.cycleType || !data.periodLength) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Cargando...</Text>
-      </View>
-    );
-  }
 
   const {
     nextPeriodResult,
@@ -53,12 +40,21 @@ export default function HomeScreen() {
   ];
 
   const risk = pregnancyRisk;
+  const [isTooltipVisible, setIsTooltipVisible] = useState(false);
+
+  if (isLoading || !isComplete || !data.lastPeriodStart || !data.cycleType || !data.periodLength) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Cargando...</Text>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-background">
 
       {/* Header */}
-      <View className="px-4 pt-6 pb-2 flex-row justify-between items-center">
+      <View className='absolute top-0 left-0 right-0 z-20 flex-row justify-between items-center px-6 pt-6 pb-2 bg-background/90 backdrop-blur-sm'>
         <View>
           <Text className="text-sm text-gray-500">{greeting}</Text>
           <Text className="text-2xl font-bold text-text-primary">
@@ -72,16 +68,29 @@ export default function HomeScreen() {
             <MyIcon name="Bell" size={24} className="text-text-primary fill-white" />
           </Pressable>
 
-          <MyImage
-            source={{ uri: "https://i.pravatar.cc/100" }}
-            contentFit="contain"
-            className="h-10 w-10 rounded-full"
-          />
+          <Tooltip
+            offset={10}
+            target={
+              <Pressable onPress={() => setIsTooltipVisible(!isTooltipVisible)} className="h-10 w-10 rounded-full bg-background items-center justify-center">
+                <MyImage
+                  source={{ uri: "https://i.pravatar.cc/100" }}
+                  contentFit="contain"
+                  className="h-10 w-10 rounded-full"
+                />
+              </Pressable>
+            }
+            isVisible={isTooltipVisible}
+            onClose={() => setIsTooltipVisible(false)}>
+            <View className="w-350 max-w-full bg-background rounded-lg p-0">
+              <Text>Hola</Text>
+            </View>
+          </Tooltip>
         </View>
       </View>
 
       {/* Scroll content */}
       <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
+        <View className="h-16" />
 
         {/* Next period card */}
         <View className="mt-6 bg-background rounded-[40px] p-6 items-center">
@@ -149,23 +158,23 @@ export default function HomeScreen() {
         </View>
 
         {/* Pregnancy risk */}
-        <View className="mt-6 flex-row items-center justify-between gap-4 bg-white rounded-[32px] p-5 py-8 shadow-md border border-gray-200">
+        <View className={`mt-6 flex-row items-center justify-between gap-4 rounded-[32px] p-5 py-8 shadow-md bg-linear-to-br from-${risk.color}-50 to-white border ${risk.borderColor}`}>
           <View className="flex-1 flex flex-col gap-4">
-            <View className="flex flex-row items-center gap-2">
-              <MyIcon name="Smile" size={20} className="text-text-muted" />
-              <Text className="text-text-primary text-lg font-bold">
+            <View className="flex flex-row items-center gap-2 w-full">
+              <MyIcon name="Smile" size={20} className={`${risk.textColor} fill-${risk.color}`} />
+              <Text className={`text-lg font-bold uppercase flex-1 ${risk.textColor}`}>
                 Riesgo de embarazo
               </Text>
             </View>
-            <Text className={`inline-flex self-start items-center gap-1.5 px-3 py-1 rounded-full bg-${risk.color}-100 text-${risk.color}-700 text-base font-bold`}>
-              <View className={`w-2 h-2 mr-1 rounded-full bg-${risk.color}-500`} />{" "}
-              {/* Bajo */}
+            <Text className={`text-2xl font-semibold text-text-primary `}>
+              <View className={`w-2 h-2 mr-1 rounded-full ${risk.color}`} />{" "}
               {risk.label}
             </Text>
           </View>
-          <View className={`w-16 h-16 rounded-full bg-${risk.color}-50 flex items-center justify-center`}>
+          <View className={`w-16 h-16 rounded-full ${risk.bgColor} flex items-center justify-center`}>
             {/* <MyIcon name="Shield" size={32} className="text-green-500 fill-green-500" /> */}
-            <MyIcon name="Shield" size={32} className={`text-${risk.color}-500 fill-${risk.color}-500`} />
+            <View className={`absolute top-0 right-0 w-4 h-4 rounded-full bg-${risk.color}-500 flex items-center justify-center `} />
+            <MyIcon name="Shield" size={32} className={`${risk.textColor} fill-${risk.color}`} />
           </View>
         </View>
 
