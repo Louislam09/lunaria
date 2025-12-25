@@ -3,13 +3,16 @@ import { ProfileCard } from '@/components/settings/ProfileCard';
 import { SettingsItem } from '@/components/settings/SettingsItem';
 import { SettingsSection } from '@/components/settings/SettingsSection';
 import { SyncFrequencyPicker } from '@/components/settings/SyncFrequencyPicker';
+import { TimePicker } from '@/components/settings/TimePicker';
 import { ToggleRow } from '@/components/settings/ToggleRow';
 import MyIcon from '@/components/ui/Icon';
 import { useAuth } from '@/context/AuthContext';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { useSync } from '@/context/SyncContext';
+import { useNotificationManager } from '@/hooks/useNotificationManager';
 import { Conflict, detectConflicts, resolveConflictLocal, resolveConflictRemote } from '@/services/conflictResolution';
 import { exportData, importData } from '@/services/exportImport';
+import { sendTestNotification, getAllScheduledNotifications } from '@/services/notifications';
 import { formatDate } from '@/utils/dates';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
@@ -22,12 +25,34 @@ export default function SettingsScreen() {
   const { user, logout, isAuthenticated, localUserId } = useAuth();
   const { sync, setSyncFrequency, frequency, pendingItems, lastSyncTime, isSyncing } = useSync();
   const { averageCycleLength = 28, cycleRangeMin, cycleRangeMax, periodLength = 5 } = data;
-  const [remindersEnabled, setRemindersEnabled] = useState(true);
   const [aiPredictionEnabled, setAiPredictionEnabled] = useState(true);
   const [conflicts, setConflicts] = useState<Conflict[]>([]);
   const [showConflictModal, setShowConflictModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [scheduledCount, setScheduledCount] = useState(0);
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
+
+  // Notification manager
+  const {
+    preferences,
+    updatePreferences,
+    isScheduling,
+  } = useNotificationManager();
+
+  // Load scheduled notification count
+  useEffect(() => {
+    loadScheduledCount();
+  }, []);
+
+  const loadScheduledCount = async () => {
+    try {
+      const scheduled = await getAllScheduledNotifications();
+      setScheduledCount(scheduled.length);
+    } catch (error) {
+      console.error('Error loading scheduled count:', error);
+    }
+  };
 
   const userName = data.name || user?.name || 'Usuario';
   const userEmail = user?.email || 'usuario@email.com';
@@ -252,17 +277,198 @@ export default function SettingsScreen() {
           />
         </SettingsSection>
 
-        {/* Preferencias */}
-        <SettingsSection title="Preferencias">
+        {/* Notificaciones */}
+        <SettingsSection title="Notificaciones">
           <ToggleRow
             icon="Bell"
             iconBg="bg-pink-100"
             iconColor="text-pink-500"
-            title="Recordatorios"
-            subtitle="Inicio y ovulación"
-            value={remindersEnabled}
-            onChange={setRemindersEnabled}
+            title="Activar notificaciones"
+            subtitle={scheduledCount > 0 ? `${scheduledCount} programada${scheduledCount > 1 ? 's' : ''}` : 'Activar recordatorios'}
+            value={preferences?.enabled ?? false}
+            onChange={async (enabled) => {
+              await updatePreferences({ enabled });
+              await loadScheduledCount();
+            }}
           />
+
+          {/* Period Reminders */}
+          {preferences?.enabled && (
+            <>
+              <View className="px-5 py-3 bg-gray-50">
+                <ToggleRow
+                  icon="Calendar"
+                  iconBg="bg-blue-100"
+                  iconColor="text-blue-500"
+                  title="Recordatorios de periodo"
+                  subtitle={preferences.periodReminders.enabled ? 'Activado' : 'Desactivado'}
+                  value={preferences.periodReminders.enabled}
+                  onChange={async (enabled) => {
+                    await updatePreferences({
+                      periodReminders: { ...preferences.periodReminders, enabled },
+                    });
+                    await loadScheduledCount();
+                  }}
+                  showDivider={false}
+                />
+
+                {preferences.periodReminders.enabled && (
+                  <>
+                    <View className="mb-3">
+                      <Text className="text-xs font-semibold text-text-muted mb-2">
+                        Días antes:
+                      </Text>
+                      <View className="flex-row gap-2">
+                        {[3, 2, 1].map((day) => (
+                          <TouchableOpacity
+                            key={day}
+                            onPress={async () => {
+                              const daysBefore = preferences.periodReminders.daysBefore.includes(day)
+                                ? preferences.periodReminders.daysBefore.filter((d) => d !== day)
+                                : [...preferences.periodReminders.daysBefore, day].sort((a, b) => b - a);
+                              await updatePreferences({
+                                periodReminders: { ...preferences.periodReminders, daysBefore },
+                              });
+                              await loadScheduledCount();
+                            }}
+                            className={`px-4 py-2 rounded-xl border ${preferences.periodReminders.daysBefore.includes(day)
+                              ? 'bg-blue-100 border-blue-300'
+                              : 'bg-white border-gray-200'
+                              }`}
+                          >
+                            <Text
+                              className={`text-xs font-semibold ${preferences.periodReminders.daysBefore.includes(day)
+                                ? 'text-blue-600'
+                                : 'text-text-muted'
+                                }`}
+                            >
+                              {day} día{day > 1 ? 's' : ''}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </View>
+
+                    <View>
+                      <Text className="text-xs font-semibold text-text-muted mb-2">
+                        Hora:
+                      </Text>
+                      <TimePicker
+                        value={preferences.periodReminders.time}
+                        onChange={async (time) => {
+                          await updatePreferences({
+                            periodReminders: { ...preferences.periodReminders, time },
+                          });
+                          await loadScheduledCount();
+                        }}
+                        disabled={!preferences.periodReminders.enabled}
+                      />
+                    </View>
+                  </>
+                )}
+              </View>
+
+              {/* Fertile Window */}
+              <View className="px-5 py-3 bg-gray-50 border-t border-gray-200">
+                <ToggleRow
+                  icon="Baby"
+                  iconBg="bg-purple-100"
+                  iconColor="text-purple-500"
+                  title="Ventana fértil"
+                  subtitle={preferences.fertileWindowReminders.enabled ? 'Activado' : 'Desactivado'}
+                  value={preferences.fertileWindowReminders.enabled}
+                  onChange={async (enabled) => {
+                    await updatePreferences({
+                      fertileWindowReminders: { ...preferences.fertileWindowReminders, enabled },
+                    });
+                    await loadScheduledCount();
+                  }}
+                  showDivider={false}
+                />
+
+                {preferences.fertileWindowReminders.enabled && (
+                  <View>
+                    <Text className="text-xs font-semibold text-text-muted mb-2">
+                      Hora:
+                    </Text>
+                    <TimePicker
+                      value={preferences.fertileWindowReminders.time}
+                      onChange={async (time) => {
+                        await updatePreferences({
+                          fertileWindowReminders: { ...preferences.fertileWindowReminders, time },
+                        });
+                        await loadScheduledCount();
+                      }}
+                      disabled={!preferences.fertileWindowReminders.enabled}
+                    />
+                  </View>
+                )}
+              </View>
+
+              {/* Daily Log Reminder */}
+              <View className="px-5 py-3 bg-gray-50 border-t border-gray-200">
+                <ToggleRow
+                  icon="PenTool"
+                  iconBg="bg-pink-100"
+                  iconColor="text-pink-500"
+                  title="Recordatorio diario"
+                  subtitle={preferences.dailyLogReminder.enabled ? 'Activado' : 'Desactivado'}
+                  value={preferences.dailyLogReminder.enabled}
+                  onChange={async (enabled) => {
+                    await updatePreferences({
+                      dailyLogReminder: { ...preferences.dailyLogReminder, enabled },
+                    });
+                    await loadScheduledCount();
+                  }}
+                  showDivider={false}
+                />
+
+                {preferences.dailyLogReminder.enabled && (
+                  <View>
+                    <Text className="text-xs font-semibold text-text-muted mb-2">
+                      Hora:
+                    </Text>
+                    <TimePicker
+                      value={preferences.dailyLogReminder.time}
+                      onChange={async (time) => {
+                        await updatePreferences({
+                          dailyLogReminder: { ...preferences.dailyLogReminder, time },
+                        });
+                        await loadScheduledCount();
+                      }}
+                      disabled={!preferences.dailyLogReminder.enabled}
+                    />
+                  </View>
+                )}
+              </View>
+
+              {/* Test Notification Button */}
+              <TouchableOpacity
+                onPress={async () => {
+                  setIsLoadingNotifications(true);
+                  try {
+                    await sendTestNotification();
+                    Alert.alert('Éxito', 'Notificación de prueba enviada.');
+                    await loadScheduledCount();
+                  } catch (error: any) {
+                    Alert.alert('Error', error.message || 'No se pudo enviar la notificación de prueba.');
+                  } finally {
+                    setIsLoadingNotifications(false);
+                  }
+                }}
+                disabled={isLoadingNotifications || isScheduling}
+                className="mx-5 my-3 px-4 py-3 bg-primary/10 rounded-3xl border border-primary/20"
+              >
+                <Text className="text-center text-sm font-semibold text-primary">
+                  {isLoadingNotifications ? 'Enviando...' : 'Enviar notificación de prueba'}
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </SettingsSection>
+
+        {/* Preferencias */}
+        <SettingsSection title="Preferencias">
           <ToggleRow
             icon="Sparkles"
             iconBg="bg-purple-100"

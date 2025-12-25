@@ -90,7 +90,16 @@ export default ({ config }: ConfigContext): ExpoConfig => {
                 {
                     "iCloudContainerEnvironment": "Production"
                 }
-            ]
+            ],
+            [
+                "expo-notifications",
+                {
+                    icon: "./assets/images/icon.png",
+                    color: "#0c3e3d",
+                    defaultChannel: "default",
+                    enableBackgroundRemoteNotifications: true,
+                },
+            ],
         ],
         extra: {
             eas: {

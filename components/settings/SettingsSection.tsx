@@ -13,7 +13,7 @@ export function SettingsSection({
                 {title}
             </Text>
 
-            <View className="overflow-hidden  rounded-[32px] border border-gray-200 bg-white shadow-md">
+            <View className="overflow-hidden  rounded-[32px] border border-gray-200 bg-background shadow-md">
                 {children}
             </View>
         </View>

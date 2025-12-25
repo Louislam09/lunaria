@@ -150,6 +150,18 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       setIsComplete(true);
       try {
         await Storage.setItem(COMPLETE_KEY, 'true');
+
+        // Request notification permissions
+        // Scheduling will be handled automatically by useNotificationManager hook
+        // when the app detects cycle data changes
+        try {
+          const { requestPermissions } = await import('@/services/notifications');
+          await requestPermissions();
+          console.log('Notification permissions requested during onboarding');
+        } catch (notificationError) {
+          // Don't fail onboarding if notification setup fails
+          console.error('Error requesting notification permissions:', notificationError);
+        }
       } catch (error) {
         console.error('Error saving completion status:', error);
       }

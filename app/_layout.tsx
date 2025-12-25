@@ -8,15 +8,50 @@ import {
   DMSans_700Bold,
 } from "@expo-google-fonts/dm-sans";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { StatusBar, View } from "react-native";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as Notifications from "expo-notifications";
 import "../global.css";
 
 SplashScreen.preventAutoHideAsync();
+
+/**
+ * Hook to handle notification taps and deep linking
+ */
+function useNotificationObserver() {
+  useEffect(() => {
+    function redirect(notification: Notifications.Notification) {
+      const notificationType = notification.request.content.data?.type as string;
+      
+      if (notificationType === 'period' || notificationType === 'fertile') {
+        router.push('/(tabs)/predictions');
+      } else if (notificationType === 'daily_log') {
+        router.push('/registro');
+      }
+      // Educational and test notifications don't need navigation
+    }
+
+    // Handle initial notification (app opened from notification)
+    Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (response?.notification) {
+        redirect(response.notification);
+      }
+    });
+
+    // Listen for notification taps while app is running
+    const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+      redirect(response.notification);
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+}
 
 const Layout = (props) => {
   const { bottom, top } = useSafeAreaInsets();
@@ -27,6 +62,8 @@ const Layout = (props) => {
     DMSans_700Bold,
   });
 
+  // Set up notification observer for deep linking
+  useNotificationObserver();
 
   useEffect(() => {
     if (fontsLoaded) {
