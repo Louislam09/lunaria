@@ -215,7 +215,7 @@ export default function MethodDetailScreen() {
                     Tu Método
                 </Text>
 
-                <TouchableOpacity className="h-10 w-10 items-center justify-center rounded-full bg-background">
+                <TouchableOpacity className="hidden h-10 w-10 items-center justify-center rounded-full bg-background">
                     <MyIcon name="EllipsisVertical" className="text-text-primary" />
                 </TouchableOpacity>
             </View>

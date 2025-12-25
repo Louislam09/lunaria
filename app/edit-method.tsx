@@ -38,25 +38,30 @@ export default function EditMethodScreen() {
             />
 
             {/* Header */}
-            <View className="absolute top-0 left-0 right-0 z-20 flex-row items-center justify-between px-6 pt-6 pb-2 bg-background/90 backdrop-blur-sm">
-                <Text className="text-2xl font-bold text-text-primary">
-                    Editar Método
-                </Text>
+            <View className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-6 pt-6 pb-2 bg-background/90 backdrop-blur-sm">
+                <View className="flex-row items-center justify-between w-full">
 
-                <TouchableOpacity onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-full bg-background">
-                    <MyIcon name="X" className="text-text-primary" />
-                </TouchableOpacity>
+                    <Text className="text-2xl font-bold text-text-primary">
+                        Editar Método
+                    </Text>
+
+                    <TouchableOpacity onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-full bg-background">
+                        <MyIcon name="X" className="text-text-primary" />
+                    </TouchableOpacity>
+                </View>
+                <Text className="text-base text-text-primary ">
+                    Selecciona el método que estás utilizando actualmente:
+                </Text>
             </View>
 
             <ScrollView
                 className="flex-1 px-4"
-                contentContainerStyle={{ paddingBottom: 120 }}
+                contentContainerStyle={{ paddingBottom: 200 }}
                 showsVerticalScrollIndicator={false}
             >
+                <View className="h-34" />
                 {/* Instructional text */}
-                <Text className="text-base text-text-primary mb-6">
-                    Selecciona el método que estás utilizando actualmente:
-                </Text>
+
 
                 {/* Methods list */}
                 <View className="gap-3">
@@ -96,18 +101,19 @@ export default function EditMethodScreen() {
                         )
                     })}
                 </View>
-
-                {/* Save button */}
+            </ScrollView>
+            {/* Save button */}
+            <View className="absolute bottom-0 left-0 right-0 z-20 flex-row items-center justify-between px-6 pt-6 pb-2 bg-background/90 backdrop-blur-sm">
                 <TouchableOpacity
                     onPress={handleSave}
                     activeOpacity={0.8}
-                    className="w-full mt-8 bg-primary py-4 rounded-full items-center justify-center"
+                    className="w-full bg-primary py-4 rounded-full items-center justify-center"
                 >
                     <Text className="text-white font-bold text-base">
                         Guardar cambios
                     </Text>
                 </TouchableOpacity>
-            </ScrollView>
+            </View>
         </View>
     )
 }
