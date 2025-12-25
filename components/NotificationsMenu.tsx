@@ -1,10 +1,12 @@
 import MyIcon from "@/components/ui/Icon"
 import { useOnboarding } from "@/context/OnboardingContext"
 import { useCyclePredictions } from "@/hooks/useCyclePredictions"
+import { useNotificationManager } from "@/hooks/useNotificationManager"
+import { getAllScheduledNotifications } from "@/services/notifications"
 import { differenceInDays, differenceInHours, format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { router } from "expo-router"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { ScrollView, Text, TouchableOpacity, View } from "react-native"
 
 interface Notification {
@@ -25,16 +27,39 @@ interface NotificationsMenuProps {
 
 export function NotificationsMenu({ onMenuClose }: NotificationsMenuProps) {
     const { data } = useOnboarding()
-    const { daysUntilPeriod, fertileWindow, cycleDay } = useCyclePredictions(data)
+    const { daysUntilPeriod, fertileWindow, cycleDay, nextPeriodResult } = useCyclePredictions(data)
+    const { preferences } = useNotificationManager()
     const [readNotifications, setReadNotifications] = useState<Set<string>>(new Set())
+    const [scheduledNotifications, setScheduledNotifications] = useState<any[]>([])
 
-    // Generate notifications based on cycle data
+    // Load scheduled notifications
+    useEffect(() => {
+        loadScheduledNotifications()
+    }, [])
+
+    const loadScheduledNotifications = async () => {
+        try {
+            const scheduled = await getAllScheduledNotifications()
+            setScheduledNotifications(scheduled)
+        } catch (error) {
+            console.error('Error loading scheduled notifications:', error)
+        }
+    }
+
+    // Generate notifications based on cycle data and scheduled notifications
     const notifications = useMemo<Notification[]>(() => {
         const notifs: Notification[] = []
         const now = new Date()
 
-        // Period approaching notification
-        if (daysUntilPeriod <= 3 && daysUntilPeriod > 0) {
+        // Period approaching notification (show if within 3 days)
+        if (daysUntilPeriod <= 3 && daysUntilPeriod > 0 && preferences?.periodReminders.enabled) {
+            const scheduledPeriodNotif = scheduledNotifications.find(n =>
+                n.identifier.startsWith('period-reminder-') &&
+                n.trigger &&
+                typeof n.trigger === 'object' &&
+                'date' in n.trigger
+            )
+
             notifs.push({
                 id: 'period-approaching',
                 type: 'period',
@@ -43,13 +68,24 @@ export function NotificationsMenu({ onMenuClose }: NotificationsMenuProps) {
                 icon: 'Calendar',
                 iconBg: 'bg-blue-50 dark:bg-blue-900/20',
                 iconColor: 'text-blue-500 dark:text-blue-400',
-                timestamp: new Date(now.getTime() - 2 * 60 * 60 * 1000), // 2 hours ago
+                timestamp: scheduledPeriodNotif && 'date' in scheduledPeriodNotif.trigger
+                    ? new Date(scheduledPeriodNotif.trigger.date as number)
+                    : new Date(now.getTime() - 2 * 60 * 60 * 1000),
                 isRead: readNotifications.has('period-approaching')
             })
         }
 
         // Fertile window notification
-        if (fertileWindow && cycleDay >= fertileWindow.startDay && cycleDay <= fertileWindow.endDay) {
+        if (
+            fertileWindow &&
+            cycleDay >= fertileWindow.startDay &&
+            cycleDay <= fertileWindow.endDay &&
+            preferences?.fertileWindowReminders.enabled
+        ) {
+            const scheduledFertileNotif = scheduledNotifications.find(n =>
+                n.identifier.startsWith('fertile-window-')
+            )
+
             notifs.push({
                 id: 'fertile-window',
                 type: 'fertile',
@@ -58,40 +94,70 @@ export function NotificationsMenu({ onMenuClose }: NotificationsMenuProps) {
                 icon: 'Baby',
                 iconBg: 'bg-purple-50 dark:bg-purple-900/20',
                 iconColor: 'text-purple-500 dark:text-purple-400',
-                timestamp: new Date(now.getTime() - 24 * 60 * 60 * 1000 + 9.5 * 60 * 60 * 1000), // Yesterday 9:30 AM
+                timestamp: scheduledFertileNotif && scheduledFertileNotif.trigger && typeof scheduledFertileNotif.trigger === 'object' && 'date' in scheduledFertileNotif.trigger
+                    ? new Date(scheduledFertileNotif.trigger.date as number)
+                    : new Date(now.getTime() - 24 * 60 * 60 * 1000 + 9.5 * 60 * 60 * 1000),
                 isRead: readNotifications.has('fertile-window')
             })
         }
 
-        // Daily log reminder
-        notifs.push({
-            id: 'daily-log',
-            type: 'daily_log',
-            title: 'Registro diario',
-            message: '¿Cómo te sientes hoy? Recuerda registrar tus síntomas.',
-            icon: 'PenTool',
-            iconBg: 'bg-pink-50 dark:bg-pink-900/20',
-            iconColor: 'text-pink-500',
-            timestamp: new Date(now.getTime() - 24 * 60 * 60 * 1000 + 20 * 60 * 60 * 1000), // Yesterday 8:00 PM
-            isRead: readNotifications.has('daily-log')
-        })
+        // Daily log reminder (show if enabled and scheduled)
+        if (preferences?.dailyLogReminder.enabled) {
+            const scheduledDailyLog = scheduledNotifications.find(n =>
+                n.identifier.startsWith('daily-log-')
+            )
 
-        // Analysis notification (example)
-        notifs.push({
-            id: 'analysis',
-            type: 'analysis',
-            title: 'Nuevo análisis disponible',
-            message: 'Tu resumen del mes pasado está listo.',
-            icon: 'TrendingUp',
-            iconBg: 'bg-green-50 dark:bg-green-900/20',
-            iconColor: 'text-green-500 dark:text-green-400',
-            timestamp: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
-            isRead: readNotifications.has('analysis')
-        })
+            // Only show if there's a scheduled notification or if it's time for daily reminder
+            const shouldShow = scheduledDailyLog || true // Always show as reminder
+
+            if (shouldShow) {
+                notifs.push({
+                    id: 'daily-log',
+                    type: 'daily_log',
+                    title: 'Registro diario',
+                    message: '¿Cómo te sientes hoy? Recuerda registrar tus síntomas.',
+                    icon: 'PenTool',
+                    iconBg: 'bg-pink-50 dark:bg-pink-900/20',
+                    iconColor: 'text-pink-500',
+                    timestamp: scheduledDailyLog && scheduledDailyLog.trigger && typeof scheduledDailyLog.trigger === 'object' && 'hour' in scheduledDailyLog.trigger
+                        ? (() => {
+                            const today = new Date()
+                            today.setHours((scheduledDailyLog.trigger as any).hour || 20, (scheduledDailyLog.trigger as any).minute || 0, 0, 0)
+                            return today
+                        })()
+                        : new Date(now.getTime() - 24 * 60 * 60 * 1000 + 20 * 60 * 60 * 1000),
+                    isRead: readNotifications.has('daily-log')
+                })
+            }
+        }
+
+        // Show scheduled notification count if there are upcoming notifications
+        const upcomingCount = scheduledNotifications.filter(n => {
+            if (n.trigger && typeof n.trigger === 'object' && 'date' in n.trigger) {
+                const triggerDate = new Date(n.trigger.date as number)
+                return triggerDate.getTime() > now.getTime()
+            }
+            return false
+        }).length
+
+        // Analysis notification (example - can be replaced with actual analysis notifications)
+        if (upcomingCount > 0) {
+            notifs.push({
+                id: 'scheduled-info',
+                type: 'analysis',
+                title: 'Notificaciones programadas',
+                message: `Tienes ${upcomingCount} notificación${upcomingCount > 1 ? 'es' : ''} programada${upcomingCount > 1 ? 's' : ''}.`,
+                icon: 'Bell',
+                iconBg: 'bg-green-50 dark:bg-green-900/20',
+                iconColor: 'text-green-500 dark:text-green-400',
+                timestamp: new Date(),
+                isRead: readNotifications.has('scheduled-info')
+            })
+        }
 
         // Sort by timestamp (most recent first)
         return notifs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
-    }, [daysUntilPeriod, fertileWindow, cycleDay, readNotifications])
+    }, [daysUntilPeriod, fertileWindow, cycleDay, readNotifications, scheduledNotifications, preferences])
 
     const unreadCount = notifications.filter(n => !n.isRead).length
 
@@ -128,6 +194,8 @@ export function NotificationsMenu({ onMenuClose }: NotificationsMenuProps) {
             router.push('/registro')
         } else if (notification.type === 'period' || notification.type === 'fertile') {
             router.push('/(tabs)/predictions')
+        } else if (notification.type === 'analysis' && notification.id === 'scheduled-info') {
+            router.push('/(tabs)/settings')
         }
     }
 

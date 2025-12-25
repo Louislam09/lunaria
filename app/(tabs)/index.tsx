@@ -7,6 +7,8 @@ import { SyncStatusIndicator } from '@/components/ui/SyncStatusIndicator';
 import Tooltip from '@/components/ui/Tooltip';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { useCyclePredictions } from '@/hooks/useCyclePredictions';
+import { useNotificationManager } from '@/hooks/useNotificationManager';
+import { getAllScheduledNotifications } from '@/services/notifications';
 import { colors } from '@/utils/colors';
 import { formatDate } from '@/utils/dates';
 import { router } from 'expo-router';
@@ -37,6 +39,23 @@ export default function HomeScreen() {
     fertileWindow,
   } = useCyclePredictions(data);
 
+  const { preferences } = useNotificationManager();
+  const [scheduledNotifications, setScheduledNotifications] = useState<any[]>([]);
+
+  // Load scheduled notifications for unread count
+  useEffect(() => {
+    loadScheduledNotifications();
+  }, []);
+
+  const loadScheduledNotifications = async () => {
+    try {
+      const scheduled = await getAllScheduledNotifications();
+      setScheduledNotifications(scheduled);
+    } catch (error) {
+      console.error('Error loading scheduled notifications:', error);
+    }
+  };
+
   const resumeInsights = [
     { emoji: "☀️", icon: "Sun", title: "Estado de ánimo", text: "Es normal sentirse más introspectiva hoy.", iconBg: "bg-orange-100", iconColor: "text-orange-600" },
     { emoji: "💖", icon: "Heart", title: "Recomendación", text: "Ideal para yoga suave o meditación.", iconBg: "bg-purple-100", iconColor: "text-purple-600" }
@@ -46,21 +65,47 @@ export default function HomeScreen() {
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const [isNotificationsVisible, setIsNotificationsVisible] = useState(false);
 
-  // Calculate unread notifications count
+  // Calculate unread notifications count based on actual scheduled notifications and cycle state
   const unreadNotificationsCount = useMemo(() => {
-    let count = 0
-    if (daysUntilPeriod <= 3 && daysUntilPeriod > 0) count++
-    if (fertileWindow && data.lastPeriodStart) {
-      const lastPeriod = new Date(data.lastPeriodStart)
-      const fertileStartDay = fertileWindow.startDay
-      const fertileEndDay = fertileWindow.endDay
-      const today = new Date()
-      const daysSincePeriod = Math.floor((today.getTime() - lastPeriod.getTime()) / (1000 * 60 * 60 * 24)) + 1
-      if (daysSincePeriod >= fertileStartDay && daysSincePeriod <= fertileEndDay) count++
+    if (!preferences?.enabled) return 0;
+    
+    let count = 0;
+    const now = new Date();
+    
+    // Count upcoming scheduled notifications
+    const upcomingNotifications = scheduledNotifications.filter(n => {
+      if (n.trigger && typeof n.trigger === 'object' && 'date' in n.trigger) {
+        const triggerDate = new Date(n.trigger.date as number);
+        return triggerDate.getTime() > now.getTime();
+      }
+      return false;
+    });
+    
+    count += upcomingNotifications.length;
+    
+    // Add active notifications based on cycle state
+    if (daysUntilPeriod <= 3 && daysUntilPeriod > 0 && preferences.periodReminders.enabled) {
+      count++;
     }
-    // Always show daily log and analysis as "unread" for demo
-    return count + 2
-  }, [daysUntilPeriod, fertileWindow, data.lastPeriodStart]);
+    
+    if (fertileWindow && data.lastPeriodStart && preferences.fertileWindowReminders.enabled) {
+      const lastPeriod = new Date(data.lastPeriodStart);
+      const fertileStartDay = fertileWindow.startDay;
+      const fertileEndDay = fertileWindow.endDay;
+      const today = new Date();
+      const daysSincePeriod = Math.floor((today.getTime() - lastPeriod.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      if (daysSincePeriod >= fertileStartDay && daysSincePeriod <= fertileEndDay) {
+        count++;
+      }
+    }
+    
+    // Always show daily log reminder if enabled
+    if (preferences.dailyLogReminder.enabled) {
+      count++;
+    }
+    
+    return count;
+  }, [daysUntilPeriod, fertileWindow, data.lastPeriodStart, scheduledNotifications, preferences]);
 
   if (isLoading || !isComplete || !data.lastPeriodStart || !data.cycleType || !data.periodLength) {
     return (
@@ -88,14 +133,17 @@ export default function HomeScreen() {
             offset={10}
             target={
               <Pressable
-                onPress={() => setIsNotificationsVisible(!isNotificationsVisible)}
+                onPress={() => {
+                  setIsNotificationsVisible(!isNotificationsVisible);
+                  loadScheduledNotifications(); // Refresh when opening
+                }}
                 className="h-10 w-10 rounded-full bg-background items-center justify-center relative"
               >
                 <MyIcon name="Bell" size={24} className="text-text-primary fill-white" />
                 {/* Unread indicator */}
-                {/* {unreadNotificationsCount > 0 && (
+                {unreadNotificationsCount > 0 && (
                   <View className="absolute top-2 right-2.5 h-2 w-2 rounded-full bg-red-500 border border-white" />
-                )} */}
+                )}
               </Pressable>
             }
             isVisible={isNotificationsVisible}
