@@ -14,7 +14,6 @@ type ProfileCardProps = {
 export function ProfileCard({
     name,
     email,
-    avatarUrl,
     isPremium = false,
     onEditPress,
 }: ProfileCardProps) {
@@ -28,7 +27,7 @@ export function ProfileCard({
                     {/* Avatar */}
                     <View className="relative mb-4">
                         <Image
-                            source={{ uri: avatarUrl }}
+                            source={require("@/assets/images/avatar.jpg")}
                             className="h-28 w-28 rounded-full border-4 border-white"
                         />
 

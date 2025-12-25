@@ -66,7 +66,7 @@ export function ProfileMenu({ onMenuClose }: ProfileMenuProps) {
             {/* User header */}
             <View className="flex-row items-center gap-4 p-5 border-b border-gray-100">
                 <MyImage
-                    source={{ uri: "https://i.pravatar.cc/100" }}
+                    source={require("@/assets/images/avatar.jpg")}
                     contentFit="contain"
                     className="h-12 w-12 rounded-full"
                 />

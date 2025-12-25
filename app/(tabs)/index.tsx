@@ -93,9 +93,9 @@ export default function HomeScreen() {
               >
                 <MyIcon name="Bell" size={24} className="text-text-primary fill-white" />
                 {/* Unread indicator */}
-                {unreadNotificationsCount > 0 && (
+                {/* {unreadNotificationsCount > 0 && (
                   <View className="absolute top-2 right-2.5 h-2 w-2 rounded-full bg-red-500 border border-white" />
-                )}
+                )} */}
               </Pressable>
             }
             isVisible={isNotificationsVisible}
@@ -109,9 +109,9 @@ export default function HomeScreen() {
             target={
               <Pressable onPress={() => setIsTooltipVisible(!isTooltipVisible)} className="h-10 w-10 rounded-full bg-background items-center justify-center">
                 <MyImage
-                  source={{ uri: "https://i.pravatar.cc/100" }}
+                  source={require("@/assets/images/avatar.jpg")}
                   contentFit="contain"
-                  className="h-10 w-10 rounded-full"
+                  className="h-10 w-10 border border-gray-400 rounded-full"
                 />
               </Pressable>
             }

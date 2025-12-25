@@ -10,6 +10,7 @@ import { differenceInYears, differenceInDays } from 'date-fns'
 import { router, Stack } from "expo-router"
 import { useEffect, useState } from "react"
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native"
+import { MyImage } from "@/components/ui"
 
 interface CycleHistory {
     start_date: string
@@ -229,7 +230,11 @@ export default function ProfileScreen() {
                             {/* Avatar */}
                             <View className="relative mb-4">
                                 <View className="h-28 w-28 rounded-full bg-gray-200 items-center justify-center border-4 border-white">
-                                    <Text className="text-4xl">👤</Text>
+                                    <MyImage
+                                        source={require("@/assets/images/avatar.jpg")}
+                                        contentFit="contain"
+                                        className="h-28 w-28 rounded-full"
+                                    />
                                 </View>
 
                                 <TouchableOpacity

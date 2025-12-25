@@ -132,7 +132,7 @@ export function NotificationsMenu({ onMenuClose }: NotificationsMenuProps) {
     }
 
     return (
-        <View className="w-74 rounded-3xl shadow-xl border border-gray-100 px-1 pb-3 overflow-hidden">
+        <View className="w-76 rounded-3xl shadow-xl border border-gray-100 px-1 pb-3 overflow-hidden">
             {/* Header */}
             <View className="flex-row items-center justify-between p-4 border-b border-gray-100">
                 <Text className="text-lg font-bold text-text-primary">

@@ -205,8 +205,7 @@ export default function SettingsScreen() {
           Ajustes
         </Text>
 
-        <TouchableOpacity className="h-10 w-10 items-center justify-center rounded-full bg-background">
-          {/* <Bell size={24} color={colors.textPrimary} /> */}
+        <TouchableOpacity onPress={() => router.push('/notifications')} className="h-10 w-10 items-center justify-center rounded-full bg-background">
           <MyIcon name="Bell" className="text-text-primary" />
         </TouchableOpacity>
       </View>
