@@ -23,7 +23,7 @@ export default function ProfileScreen() {
     const { data, reset } = useOnboarding()
     const { user, logout, isAuthenticated, localUserId } = useAuth()
     const [cycleHistory, setCycleHistory] = useState<CycleHistory[]>([])
-
+    const [plan, setPlan] = useState<'premium' | 'free'>('free')
     const userName = data.name || user?.name || 'Usuario'
     const userEmail = user?.email || 'usuario@email.com'
     const { averageCycleLength = 28, periodLength = 5 } = data
@@ -32,8 +32,7 @@ export default function ProfileScreen() {
 
     // Calculate age from birthdate
     const age = data.birthDate ? differenceInYears(new Date(), new Date(data.birthDate)) : null
-    const birthDateFormatted = data.birthDate ? formatDate(data.birthDate, 'short') : '-'
-
+    const birthDateFormatted = data.birthDate ? formatDate(data.birthDate, 'birthday') : '-'
     // Load cycle history
     useEffect(() => {
         if (userId) {
@@ -47,7 +46,7 @@ export default function ProfileScreen() {
         try {
             // Get all logs and calculate cycles from period days
             const logs = await DailyLogsService.getAll(userId)
-            
+
             // Filter logs with flow (period days) and sort by date
             const periodLogs = logs
                 .filter(log => {
@@ -68,14 +67,14 @@ export default function ProfileScreen() {
 
             for (let i = 0; i < periodLogs.length; i++) {
                 const logDate = periodLogs[i].date
-                
+
                 if (!currentPeriodStart) {
                     currentPeriodStart = logDate
                     currentPeriodEnd = logDate
                 } else {
                     const prevDate = periodLogs[i - 1].date
                     const daysDiff = differenceInDays(new Date(logDate), new Date(prevDate))
-                    
+
                     if (daysDiff > 2) {
                         // Save previous period
                         if (currentPeriodStart && currentPeriodEnd) {
@@ -113,7 +112,7 @@ export default function ProfileScreen() {
             for (let i = 0; i < recentPeriods.length; i++) {
                 const period = recentPeriods[i]
                 const startDate = new Date(period.date)
-                
+
                 // Calculate cycle duration (days between this period start and next period start)
                 let cycleDuration = averageCycleLength
                 if (i < recentPeriods.length - 1) {
@@ -126,7 +125,7 @@ export default function ProfileScreen() {
                 }
 
                 const monthName = startDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
-                
+
                 cycles.push({
                     start_date: period.date,
                     end_date: period.endDate,
@@ -194,12 +193,12 @@ export default function ProfileScreen() {
 
     return (
         <View className="flex-1 bg-background">
-            <Stack.Screen 
-                options={{ 
+            <Stack.Screen
+                options={{
                     headerShown: false,
                     animation: 'slide_from_right',
                     presentation: 'pageSheet'
-                }} 
+                }}
             />
 
             {/* Header */}
@@ -253,19 +252,19 @@ export default function ProfileScreen() {
 
                             {/* Age and Birthdate */}
                             <View className="flex-row gap-3 mt-4">
-                                <View className="flex-1 bg-white rounded-xl p-3 border border-gray-200">
-                                    <Text className="text-xs font-bold uppercase text-text-muted mb-1">
-                                        EDAD
+                                <View className="flex-1  items-center justify-center bg-white rounded-xl p-3 ">
+                                    <Text className="text-base font-bold uppercase text-text-muted mb-1">
+                                        edad
                                     </Text>
-                                    <Text className="text-lg font-bold text-text-primary">
+                                    <Text className="text-xl font-bold text-text-primary text-center">
                                         {age || '-'}
                                     </Text>
                                 </View>
-                                <View className="flex-1 bg-white rounded-xl p-3 border border-gray-200">
-                                    <Text className="text-xs font-bold uppercase text-text-muted mb-1">
-                                        NACIMIENTO
+                                <View className="flex-1  items-center justify-center bg-white rounded-xl p-3 ">
+                                    <Text className="text-base font-bold uppercase text-text-muted mb-1">
+                                        nacimiento
                                     </Text>
-                                    <Text className="text-lg font-bold text-text-primary">
+                                    <Text className="text-xl font-bold text-text-primary text-center">
                                         {birthDateFormatted}
                                     </Text>
                                 </View>
@@ -274,7 +273,7 @@ export default function ProfileScreen() {
                             {/* Premium Badge */}
                             <View className="mt-4 rounded-full bg-primary/10 px-4 py-1.5">
                                 <Text className="text-xs font-bold uppercase tracking-wide text-primary">
-                                    USUARIO PREMIUM
+                                    USUARIO {plan === 'premium' ? 'PREMIUM' : 'FREE'}
                                 </Text>
                             </View>
                         </View>
@@ -307,7 +306,7 @@ export default function ProfileScreen() {
                             {cycleHistory.map((cycle, index) => {
                                 const startFormatted = formatCycleDate(cycle.start_date)
                                 const endFormatted = formatCycleDate(cycle.end_date)
-                                
+
                                 return (
                                     <SettingsItem
                                         key={`${cycle.start_date}-${index}`}
@@ -320,7 +319,7 @@ export default function ProfileScreen() {
                                     />
                                 )
                             })}
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 onPress={() => router.push('/history')}
                                 className="px-5 py-3"
                             >
@@ -341,7 +340,7 @@ export default function ProfileScreen() {
                 {/* Account Actions */}
                 <View className="mt-6 gap-4">
                     {isAuthenticated && (
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             onPress={handleLogout}
                             className="w-full py-4"
                         >
@@ -350,15 +349,6 @@ export default function ProfileScreen() {
                             </Text>
                         </TouchableOpacity>
                     )}
-                    
-                    <TouchableOpacity 
-                        onPress={handleDeleteData}
-                        className="w-full py-2"
-                    >
-                        <Text className="text-center text-sm font-medium text-text-muted">
-                            Borrar todos los datos
-                        </Text>
-                    </TouchableOpacity>
                 </View>
 
                 {/* Version */}

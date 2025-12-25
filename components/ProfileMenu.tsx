@@ -34,7 +34,7 @@ export function ProfileMenu({ onMenuClose }: ProfileMenuProps) {
 
     const onViewProfile = () => {
         console.log('View profile')
-        // router.push('/profile')
+        router.push('/profile')
         onMenuClose()
     }
 

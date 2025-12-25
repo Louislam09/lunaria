@@ -202,7 +202,7 @@ export default function SettingsScreen() {
       {/* Header */}
       <View className="absolute top-0 left-0 right-0 z-20 flex-row items-center justify-between px-6 pt-6 pb-2 bg-background/90 backdrop-blur-sm">
         <Text className="text-2xl font-bold text-text-primary">
-          Perfil
+          Ajustes
         </Text>
 
         <TouchableOpacity className="h-10 w-10 items-center justify-center rounded-full bg-background">
