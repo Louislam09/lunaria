@@ -3,6 +3,7 @@ import { useOnboarding } from "@/context/OnboardingContext"
 import { useCyclePredictions } from "@/hooks/useCyclePredictions"
 import { useNotificationManager } from "@/hooks/useNotificationManager"
 import { getAllScheduledNotifications } from "@/services/notifications"
+import { getReadNotifications, markAsRead, markMultipleAsRead } from "@/services/readNotifications"
 import { differenceInDays, differenceInHours, format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { router } from "expo-router"
@@ -32,10 +33,20 @@ export function NotificationsMenu({ onMenuClose }: NotificationsMenuProps) {
     const [readNotifications, setReadNotifications] = useState<Set<string>>(new Set())
     const [scheduledNotifications, setScheduledNotifications] = useState<any[]>([])
 
-    // Load scheduled notifications
+    // Load scheduled notifications and read status
     useEffect(() => {
         loadScheduledNotifications()
+        loadReadNotifications()
     }, [])
+
+    const loadReadNotifications = async () => {
+        try {
+            const readIds = await getReadNotifications()
+            setReadNotifications(readIds)
+        } catch (error) {
+            console.error('Error loading read notifications:', error)
+        }
+    }
 
     const loadScheduledNotifications = async () => {
         try {
@@ -179,14 +190,24 @@ export function NotificationsMenu({ onMenuClose }: NotificationsMenuProps) {
         }
     }
 
-    const handleMarkAllRead = () => {
+    const handleMarkAllRead = async () => {
         const allIds = notifications.map(n => n.id)
-        setReadNotifications(new Set(allIds))
+        try {
+            await markMultipleAsRead(allIds)
+            setReadNotifications(new Set(allIds))
+        } catch (error) {
+            console.error('Error marking all as read:', error)
+        }
     }
 
-    const handleNotificationPress = (notification: Notification) => {
+    const handleNotificationPress = async (notification: Notification) => {
         // Mark as read
-        setReadNotifications(prev => new Set([...prev, notification.id]))
+        try {
+            await markAsRead(notification.id)
+            setReadNotifications(prev => new Set([...prev, notification.id]))
+        } catch (error) {
+            console.error('Error marking notification as read:', error)
+        }
         onMenuClose()
 
         // Navigate based on type
@@ -267,7 +288,8 @@ export function NotificationsMenu({ onMenuClose }: NotificationsMenuProps) {
                     onMenuClose()
                     router.push('/notifications')
                 }}
-                className="flex-row items-center justify-center p-3 rounded-2xl  active:scale-[0.98]"
+                activeOpacity={0.7}
+                className="flex-row items-center justify-center p-3 rounded-2xl"
             >
                 <View className="flex-row items-center gap-3">
                     <Text className="text-base font-semibold text-red-500">

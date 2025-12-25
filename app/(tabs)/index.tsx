@@ -9,6 +9,7 @@ import { useOnboarding } from '@/context/OnboardingContext';
 import { useCyclePredictions } from '@/hooks/useCyclePredictions';
 import { useNotificationManager } from '@/hooks/useNotificationManager';
 import { getAllScheduledNotifications } from '@/services/notifications';
+import { getReadNotifications } from '@/services/readNotifications';
 import { colors } from '@/utils/colors';
 import { formatDate } from '@/utils/dates';
 import { router } from 'expo-router';
@@ -41,10 +42,12 @@ export default function HomeScreen() {
 
   const { preferences } = useNotificationManager();
   const [scheduledNotifications, setScheduledNotifications] = useState<any[]>([]);
+  const [readNotifications, setReadNotifications] = useState<Set<string>>(new Set());
 
-  // Load scheduled notifications for unread count
+  // Load scheduled notifications and read status for unread count
   useEffect(() => {
     loadScheduledNotifications();
+    loadReadNotifications();
   }, []);
 
   const loadScheduledNotifications = async () => {
@@ -53,6 +56,15 @@ export default function HomeScreen() {
       setScheduledNotifications(scheduled);
     } catch (error) {
       console.error('Error loading scheduled notifications:', error);
+    }
+  };
+
+  const loadReadNotifications = async () => {
+    try {
+      const readIds = await getReadNotifications();
+      setReadNotifications(readIds);
+    } catch (error) {
+      console.error('Error loading read notifications:', error);
     }
   };
 
@@ -68,26 +80,30 @@ export default function HomeScreen() {
   // Calculate unread notifications count based on actual scheduled notifications and cycle state
   const unreadNotificationsCount = useMemo(() => {
     if (!preferences?.enabled) return 0;
-    
+
     let count = 0;
     const now = new Date();
-    
-    // Count upcoming scheduled notifications
+
+    // Count upcoming scheduled notifications that are unread
     const upcomingNotifications = scheduledNotifications.filter(n => {
       if (n.trigger && typeof n.trigger === 'object' && 'date' in n.trigger) {
         const triggerDate = new Date(n.trigger.date as number);
-        return triggerDate.getTime() > now.getTime();
+        const isUpcoming = triggerDate.getTime() > now.getTime();
+        const isRead = readNotifications.has(`scheduled-${n.identifier}`);
+        return isUpcoming && !isRead;
       }
       return false;
     });
-    
+
     count += upcomingNotifications.length;
-    
-    // Add active notifications based on cycle state
+
+    // Add active notifications based on cycle state (only if unread)
     if (daysUntilPeriod <= 3 && daysUntilPeriod > 0 && preferences.periodReminders.enabled) {
-      count++;
+      if (!readNotifications.has('period-approaching')) {
+        count++;
+      }
     }
-    
+
     if (fertileWindow && data.lastPeriodStart && preferences.fertileWindowReminders.enabled) {
       const lastPeriod = new Date(data.lastPeriodStart);
       const fertileStartDay = fertileWindow.startDay;
@@ -95,17 +111,19 @@ export default function HomeScreen() {
       const today = new Date();
       const daysSincePeriod = Math.floor((today.getTime() - lastPeriod.getTime()) / (1000 * 60 * 60 * 24)) + 1;
       if (daysSincePeriod >= fertileStartDay && daysSincePeriod <= fertileEndDay) {
-        count++;
+        if (!readNotifications.has('fertile-window')) {
+          count++;
+        }
       }
     }
-    
-    // Always show daily log reminder if enabled
-    if (preferences.dailyLogReminder.enabled) {
+
+    // Daily log reminder if enabled and unread
+    if (preferences.dailyLogReminder.enabled && !readNotifications.has('daily-log')) {
       count++;
     }
-    
+
     return count;
-  }, [daysUntilPeriod, fertileWindow, data.lastPeriodStart, scheduledNotifications, preferences]);
+  }, [daysUntilPeriod, fertileWindow, data.lastPeriodStart, scheduledNotifications, preferences, readNotifications]);
 
   if (isLoading || !isComplete || !data.lastPeriodStart || !data.cycleType || !data.periodLength) {
     return (
@@ -136,6 +154,7 @@ export default function HomeScreen() {
                 onPress={() => {
                   setIsNotificationsVisible(!isNotificationsVisible);
                   loadScheduledNotifications(); // Refresh when opening
+                  loadReadNotifications(); // Refresh read status
                 }}
                 className="h-10 w-10 rounded-full bg-background items-center justify-center relative"
               >

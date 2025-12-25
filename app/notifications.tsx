@@ -21,6 +21,7 @@ import { useOnboarding } from "@/context/OnboardingContext"
 import { useCyclePredictions } from "@/hooks/useCyclePredictions"
 import { useNotificationManager } from "@/hooks/useNotificationManager"
 import { getAllScheduledNotifications, cancelAllNotifications } from "@/services/notifications"
+import { getReadNotifications, markAsRead, markAllAsRead as markAllAsReadService } from "@/services/readNotifications"
 import { differenceInDays, differenceInHours, format, isToday as isTodayDate, isYesterday as isYesterdayDate, startOfDay } from 'date-fns'
 import { es } from 'date-fns/locale'
 
@@ -103,16 +104,27 @@ export default function NotificationCenterScreen() {
     const [readNotifications, setReadNotifications] = useState<Set<string>>(new Set())
     const [scheduledNotifications, setScheduledNotifications] = useState<any[]>([])
 
-    // Load scheduled notifications on mount and when screen comes into focus
+    // Load scheduled notifications and read status on mount and when screen comes into focus
     useEffect(() => {
         loadScheduledNotifications()
+        loadReadNotifications()
     }, [])
 
     useFocusEffect(
         useCallback(() => {
             loadScheduledNotifications()
+            loadReadNotifications()
         }, [])
     )
+
+    const loadReadNotifications = async () => {
+        try {
+            const readIds = await getReadNotifications()
+            setReadNotifications(readIds)
+        } catch (error) {
+            console.error('Error loading read notifications:', error)
+        }
+    }
 
     const loadScheduledNotifications = async () => {
         try {
@@ -307,9 +319,15 @@ export default function NotificationCenterScreen() {
 
     const unreadCount = notifications.filter(n => !n.isRead).length
 
-    const handleMarkAllRead = () => {
+    const handleMarkAllRead = async () => {
         const allIds = notifications.map(n => n.id)
-        setReadNotifications(new Set(allIds))
+        try {
+            await markAllAsReadService(allIds)
+            setReadNotifications(new Set(allIds))
+        } catch (error) {
+            console.error('Error marking all as read:', error)
+            Alert.alert('Error', 'No se pudieron marcar las notificaciones como leídas.')
+        }
     }
 
     const handleDeleteAll = async () => {
@@ -335,9 +353,14 @@ export default function NotificationCenterScreen() {
         )
     }
 
-    const handleNotificationPress = (notification: Notification) => {
+    const handleNotificationPress = async (notification: Notification) => {
         // Mark as read
-        setReadNotifications(prev => new Set([...prev, notification.id]))
+        try {
+            await markAsRead(notification.id)
+            setReadNotifications(prev => new Set([...prev, notification.id]))
+        } catch (error) {
+            console.error('Error marking notification as read:', error)
+        }
 
         // Navigate based on type
         if (notification.type === 'daily_log') {
@@ -365,7 +388,8 @@ export default function NotificationCenterScreen() {
                     <TouchableOpacity 
                         onPress={handleMarkAllRead}
                         disabled={unreadCount === 0}
-                        className={`px-4 py-2 rounded-full ${unreadCount > 0 ? 'bg-primary/20' : 'bg-gray-100'} active:scale-95`}
+                        activeOpacity={0.7}
+                        className={`px-4 py-2 rounded-full ${unreadCount > 0 ? 'bg-primary/20' : 'bg-gray-100'}`}
                     >
                         <Text className={`text-sm font-semibold ${unreadCount > 0 ? 'text-primary' : 'text-gray-400'}`}>
                             Marcar todas leídas
@@ -375,7 +399,8 @@ export default function NotificationCenterScreen() {
                     <TouchableOpacity 
                         onPress={handleDeleteAll}
                         disabled={scheduledNotifications.length === 0}
-                        className={`px-4 py-2 rounded-full ${scheduledNotifications.length > 0 ? 'bg-red-50' : 'bg-gray-100'} active:scale-95`}
+                        activeOpacity={0.7}
+                        className={`px-4 py-2 rounded-full ${scheduledNotifications.length > 0 ? 'bg-red-50' : 'bg-gray-100'}`}
                     >
                         <Text className={`text-sm font-semibold ${scheduledNotifications.length > 0 ? 'text-red-500' : 'text-gray-400'}`}>
                             Eliminar todas
