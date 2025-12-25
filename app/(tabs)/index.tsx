@@ -1,3 +1,4 @@
+import { NotificationsMenu } from '@/components/NotificationsMenu';
 import { ProfileMenu } from '@/components/ProfileMenu';
 import { MyImage } from '@/components/ui';
 import { CircularProgress } from '@/components/ui/CircularProgress';
@@ -9,7 +10,7 @@ import { useCyclePredictions } from '@/hooks/useCyclePredictions';
 import { colors } from '@/utils/colors';
 import { formatDate } from '@/utils/dates';
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function HomeScreen() {
@@ -33,6 +34,7 @@ export default function HomeScreen() {
     getPhaseName,
     getPhaseDescription,
     pregnancyRisk,
+    fertileWindow,
   } = useCyclePredictions(data);
 
   const resumeInsights = [
@@ -42,6 +44,23 @@ export default function HomeScreen() {
 
   const risk = pregnancyRisk;
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
+  const [isNotificationsVisible, setIsNotificationsVisible] = useState(false);
+
+  // Calculate unread notifications count
+  const unreadNotificationsCount = useMemo(() => {
+    let count = 0
+    if (daysUntilPeriod <= 3 && daysUntilPeriod > 0) count++
+    if (fertileWindow && data.lastPeriodStart) {
+      const lastPeriod = new Date(data.lastPeriodStart)
+      const fertileStartDay = fertileWindow.startDay
+      const fertileEndDay = fertileWindow.endDay
+      const today = new Date()
+      const daysSincePeriod = Math.floor((today.getTime() - lastPeriod.getTime()) / (1000 * 60 * 60 * 24)) + 1
+      if (daysSincePeriod >= fertileStartDay && daysSincePeriod <= fertileEndDay) count++
+    }
+    // Always show daily log and analysis as "unread" for demo
+    return count + 2
+  }, [daysUntilPeriod, fertileWindow, data.lastPeriodStart]);
 
   if (isLoading || !isComplete || !data.lastPeriodStart || !data.cycleType || !data.periodLength) {
     return (
@@ -65,9 +84,25 @@ export default function HomeScreen() {
 
         <View className="flex-row gap-3 items-center">
           <SyncStatusIndicator />
-          <Pressable className="h-10 w-10 rounded-full bg-background items-center justify-center">
-            <MyIcon name="Bell" size={24} className="text-text-primary fill-white" />
-          </Pressable>
+          <Tooltip
+            offset={10}
+            target={
+              <Pressable
+                onPress={() => setIsNotificationsVisible(!isNotificationsVisible)}
+                className="h-10 w-10 rounded-full bg-background items-center justify-center relative"
+              >
+                <MyIcon name="Bell" size={24} className="text-text-primary fill-white" />
+                {/* Unread indicator */}
+                {unreadNotificationsCount > 0 && (
+                  <View className="absolute top-2 right-2.5 h-2 w-2 rounded-full bg-red-500 border border-white" />
+                )}
+              </Pressable>
+            }
+            isVisible={isNotificationsVisible}
+            onClose={() => setIsNotificationsVisible(false)}
+          >
+            <NotificationsMenu onMenuClose={() => setIsNotificationsVisible(false)} />
+          </Tooltip>
 
           <Tooltip
             offset={10}

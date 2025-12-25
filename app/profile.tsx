@@ -321,9 +321,9 @@ export default function ProfileScreen() {
                             })}
                             <TouchableOpacity
                                 onPress={() => router.push('/history')}
-                                className="px-5 py-3"
+                                className="px-5 py-3 pb-4"
                             >
-                                <Text className="text-sm font-medium text-blue-500">
+                                <Text className="text-sm font-medium text-blue-500 text-center ">
                                     VER HISTORIAL COMPLETO
                                 </Text>
                             </TouchableOpacity>
