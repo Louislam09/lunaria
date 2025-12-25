@@ -7,7 +7,13 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "deploy": "npx expo export -p web && npx eas-cli@latest deploy"
+    "deploy": "npx expo export -p web && npx eas-cli@latest deploy",
+    "update:dev": "eas update --branch development --message \"Development update\"",
+    "update:preview": "eas update --branch preview --message \"Preview update\"",
+    "update:production": "eas update --branch production --message \"Production update\"",
+    "build:dev": "eas build --branch development --platform android",
+    "build:preview": "eas build --branch preview --platform android",
+    "build:production": "eas build --branch production --platform android"
   },
   "resolutions": {
     "lightningcss": "1.30.1"

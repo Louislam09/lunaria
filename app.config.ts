@@ -98,9 +98,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
             },
         },
         updates: {
-            url: '',
+            fallbackToCacheTimeout: 0,
+            checkAutomatically: 'ON_LOAD',
         },
         owner: 'louislam09',
-        runtimeVersion: '1.0.0',
+        runtimeVersion: {
+            policy: "appVersion",
+        }
     };
 };
