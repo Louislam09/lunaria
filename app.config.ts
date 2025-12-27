@@ -65,15 +65,33 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         },
         plugins: [
             'expo-router',
+            'expo-font',
+            'expo-sqlite',
+            [
+                "@react-native-community/datetimepicker",
+                {
+                    "android": {
+                        "datePicker": {
+                            "colorAccent": {
+                                "light": "#B9A7E8"
+                            },
+                            "textColorPrimary": {
+                                "light": "#B9A7E8"
+                            }
+                        },
+                        "timePicker": {
+                            "background": { "light": "#B9A7E8", "dark": "#383838" },
+                            "numbersBackgroundColor": { "light": "#B9A7E8", "dark": "#383838" }
+                        }
+                    }
+                }
+            ],
             [
                 'expo-updates',
                 {
                     username: 'louislam09',
                 },
             ],
-            'expo-font',
-            'expo-sqlite',
-            "@react-native-community/datetimepicker",
             [
                 "expo-splash-screen",
                 {
@@ -85,6 +103,15 @@ export default ({ config }: ConfigContext): ExpoConfig => {
                     },
                 }
             ],
+            // [
+            //     "react-native-edge-to-edge",
+            //     {
+            //         android: {
+            //             parentTheme: "Default",
+            //             enforceNavigationBarContrast: false
+            //         }
+            //     }
+            // ],
             [
                 "expo-document-picker",
                 {

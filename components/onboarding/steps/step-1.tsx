@@ -89,9 +89,10 @@ export default function Step1() {
               fontWeight: '500',
               fontSize: 16,
             }}
+            placeholderTextColor={colors.textMuted}
             value={name}
             onChangeText={setName}
-            placeholder="María"
+            placeholder="Angela"
           />
         </View>
 
@@ -128,9 +129,12 @@ export default function Step1() {
           </Pressable>
           {showBirthDatePicker && (
             <DateTimePicker
+              locale='es-ES'
               value={birthDate}
+              textColor={colors.textPrimary}
+              accentColor={colors.lavender}
               mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
               onChange={(event, selectedDate) => {
                 if (Platform.OS === 'android') {
                   setShowBirthDatePicker(false);

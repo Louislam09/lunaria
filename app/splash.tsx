@@ -45,7 +45,7 @@ export default function SplashScreen() {
       </View>
 
       {/* Footer / Action Area - Fixed at bottom */}
-      <View className="w-full px-6 pt-4">
+      <View className="w-full px-6 pt-4 mb-6">
         <Pressable
           onPress={() => router.push('/onboarding/wizard')}
           className="flex flex-row align-center w-full cursor-pointer items-center justify-center overflow-hidden rounded-full h-14 text-white text-lg font-bold leading-normal tracking-[0.015em] shadow-lg bg-primary transition-colors active:scale-[0.98]">
@@ -54,7 +54,7 @@ export default function SplashScreen() {
             <ArrowRight size={20} color="white" />
           </View>
         </Pressable>
-        <Text className="mt-4 text-center text-base text-text-muted">
+        <Text className="hidden mt-4 text-center text-base text-text-muted">
           Al continuar, aceptas nuestros Términos de Servicio.
         </Text>
       </View>
