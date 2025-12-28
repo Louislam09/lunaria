@@ -7,6 +7,7 @@ import { MyImage } from "./ui"
 import MyIcon from "./ui/Icon"
 import { useAuth } from "@/context/AuthContext"
 import { useOnboarding } from "@/context/OnboardingContext"
+import { getAvatarSource } from "@/utils/avatar"
 
 type Action = {
     icon: keyof typeof icons;
@@ -66,7 +67,7 @@ export function ProfileMenu({ onMenuClose }: ProfileMenuProps) {
             {/* User header */}
             <View className="flex-row items-center gap-4 p-5 border-b border-gray-100">
                 <MyImage
-                    source={require("@/assets/images/avatar.jpg")}
+                    source={getAvatarSource(data.avatarUrl)}
                     contentFit="contain"
                     className="h-12 w-12 rounded-full"
                 />

@@ -139,6 +139,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
                     enableBackgroundRemoteNotifications: true,
                 },
             ],
+            [
+                "expo-image-picker",
+                {
+                    "photosPermission": "The app accesses your photos to let you set your profile picture."
+                }
+            ]
         ],
         extra: {
             eas: {

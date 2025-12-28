@@ -26,6 +26,7 @@ export type OnboardingData = {
   symptoms?: string[];
   wantsPregnancy?: boolean;
   contraceptiveMethod?: ContraceptiveMethod;
+  avatarUrl?: string;
 };
 
 type OnboardingContextType = {

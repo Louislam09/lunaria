@@ -6,6 +6,7 @@ import MyIcon from '@/components/ui/Icon';
 import { SyncStatusIndicator } from '@/components/ui/SyncStatusIndicator';
 import Tooltip from '@/components/ui/Tooltip';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { getAvatarSource } from '@/utils/avatar';
 import { useCyclePredictions } from '@/hooks/useCyclePredictions';
 import { useNotificationManager } from '@/hooks/useNotificationManager';
 import { getAllScheduledNotifications } from '@/services/notifications';
@@ -176,7 +177,7 @@ export default function HomeScreen() {
             target={
               <Pressable onPress={() => setIsTooltipVisible(!isTooltipVisible)} className="h-10 w-10 rounded-full bg-background items-center justify-center">
                 <MyImage
-                  source={require("@/assets/images/avatar.jpg")}
+                  source={getAvatarSource(data.avatarUrl)}
                   contentFit="contain"
                   className="h-10 w-10 border border-gray-400 rounded-full"
                 />

@@ -5,12 +5,14 @@ import { useAuth } from "@/context/AuthContext"
 import { useOnboarding } from "@/context/OnboardingContext"
 import { DailyLogsService } from "@/services/dataService"
 import { formatDate } from "@/utils/dates"
+import { getAvatarSource } from "@/utils/avatar"
 import Constants from 'expo-constants'
 import { differenceInYears, differenceInDays } from 'date-fns'
 import { router, Stack } from "expo-router"
 import { useEffect, useState } from "react"
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native"
 import { MyImage } from "@/components/ui"
+import * as ImagePicker from 'expo-image-picker'
 
 interface CycleHistory {
     start_date: string
@@ -21,10 +23,11 @@ interface CycleHistory {
 
 export default function ProfileScreen() {
     const version = Constants.expoConfig?.version || '1.0.0'
-    const { data, reset } = useOnboarding()
+    const { data, reset, updateData } = useOnboarding()
     const { user, logout, isAuthenticated, localUserId } = useAuth()
     const [cycleHistory, setCycleHistory] = useState<CycleHistory[]>([])
     const [plan, setPlan] = useState<'premium' | 'free'>('free')
+    const [isPickingImage, setIsPickingImage] = useState(false)
     const userName = data.name || user?.name || 'Usuario'
     const userEmail = user?.email || 'usuario@email.com'
     const { averageCycleLength = 28, periodLength = 5 } = data
@@ -192,6 +195,93 @@ export default function ProfileScreen() {
         return formatDate(date, 'short')
     }
 
+    const handlePickImage = async () => {
+        if (isPickingImage) return;
+
+        try {
+            setIsPickingImage(true);
+
+            // Request permissions
+            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert(
+                    'Permisos requeridos',
+                    'Necesitamos acceso a tu galería para seleccionar una foto de perfil.',
+                    [{ text: 'OK' }]
+                );
+                return;
+            }
+
+            // Show action sheet to choose between camera and gallery
+            Alert.alert(
+                'Seleccionar foto de perfil',
+                '¿De dónde deseas seleccionar la foto?',
+                [
+                    {
+                        text: 'Cancelar',
+                        style: 'cancel',
+                    },
+                    {
+                        text: 'Galería',
+                        onPress: async () => {
+                            const result = await ImagePicker.launchImageLibraryAsync({
+                                mediaTypes: 'images',
+                                allowsEditing: true,
+                                aspect: [1, 1],
+                                quality: 1,
+                            });
+
+                            if (!result.canceled && result.assets[0]) {
+                                await saveAvatarImage(result.assets[0].uri);
+                            }
+                        },
+                    },
+                    {
+                        text: 'Cámara',
+                        onPress: async () => {
+                            // Request camera permissions
+                            const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
+                            if (cameraPermission.status !== 'granted') {
+                                Alert.alert(
+                                    'Permisos requeridos',
+                                    'Necesitamos acceso a tu cámara para tomar una foto.',
+                                    [{ text: 'OK' }]
+                                );
+                                return;
+                            }
+
+                            const result = await ImagePicker.launchCameraAsync({
+                                allowsEditing: true,
+                                aspect: [1, 1],
+                                quality: 1,
+                            });
+
+                            if (!result.canceled && result.assets[0]) {
+                                await saveAvatarImage(result.assets[0].uri);
+                            }
+                        },
+                    },
+                ],
+                { cancelable: true }
+            );
+        } catch (error: any) {
+            console.error('Error picking image:', error);
+            Alert.alert('Error', 'No se pudo seleccionar la imagen. Intenta más tarde.');
+        } finally {
+            setIsPickingImage(false);
+        }
+    };
+
+    const saveAvatarImage = async (imageUri: string) => {
+        try {
+            // Update avatar URL in onboarding data
+            await updateData({ avatarUrl: imageUri });
+        } catch (error) {
+            console.error('Error saving avatar:', error);
+            Alert.alert('Error', 'No se pudo guardar la imagen. Intenta más tarde.');
+        }
+    };
+
     return (
         <View className="flex-1 bg-background">
             <Stack.Screen
@@ -231,13 +321,14 @@ export default function ProfileScreen() {
                             <View className="relative mb-4">
                                 <View className="h-28 w-28 rounded-full bg-gray-200 items-center justify-center border-4 border-white">
                                     <MyImage
-                                        source={require("@/assets/images/avatar.jpg")}
+                                        source={getAvatarSource(data.avatarUrl)}
                                         contentFit="contain"
                                         className="h-28 w-28 rounded-full"
                                     />
                                 </View>
 
                                 <TouchableOpacity
+                                    onPress={handlePickImage}
                                     activeOpacity={0.8}
                                     className="absolute bottom-1 right-1 h-8 w-8 items-center justify-center rounded-full bg-primary border-2 border-white"
                                 >

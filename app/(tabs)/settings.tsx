@@ -19,6 +19,8 @@ import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 
 export default function SettingsScreen() {
   const version = Constants.expoConfig?.version;
@@ -34,6 +36,7 @@ export default function SettingsScreen() {
   const [scheduledCount, setScheduledCount] = useState(0);
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
   const [showLastPeriodPicker, setShowLastPeriodPicker] = useState(false);
+  const [isPickingImage, setIsPickingImage] = useState(false);
 
   // Notification manager
   const {
@@ -220,8 +223,101 @@ export default function SettingsScreen() {
     const days = Math.floor(hours / 24);
 
     if (days > 0) return `Hace ${days} día${days > 1 ? 's' : ''}`;
-    if (hours > 0) return `Hace ${hours} hora${hours > 1 ? 's' : ''}`;
+    if (hours > 0) return `Hace ${hours} hora${hours > 0 ? 's' : ''}`;
     return 'Hace unos minutos';
+  };
+
+  const handlePickImage = async () => {
+    if (isPickingImage) return;
+
+    try {
+      setIsPickingImage(true);
+
+      // Request permissions
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permisos requeridos',
+          'Necesitamos acceso a tu galería para seleccionar una foto de perfil.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      // Show action sheet to choose between camera and gallery
+      Alert.alert(
+        'Seleccionar foto de perfil',
+        '¿De dónde deseas seleccionar la foto?',
+        [
+          {
+            text: 'Cancelar',
+            style: 'cancel',
+          },
+          {
+            text: 'Galería',
+            onPress: async () => {
+              const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: 'images',
+                allowsEditing: true,
+                aspect: [1, 1],
+                quality: 1,
+              });
+
+              if (!result.canceled && result.assets[0]) {
+                await saveAvatarImage(result.assets[0].uri);
+              }
+            },
+          },
+          {
+            text: 'Cámara',
+            onPress: async () => {
+              // Request camera permissions
+              const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
+              if (cameraPermission.status !== 'granted') {
+                Alert.alert(
+                  'Permisos requeridos',
+                  'Necesitamos acceso a tu cámara para tomar una foto.',
+                  [{ text: 'OK' }]
+                );
+                return;
+              }
+
+              const result = await ImagePicker.launchCameraAsync({
+                allowsEditing: true,
+                aspect: [1, 1],
+                quality: 0.8,
+              });
+
+              if (!result.canceled && result.assets[0]) {
+                await saveAvatarImage(result.assets[0].uri);
+              }
+            },
+          },
+        ],
+        { cancelable: true }
+      );
+    } catch (error: any) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'No se pudo seleccionar la imagen. Intenta más tarde.');
+    } finally {
+      setIsPickingImage(false);
+    }
+  };
+
+  const saveAvatarImage = async (imageUri: string) => {
+    try {
+      // Use the image URI directly - React Native can handle file:// URIs
+      // For better persistence, we'll store the URI as-is
+      // The image picker returns a URI that's accessible to the app
+
+      // Update avatar URL in onboarding data
+      await updateData({ avatarUrl: imageUri });
+
+      Alert.alert('Éxito', 'Foto de perfil actualizada correctamente.');
+    } catch (error: any) {
+      console.error('Error saving avatar:', error);
+      Alert.alert('Error', 'No se pudo guardar la foto de perfil. Intenta más tarde.');
+    }
   };
 
   return (
@@ -247,8 +343,9 @@ export default function SettingsScreen() {
         <ProfileCard
           name={userName}
           email={userEmail}
-          avatarUrl="https://lh3.googleusercontent.com/aida-public/AB6AXuAN6IrQ_FpbYLpB4Usi_IRFDz-jqCFglsJmCLRaWMXZNIpdGZkAGLIZOdN2DoX8QRSVfk206Zu57M_TwasxtCmJW2l17m2IkaRyXZQuXclAIh6oBeqsuHP8Z5Iz3v-s4e3ktrVmnvbLXqNezeNjLiW4AKoOgu3pWM8y-SCbQDhPS84KiCrcmxOul4wliFLLJAC3cNSNIjOE9riaJkGZi0a2nkJmIISwRpUsMq4RYmHP0_HldgRG9RIBxyT7KhFHBHFSB89wa0kSCDc"
+          avatarUrl={data.avatarUrl}
           isPremium
+          onEditPress={handlePickImage}
         />
 
         {/* Mi Ciclo */}

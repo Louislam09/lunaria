@@ -1,12 +1,13 @@
 import { colors } from "@/utils/colors";
 import { Pencil } from "lucide-react-native";
-import { View, Text, Image, TouchableOpacity } from "react-native";
+import { View, Text, Image, TouchableOpacity, ImageSourcePropType } from "react-native";
 import MyIcon from "../ui/Icon";
+import { getAvatarSource } from "@/utils/avatar";
 
 type ProfileCardProps = {
     name: string;
     email: string;
-    avatarUrl: string;
+    avatarUrl?: string;
     isPremium?: boolean;
     onEditPress?: () => void;
 };
@@ -14,9 +15,12 @@ type ProfileCardProps = {
 export function ProfileCard({
     name,
     email,
+    avatarUrl,
     isPremium = false,
     onEditPress,
 }: ProfileCardProps) {
+    const avatarSource: ImageSourcePropType = getAvatarSource(avatarUrl);
+
     return (
         <View className="mt-4 px-4">
             <View className="relative overflow-hidden rounded-[40px] bg-background p-6 border border-gray-100 shadow-md">
@@ -27,8 +31,9 @@ export function ProfileCard({
                     {/* Avatar */}
                     <View className="relative mb-4">
                         <Image
-                            source={require("@/assets/images/avatar.jpg")}
+                            source={avatarSource}
                             className="h-28 w-28 rounded-full border-4 border-white"
+                            defaultSource={require("@/assets/images/avatar.jpg")}
                         />
 
                         <TouchableOpacity
