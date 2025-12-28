@@ -17,11 +17,12 @@ import { formatDate } from '@/utils/dates';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function SettingsScreen() {
   const version = Constants.expoConfig?.version;
-  const { data, reset, isLoading, isComplete } = useOnboarding();
+  const { data, reset, isLoading, isComplete, updateData } = useOnboarding();
   const { user, logout, isAuthenticated, localUserId } = useAuth();
   const { sync, setSyncFrequency, frequency, pendingItems, lastSyncTime, isSyncing } = useSync();
   const { averageCycleLength = 28, cycleRangeMin, cycleRangeMax, periodLength = 5 } = data;
@@ -32,6 +33,7 @@ export default function SettingsScreen() {
   const [isImporting, setIsImporting] = useState(false);
   const [scheduledCount, setScheduledCount] = useState(0);
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
+  const [showLastPeriodPicker, setShowLastPeriodPicker] = useState(false);
 
   // Notification manager
   const {
@@ -273,8 +275,35 @@ export default function SettingsScreen() {
             title="Último periodo"
             subtitle={`${formatDate(data.lastPeriodStart, 'long')}`}
             showDivider={false}
-            showChevron={false}
+            showChevron={true}
+            onPress={() => setShowLastPeriodPicker(true)}
           />
+          {showLastPeriodPicker && (
+            <>
+              <DateTimePicker
+                value={data.lastPeriodStart || new Date()}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={(event, selectedDate) => {
+                  if (Platform.OS === 'android') {
+                    setShowLastPeriodPicker(false);
+                  }
+                  if (event.type !== 'dismissed' && selectedDate) {
+                    updateData({ lastPeriodStart: selectedDate });
+                  }
+                }}
+                maximumDate={new Date()}
+              />
+              {Platform.OS === 'ios' && (
+                <TouchableOpacity
+                  onPress={() => setShowLastPeriodPicker(false)}
+                  className="mx-5 mt-2 p-3 bg-gray-100 rounded-lg"
+                >
+                  <Text className="text-center font-bold text-text-primary">Listo</Text>
+                </TouchableOpacity>
+              )}
+            </>
+          )}
         </SettingsSection>
 
         {/* Notificaciones */}
