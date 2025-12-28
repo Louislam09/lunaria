@@ -260,13 +260,16 @@ export default function CalendarScreen() {
             marked[dateStr] = {};
           }
           marked[dateStr].marked = true;
-          marked[dateStr].dotColor = colors.fertile;
-          // marked[dateStr].customContainerStyle = {
-          //   borderWidth: 2,
-          //   borderColor: colors.fertile,
-          //   borderRadius: 18,
-          //   backgroundColor: colors.fertile + '20',
-          // };
+          marked[dateStr].customContainerStyle = {
+            borderWidth: 2,
+            borderColor: colors.fertile,
+            borderRadius: 18,
+            backgroundColor: colors.fertile + '20',
+          };
+          marked[dateStr].customTextStyle = {
+            color: colors.fertile,
+            fontWeight: 'bold',
+          };
         } else {
           // If already in period, add a dot marker
           marked[dateStr].marked = true;
