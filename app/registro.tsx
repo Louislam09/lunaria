@@ -3,6 +3,7 @@ import MyIcon from "@/components/ui/Icon";
 import { useAuth } from "@/context/AuthContext";
 import { useOnboarding } from "@/context/OnboardingContext";
 import { DailyLogsService } from "@/services/dataService";
+import { colors } from "@/utils/colors";
 import { formatDate } from "@/utils/dates";
 import { getCycleDay } from "@/utils/predictions";
 import { router, Stack, useLocalSearchParams } from "expo-router";
@@ -193,7 +194,11 @@ export default function RegisterScreen() {
 
   return (
     <View className="flex-1">
-      <Stack.Screen options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom' }} />
+      <Stack.Screen options={{
+        headerShown: false,
+        presentation: 'modal',
+        animation: 'slide_from_bottom'
+      }} />
       <View className="flex-1 bg-background">
         {/* Top App Bar */}
         <View className="absolute top-0 left-0 right-0 z-20 flex-row items-center justify-between px-6 pt-6 pb-2 bg-background/90 backdrop-blur-sm">
@@ -333,7 +338,7 @@ export default function RegisterScreen() {
                 multiline
                 numberOfLines={4}
                 placeholder="¿Algo más que notar hoy?"
-                placeholderTextColor="text-text-muted"
+                placeholderTextColor={colors.textMuted}
                 className="relative h-full w-full"
                 style={{ textAlignVertical: 'top', textAlign: 'left' }}
                 value={notes}

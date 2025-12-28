@@ -1,6 +1,18 @@
 import { ConfigContext, ExpoConfig } from '@expo/config';
 
-const IS_DEV = process.env.APP_VARIANT === 'development';
+const colors = {
+    lavender: "#b19feb",
+    blush: "#F3B7C6",
+    moonWhite: "#f9f9f9",
+    textPrimary: "#2E2A38",
+    textMuted: "#8E8AA0",
+    period: "#fb7185",
+    fertile: "#4BAA4E",
+    ovulation: "#c58ffc",
+};
+
+const IS_DEV = true;
+// const IS_DEV = process.env.APP_VARIANT === 'development';
 const IS_PREVIEW = process.env.APP_VARIANT === 'preview';
 
 const getUniqueIdentifier = () => {
@@ -73,15 +85,15 @@ export default ({ config }: ConfigContext): ExpoConfig => {
                     "android": {
                         "datePicker": {
                             "colorAccent": {
-                                "light": "#B9A7E8"
-                            },
-                            "textColorPrimary": {
-                                "light": "#B9A7E8"
+                                "light": colors.lavender,
+                                "dark": colors.lavender
                             }
                         },
                         "timePicker": {
-                            "background": { "light": "#B9A7E8", "dark": "#383838" },
-                            "numbersBackgroundColor": { "light": "#B9A7E8", "dark": "#383838" }
+                            "numbersSelectorColor": {
+                                "light": colors.lavender,
+                                "dark": colors.lavender
+                            }
                         }
                     }
                 }
@@ -95,23 +107,23 @@ export default ({ config }: ConfigContext): ExpoConfig => {
             [
                 "expo-splash-screen",
                 {
-                    "backgroundColor": "#B9A7E8",
+                    "backgroundColor": colors.lavender,
                     "image": "./assets/images/splash.png",
                     "dark": {
                         "image": "./assets/images/splash.png",
-                        "backgroundColor": "#B9A7E8"
+                        "backgroundColor": colors.lavender
                     },
                 }
             ],
-            // [
-            //     "react-native-edge-to-edge",
-            //     {
-            //         android: {
-            //             parentTheme: "Default",
-            //             enforceNavigationBarContrast: false
-            //         }
-            //     }
-            // ],
+            [
+                "react-native-edge-to-edge",
+                {
+                    android: {
+                        parentTheme: "Default",
+                        enforceNavigationBarContrast: false
+                    }
+                }
+            ],
             [
                 "expo-document-picker",
                 {

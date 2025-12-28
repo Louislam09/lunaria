@@ -8,44 +8,48 @@ import {
   DMSans_700Bold,
 } from "@expo-google-fonts/dm-sans";
 import { useFonts } from "expo-font";
+import * as Notifications from "expo-notifications";
 import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import * as Updates from "expo-updates";
 import { useEffect } from "react";
 import { ToastAndroid, View } from "react-native";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import * as Notifications from "expo-notifications";
-import * as Updates from "expo-updates";
-// import { SystemBars } from "react-native-edge-to-edge";
 import "../global.css";
-import { StatusBar } from 'expo-status-bar';
+import { SystemBars } from "react-native-edge-to-edge";
 
 SplashScreen.preventAutoHideAsync();
+
+/**
+ * Redirects based on notification type
+ */
+function redirect(notification: Notifications.Notification) {
+  const notificationType = notification.request.content.data?.type as string;
+
+  if (notificationType === 'period' || notificationType === 'fertile') {
+    router.push('/(tabs)/predictions');
+  } else if (notificationType === 'daily_log') {
+    router.push('/registro');
+  }
+  // Educational and test notifications don't need navigation
+}
 
 /**
  * Hook to handle notification taps and deep linking
  */
 function useNotificationObserver() {
+  const lastNotificationResponse = Notifications.useLastNotificationResponse();
+
+  // Handle initial notification (app opened from notification)
   useEffect(() => {
-    function redirect(notification: Notifications.Notification) {
-      const notificationType = notification.request.content.data?.type as string;
-
-      if (notificationType === 'period' || notificationType === 'fertile') {
-        router.push('/(tabs)/predictions');
-      } else if (notificationType === 'daily_log') {
-        router.push('/registro');
-      }
-      // Educational and test notifications don't need navigation
+    if (lastNotificationResponse?.notification) {
+      redirect(lastNotificationResponse.notification);
     }
+  }, [lastNotificationResponse]);
 
-    // Handle initial notification (app opened from notification)
-    Notifications.getLastNotificationResponseAsync().then((response) => {
-      if (response?.notification) {
-        redirect(response.notification);
-      }
-    });
-
-    // Listen for notification taps while app is running
+  // Listen for notification taps while app is running
+  useEffect(() => {
     const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
       redirect(response.notification);
     });
@@ -95,11 +99,11 @@ const Layout = (props) => {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, paddingTop: top, backgroundColor: colors.lavender }}>
+    <GestureHandlerRootView style={{ flex: 1, paddingTop: top, backgroundColor: colors.lavender + "99" }}>
       <AuthProvider>
         <SyncProvider>
           <OnboardingProvider>
-            <StatusBar style="auto" animated />
+            <SystemBars style="auto" />
             <Stack
               initialRouteName="index"
               screenOptions={{
