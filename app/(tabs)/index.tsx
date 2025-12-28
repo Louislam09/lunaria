@@ -16,6 +16,7 @@ import { formatDate } from '@/utils/dates';
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { PHASE_INSIGHTS } from '@/constants/phaseInsights';
 
 export default function HomeScreen() {
   const { data, isLoading, isComplete } = useOnboarding();
@@ -69,10 +70,51 @@ export default function HomeScreen() {
     }
   };
 
-  const resumeInsights = [
-    { emoji: "☀️", icon: "Sun", title: "Estado de ánimo", text: "Es normal sentirse más introspectiva hoy.", iconBg: "bg-orange-100", iconColor: "text-orange-600" },
-    { emoji: "💖", icon: "Heart", title: "Recomendación", text: "Ideal para yoga suave o meditación.", iconBg: "bg-purple-100", iconColor: "text-purple-600" }
-  ];
+  // Get phase-specific insights
+  const resumeInsights = useMemo(() => {
+    return PHASE_INSIGHTS[phase] || PHASE_INSIGHTS.luteal;
+  }, [phase]);
+
+  // Get phase colors
+  const getPhaseColors = (phase: string) => {
+    switch (phase) {
+      case 'menstrual':
+        return {
+          bgColor: 'bg-rose-500/10',
+          borderColor: 'border-rose-500/20',
+          iconColor: 'text-rose-600',
+          textColor: 'text-rose-600',
+          buttonBg: 'bg-rose-600',
+        };
+      case 'follicular':
+        return {
+          bgColor: 'bg-blue-500/10',
+          borderColor: 'border-blue-500/20',
+          iconColor: 'text-blue-600',
+          textColor: 'text-blue-600',
+          buttonBg: 'bg-blue-600',
+        };
+      case 'ovulatory':
+        return {
+          bgColor: 'bg-purple-500/10',
+          borderColor: 'border-purple-500/20',
+          iconColor: 'text-purple-600',
+          textColor: 'text-purple-600',
+          buttonBg: 'bg-purple-600',
+        };
+      case 'luteal':
+      default:
+        return {
+          bgColor: 'bg-green-500/10',
+          borderColor: 'border-green-500/20',
+          iconColor: 'text-green-600',
+          textColor: 'text-green-600',
+          buttonBg: 'bg-green-600',
+        };
+    }
+  };
+
+  const phaseColors = getPhaseColors(phase);
 
   const risk = pregnancyRisk;
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
@@ -230,13 +272,13 @@ export default function HomeScreen() {
         </View>
 
         {/* Current phase */}
-        <View className="w-full mt-6 bg-primary/10 rounded-[32px] p-5 shadow-md border border-primary/10 relative ">
+        <View className={`w-full mt-6 ${phaseColors.bgColor} rounded-[32px] p-5 shadow-md border ${phaseColors.borderColor} relative `}>
           <View className='w-full h-full absolute inset-0 bg-white/70 m-5 rounded-3xl blur-sm' />
 
           <View className="flex-row items-center gap-2 mb-3">
-            <MyIcon name="Droplet" size={20} className="text-primary fill-primary" />
+            <MyIcon name="Droplet" size={20} className={`${phaseColors.iconColor} fill-current`} />
 
-            <Text className="text-primary font-bold uppercase text-sm">
+            <Text className={`${phaseColors.textColor} font-bold uppercase text-sm`}>
               Estado actual
             </Text>
           </View>
@@ -251,7 +293,7 @@ export default function HomeScreen() {
             {getPhaseDescription(phase, cycleDay)}
           </Text>
 
-          <TouchableOpacity onPress={() => router.push('/registro')} activeOpacity={0.6} className="w-full mt-5 bg-primary py-5 rounded-full items-center justify-center flex-row gap-2">
+          <TouchableOpacity onPress={() => router.push('/registro')} activeOpacity={0.6} className={`w-full mt-5 ${phaseColors.buttonBg} py-5 rounded-full items-center justify-center flex-row gap-2`}>
             <MyIcon name="NotebookPen" size={20} className="text-white " />
             <Text className="text-white font-bold text-base">
               Registrar síntomas
@@ -290,11 +332,10 @@ export default function HomeScreen() {
             <TouchableOpacity
               key={i}
               activeOpacity={0.6}
-              className="w-64 mr-4 bg-white p-4 rounded-3xl border border-gray-200 shadow-md"
+              className={`w-64 mr-4 bg-white p-4 rounded-3xl border ${phaseColors.borderColor} shadow-md`}
             >
               <View className={`h-10 w-10 rounded-full ${item.iconBg} items-center justify-center mb-3`}>
-                <MyIcon name={item.icon as any} size={20} className={`${item.iconColor} fill-${item.iconColor}`} />
-                {/* <Text className="text-2xl">{item.emoji}</Text> */}
+                <MyIcon name={item.icon as any} size={20} className={`${item.iconColor} fill-current`} />
               </View>
 
               <Text className="font-bold text-text-primary">
