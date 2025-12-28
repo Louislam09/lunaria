@@ -1,16 +1,18 @@
 import MyIcon from '@/components/ui/Icon';
+import { useAlert } from '@/context/AlertContext';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { useCyclePredictions } from '@/hooks/useCyclePredictions';
 import { formatDate } from '@/utils/dates';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, ImageBackground, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ImageBackground, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function PredictionsScreen() {
   const insets = useSafeAreaInsets();
   const { data, isLoading, isComplete, updateData } = useOnboarding();
+  const { alertError, alertSuccess, alertInfo } = useAlert();
   const [showPeriodStartPicker, setShowPeriodStartPicker] = useState(false);
   const [selectedPeriodStartDate, setSelectedPeriodStartDate] = useState(new Date());
 
@@ -135,21 +137,20 @@ export default function PredictionsScreen() {
       currentLastPeriod.setHours(0, 0, 0, 0);
 
       if (normalizedDate.getTime() === currentLastPeriod.getTime()) {
-        Alert.alert('Información', 'Esta fecha ya está registrada como tu último periodo.');
+        alertInfo('Información', 'Esta fecha ya está registrada como tu último periodo.');
         return;
       }
 
       // Update the last period start date
       await updateData({ lastPeriodStart: normalizedDate });
 
-      Alert.alert(
+      alertSuccess(
         'Éxito',
-        `Periodo marcado como iniciado el ${formatDate(normalizedDate, 'long')}. Las predicciones se han actualizado.`,
-        [{ text: 'OK' }]
+        `Periodo marcado como iniciado el ${formatDate(normalizedDate, 'long')}. Las predicciones se han actualizado.`
       );
     } catch (error: any) {
       console.error('Error marking period started:', error);
-      Alert.alert('Error', 'No se pudo actualizar la fecha del periodo. Intenta más tarde.');
+      alertError('Error', 'No se pudo actualizar la fecha del periodo. Intenta más tarde.');
     }
   };
 

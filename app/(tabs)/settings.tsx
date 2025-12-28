@@ -7,6 +7,7 @@ import { TimePicker } from '@/components/settings/TimePicker';
 import { ToggleRow } from '@/components/settings/ToggleRow';
 import MyIcon from '@/components/ui/Icon';
 import { useAuth } from '@/context/AuthContext';
+import { useAlert } from '@/context/AlertContext';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { useSync } from '@/context/SyncContext';
 import { useNotificationManager } from '@/hooks/useNotificationManager';
@@ -17,7 +18,7 @@ import { formatDate } from '@/utils/dates';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
@@ -27,6 +28,7 @@ export default function SettingsScreen() {
   const { data, reset, isLoading, isComplete, updateData } = useOnboarding();
   const { user, logout, isAuthenticated, localUserId } = useAuth();
   const { sync, setSyncFrequency, frequency, pendingItems, lastSyncTime, isSyncing } = useSync();
+  const { alertError, alertSuccess, alertWarning, confirm, actionSheet } = useAlert();
   const { averageCycleLength = 28, cycleRangeMin, cycleRangeMax, periodLength = 5 } = data;
   const [aiPredictionEnabled, setAiPredictionEnabled] = useState(true);
   const [conflicts, setConflicts] = useState<Conflict[]>([]);
@@ -70,56 +72,42 @@ export default function SettingsScreen() {
   }, [isLoading, isComplete]);
 
   const handleLogout = async () => {
-    Alert.alert(
+    confirm(
       'Cerrar Sesión',
       '¿Estás seguro que deseas cerrar sesión?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Cerrar Sesión',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await logout();
-              // Navigate directly to splash screen
-              router.replace('/splash');
-            } catch (error) {
-              console.error('Logout error:', error);
-              Alert.alert('Error', 'No se pudo cerrar sesión');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          await logout();
+          // Navigate directly to splash screen
+          router.replace('/splash');
+        } catch (error) {
+          console.error('Logout error:', error);
+          alertError('Error', 'No se pudo cerrar sesión');
+        }
+      }
     );
   };
 
   const handleReset = async () => {
-    Alert.alert(
+    confirm(
       'Reiniciar Datos',
       '¿Estás seguro? Esto eliminará todos tus datos locales y te llevará al inicio.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Reiniciar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await reset();
-              // Navigate directly to splash screen
-              router.replace('/splash');
-            } catch (error) {
-              console.error('Reset error:', error);
-              Alert.alert('Error', 'No se pudieron reiniciar los datos');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          await reset();
+          // Navigate directly to splash screen
+          router.replace('/splash');
+        } catch (error) {
+          console.error('Reset error:', error);
+          alertError('Error', 'No se pudieron reiniciar los datos');
+        }
+      }
     );
   };
 
   const handleSync = async () => {
     if (!isAuthenticated || !user) {
-      Alert.alert('Autenticación requerida', 'Debes iniciar sesión para sincronizar tus datos.');
+      alertWarning('Autenticación requerida', 'Debes iniciar sesión para sincronizar tus datos.');
       return;
     }
 
@@ -132,10 +120,10 @@ export default function SettingsScreen() {
         setConflicts(detectedConflicts);
         setShowConflictModal(true);
       } else {
-        Alert.alert('Éxito', 'Datos sincronizados correctamente.');
+        alertSuccess('Éxito', 'Datos sincronizados correctamente.');
       }
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'No se pudo sincronizar. Intenta más tarde.');
+      alertError('Error', error.message || 'No se pudo sincronizar. Intenta más tarde.');
     }
   };
 
@@ -151,23 +139,23 @@ export default function SettingsScreen() {
         setShowConflictModal(false);
       }
     } catch (error: any) {
-      Alert.alert('Error', 'No se pudo resolver el conflicto.');
+      alertError('Error', 'No se pudo resolver el conflicto.');
     }
   };
 
   const handleExport = async () => {
     const userId = isAuthenticated && user ? user.id : localUserId;
     if (!userId) {
-      Alert.alert('Error', 'No se pudo identificar el usuario.');
+      alertError('Error', 'No se pudo identificar el usuario.');
       return;
     }
 
     setIsExporting(true);
     try {
       await exportData(userId);
-      Alert.alert('Éxito', 'Datos exportados correctamente.');
+      alertSuccess('Éxito', 'Datos exportados correctamente.');
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'No se pudieron exportar los datos.');
+      alertError('Error', error.message || 'No se pudieron exportar los datos.');
     } finally {
       setIsExporting(false);
     }
@@ -176,34 +164,27 @@ export default function SettingsScreen() {
   const handleImport = async () => {
     const userId = isAuthenticated && user ? user.id : localUserId;
     if (!userId) {
-      Alert.alert('Error', 'No se pudo identificar el usuario.');
+      alertError('Error', 'No se pudo identificar el usuario.');
       return;
     }
 
-    Alert.alert(
+    confirm(
       'Importar Datos',
       '¿Estás seguro? Esto sobrescribirá tus datos existentes.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Importar',
-          style: 'destructive',
-          onPress: async () => {
-            setIsImporting(true);
-            try {
-              const result = await importData(userId);
-              Alert.alert(
-                'Éxito',
-                `Importados ${result.imported} elementos.${result.errors > 0 ? ` ${result.errors} error(es).` : ''}`
-              );
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'No se pudieron importar los datos.');
-            } finally {
-              setIsImporting(false);
-            }
-          },
-        },
-      ]
+      async () => {
+        setIsImporting(true);
+        try {
+          const result = await importData(userId);
+          alertSuccess(
+            'Éxito',
+            `Importados ${result.imported} elementos.${result.errors > 0 ? ` ${result.errors} error(es).` : ''}`
+          );
+        } catch (error: any) {
+          alertError('Error', error.message || 'No se pudieron importar los datos.');
+        } finally {
+          setIsImporting(false);
+        }
+      }
     );
   };
 
@@ -211,7 +192,7 @@ export default function SettingsScreen() {
     try {
       await setSyncFrequency(newFrequency);
     } catch (error: any) {
-      Alert.alert('Error', 'No se pudo actualizar la frecuencia de sincronización.');
+      alertError('Error', 'No se pudo actualizar la frecuencia de sincronización.');
     }
   };
 
@@ -236,22 +217,19 @@ export default function SettingsScreen() {
       // Request permissions
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert(
-          'Permisos requeridos',
-          'Necesitamos acceso a tu galería para seleccionar una foto de perfil.',
-          [{ text: 'OK' }]
-        );
+        alertWarning('Permisos requeridos', 'Necesitamos acceso a tu galería para seleccionar una foto de perfil.');
         return;
       }
 
       // Show action sheet to choose between camera and gallery
-      Alert.alert(
+      actionSheet(
         'Seleccionar foto de perfil',
         '¿De dónde deseas seleccionar la foto?',
         [
           {
             text: 'Cancelar',
             style: 'cancel',
+            onPress: () => { },
           },
           {
             text: 'Galería',
@@ -274,11 +252,7 @@ export default function SettingsScreen() {
               // Request camera permissions
               const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
               if (cameraPermission.status !== 'granted') {
-                Alert.alert(
-                  'Permisos requeridos',
-                  'Necesitamos acceso a tu cámara para tomar una foto.',
-                  [{ text: 'OK' }]
-                );
+                alertWarning('Permisos requeridos', 'Necesitamos acceso a tu cámara para tomar una foto.');
                 return;
               }
 
@@ -293,12 +267,11 @@ export default function SettingsScreen() {
               }
             },
           },
-        ],
-        { cancelable: true }
+        ]
       );
     } catch (error: any) {
       console.error('Error picking image:', error);
-      Alert.alert('Error', 'No se pudo seleccionar la imagen. Intenta más tarde.');
+      alertError('Error', 'No se pudo seleccionar la imagen. Intenta más tarde.');
     } finally {
       setIsPickingImage(false);
     }
@@ -313,10 +286,10 @@ export default function SettingsScreen() {
       // Update avatar URL in onboarding data
       await updateData({ avatarUrl: imageUri });
 
-      Alert.alert('Éxito', 'Foto de perfil actualizada correctamente.');
+      alertSuccess('Éxito', 'Foto de perfil actualizada correctamente.');
     } catch (error: any) {
       console.error('Error saving avatar:', error);
-      Alert.alert('Error', 'No se pudo guardar la foto de perfil. Intenta más tarde.');
+      alertError('Error', 'No se pudo guardar la foto de perfil. Intenta más tarde.');
     }
   };
 
@@ -574,10 +547,10 @@ export default function SettingsScreen() {
                   setIsLoadingNotifications(true);
                   try {
                     await sendTestNotification();
-                    Alert.alert('Éxito', 'Notificación de prueba enviada.');
+                    alertSuccess('Éxito', 'Notificación de prueba enviada.');
                     await loadScheduledCount();
                   } catch (error: any) {
-                    Alert.alert('Error', error.message || 'No se pudo enviar la notificación de prueba.');
+                    alertError('Error', error.message || 'No se pudo enviar la notificación de prueba.');
                   } finally {
                     setIsLoadingNotifications(false);
                   }

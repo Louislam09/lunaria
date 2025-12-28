@@ -2,6 +2,7 @@ import { SettingsItem } from "@/components/settings/SettingsItem"
 import { SettingsSection } from "@/components/settings/SettingsSection"
 import MyIcon from "@/components/ui/Icon"
 import { useAuth } from "@/context/AuthContext"
+import { useAlert } from "@/context/AlertContext"
 import { useOnboarding } from "@/context/OnboardingContext"
 import { DailyLogsService } from "@/services/dataService"
 import { formatDate } from "@/utils/dates"
@@ -10,7 +11,7 @@ import Constants from 'expo-constants'
 import { differenceInYears, differenceInDays } from 'date-fns'
 import { router, Stack } from "expo-router"
 import { useEffect, useState } from "react"
-import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native"
+import { ScrollView, Text, TouchableOpacity, View } from "react-native"
 import { MyImage } from "@/components/ui"
 import * as ImagePicker from 'expo-image-picker'
 
@@ -25,6 +26,7 @@ export default function ProfileScreen() {
     const version = Constants.expoConfig?.version || '1.0.0'
     const { data, reset, updateData } = useOnboarding()
     const { user, logout, isAuthenticated, localUserId } = useAuth()
+    const { alertError, alertSuccess, alertWarning, confirm, actionSheet } = useAlert()
     const [cycleHistory, setCycleHistory] = useState<CycleHistory[]>([])
     const [plan, setPlan] = useState<'premium' | 'free'>('free')
     const [isPickingImage, setIsPickingImage] = useState(false)
@@ -145,48 +147,34 @@ export default function ProfileScreen() {
     }
 
     const handleLogout = async () => {
-        Alert.alert(
+        confirm(
             'Cerrar Sesión',
             '¿Estás seguro que deseas cerrar sesión?',
-            [
-                { text: 'Cancelar', style: 'cancel' },
-                {
-                    text: 'Cerrar Sesión',
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            await logout()
-                            router.replace('/splash')
-                        } catch (error) {
-                            console.error('Logout error:', error)
-                            Alert.alert('Error', 'No se pudo cerrar sesión')
-                        }
-                    },
-                },
-            ]
+            async () => {
+                try {
+                    await logout()
+                    router.replace('/splash')
+                } catch (error) {
+                    console.error('Logout error:', error)
+                    alertError('Error', 'No se pudo cerrar sesión')
+                }
+            }
         )
     }
 
     const handleDeleteData = async () => {
-        Alert.alert(
+        confirm(
             'Borrar todos los datos',
             '¿Estás seguro? Esta acción no se puede deshacer.',
-            [
-                { text: 'Cancelar', style: 'cancel' },
-                {
-                    text: 'Borrar',
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            await reset()
-                            router.replace('/splash')
-                        } catch (error) {
-                            console.error('Delete error:', error)
-                            Alert.alert('Error', 'No se pudieron borrar los datos')
-                        }
-                    },
-                },
-            ]
+            async () => {
+                try {
+                    await reset()
+                    router.replace('/splash')
+                } catch (error) {
+                    console.error('Delete error:', error)
+                    alertError('Error', 'No se pudieron borrar los datos')
+                }
+            }
         )
     }
 
@@ -204,22 +192,19 @@ export default function ProfileScreen() {
             // Request permissions
             const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (status !== 'granted') {
-                Alert.alert(
-                    'Permisos requeridos',
-                    'Necesitamos acceso a tu galería para seleccionar una foto de perfil.',
-                    [{ text: 'OK' }]
-                );
+                alertWarning('Permisos requeridos', 'Necesitamos acceso a tu galería para seleccionar una foto de perfil.');
                 return;
             }
 
             // Show action sheet to choose between camera and gallery
-            Alert.alert(
+            actionSheet(
                 'Seleccionar foto de perfil',
                 '¿De dónde deseas seleccionar la foto?',
                 [
                     {
                         text: 'Cancelar',
                         style: 'cancel',
+                        onPress: () => {},
                     },
                     {
                         text: 'Galería',
@@ -242,11 +227,7 @@ export default function ProfileScreen() {
                             // Request camera permissions
                             const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
                             if (cameraPermission.status !== 'granted') {
-                                Alert.alert(
-                                    'Permisos requeridos',
-                                    'Necesitamos acceso a tu cámara para tomar una foto.',
-                                    [{ text: 'OK' }]
-                                );
+                                alertWarning('Permisos requeridos', 'Necesitamos acceso a tu cámara para tomar una foto.');
                                 return;
                             }
 
@@ -261,12 +242,11 @@ export default function ProfileScreen() {
                             }
                         },
                     },
-                ],
-                { cancelable: true }
+                ]
             );
         } catch (error: any) {
             console.error('Error picking image:', error);
-            Alert.alert('Error', 'No se pudo seleccionar la imagen. Intenta más tarde.');
+            alertError('Error', 'No se pudo seleccionar la imagen. Intenta más tarde.');
         } finally {
             setIsPickingImage(false);
         }
@@ -278,7 +258,7 @@ export default function ProfileScreen() {
             await updateData({ avatarUrl: imageUri });
         } catch (error) {
             console.error('Error saving avatar:', error);
-            Alert.alert('Error', 'No se pudo guardar la imagen. Intenta más tarde.');
+            alertError('Error', 'No se pudo guardar la imagen. Intenta más tarde.');
         }
     };
 

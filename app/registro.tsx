@@ -1,6 +1,7 @@
 import { KeyboardPaddingView } from "@/components/keyboard-padding";
 import MyIcon from "@/components/ui/Icon";
 import { useAuth } from "@/context/AuthContext";
+import { useAlert } from "@/context/AlertContext";
 import { useOnboarding } from "@/context/OnboardingContext";
 import { DailyLogsService } from "@/services/dataService";
 import { colors } from "@/utils/colors";
@@ -8,7 +9,7 @@ import { formatDate } from "@/utils/dates";
 import { getCycleDay } from "@/utils/predictions";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Alert, Keyboard, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Keyboard, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 enum Moods {
   FELIZ = "feliz",
@@ -37,6 +38,7 @@ export default function RegisterScreen() {
   const params = useLocalSearchParams<{ date?: string; id?: string }>();
   const { data, isLoading, isComplete, updateData } = useOnboarding();
   const { user, isAuthenticated, localUserId } = useAuth();
+  const { alertError, alertSuccess, confirm } = useAlert();
   const [flow, setFlow] = useState(Flow.MEDIO);
   const [moods, setMoods] = useState<Moods[]>([Moods.FELIZ]);
   const [symptoms, setSymptoms] = useState<string[]>([]);
@@ -188,11 +190,7 @@ export default function RegisterScreen() {
   const handleSave = async () => {
     const userId = isAuthenticated && user ? user.id : localUserId;
     if (!userId) {
-      Alert.alert(
-        'Error',
-        'No se pudo identificar el usuario.',
-        [{ text: 'OK' }]
-      );
+      alertError('Error', 'No se pudo identificar el usuario.');
       return;
     }
 
@@ -207,80 +205,60 @@ export default function RegisterScreen() {
       
       if (isNewPeriod) {
         // Ask user if they want to update the last period start date
-        Alert.alert(
+        confirm(
           'Nuevo periodo detectado',
           `¿Deseas actualizar la fecha de inicio de tu último periodo a ${formatDate(selectedDate, 'long')}?`,
-          [
-            {
-              text: 'No',
-              style: 'cancel',
-              onPress: async () => {
-                try {
-                  // Save log without updating period
-                  await DailyLogsService.save({
-                    user_id: userId,
-                    date: dateStr,
-                    symptoms: symptoms,
-                    flow: flow,
-                    mood: moods.join(','),
-                    notes: notes,
-                  });
-                  Alert.alert(
-                    'Guardado',
-                    'Registro guardado correctamente.',
-                    [
-                      {
-                        text: 'OK',
-                        onPress: () => router.back(),
-                      },
-                    ]
-                  );
-                } catch (error: any) {
-                  console.error('Save failed:', error);
-                  Alert.alert('Error', error.message || 'No se pudo guardar el registro. Intenta más tarde.');
-                } finally {
-                  setIsSaving(false);
-                }
-              },
-            },
-            {
-              text: 'Sí, actualizar',
-              onPress: async () => {
-                try {
-                  // Update last period start and save log
-                  const normalizedDate = new Date(selectedDate);
-                  normalizedDate.setHours(0, 0, 0, 0);
-                  
-                  await updateData({ lastPeriodStart: normalizedDate });
-                  
-                  await DailyLogsService.save({
-                    user_id: userId,
-                    date: dateStr,
-                    symptoms: symptoms,
-                    flow: flow,
-                    mood: moods.join(','),
-                    notes: notes,
-                  });
+          async () => {
+            // Yes, update period
+            try {
+              // Update last period start and save log
+              const normalizedDate = new Date(selectedDate);
+              normalizedDate.setHours(0, 0, 0, 0);
+              
+              await updateData({ lastPeriodStart: normalizedDate });
+              
+              await DailyLogsService.save({
+                user_id: userId,
+                date: dateStr,
+                symptoms: symptoms,
+                flow: flow,
+                mood: moods.join(','),
+                notes: notes,
+              });
 
-                  Alert.alert(
-                    'Guardado',
-                    `Registro guardado y fecha de periodo actualizada a ${formatDate(normalizedDate, 'long')}. Las predicciones se han actualizado.`,
-                    [
-                      {
-                        text: 'OK',
-                        onPress: () => router.back(),
-                      },
-                    ]
-                  );
-                } catch (error: any) {
-                  console.error('Save failed:', error);
-                  Alert.alert('Error', error.message || 'No se pudo guardar el registro. Intenta más tarde.');
-                } finally {
-                  setIsSaving(false);
-                }
-              },
-            },
-          ]
+              alertSuccess(
+                'Guardado',
+                `Registro guardado y fecha de periodo actualizada a ${formatDate(normalizedDate, 'long')}. Las predicciones se han actualizado.`
+              );
+              router.back();
+            } catch (error: any) {
+              console.error('Save failed:', error);
+              alertError('Error', error.message || 'No se pudo guardar el registro. Intenta más tarde.');
+            } finally {
+              setIsSaving(false);
+            }
+          },
+          async () => {
+            // No, just save log
+            try {
+              // Save log without updating period
+              await DailyLogsService.save({
+                user_id: userId,
+                date: dateStr,
+                symptoms: symptoms,
+                flow: flow,
+                mood: moods.join(','),
+                notes: notes,
+              });
+              alertSuccess('Guardado', 'Registro guardado correctamente.');
+              router.back();
+            } catch (error: any) {
+              console.error('Save failed:', error);
+              alertError('Error', error.message || 'No se pudo guardar el registro. Intenta más tarde.');
+            } finally {
+              setIsSaving(false);
+            }
+          }
         );
         return;
       }
@@ -295,19 +273,11 @@ export default function RegisterScreen() {
         notes: notes,
       });
 
-      Alert.alert(
-        'Guardado',
-        'Registro guardado correctamente.',
-        [
-          {
-            text: 'OK',
-            onPress: () => router.back(),
-          },
-        ]
-      );
+      alertSuccess('Guardado', 'Registro guardado correctamente.');
+      router.back();
     } catch (error: any) {
       console.error('Save failed:', error);
-      Alert.alert('Error', error.message || 'No se pudo guardar el registro. Intenta más tarde.');
+      alertError('Error', error.message || 'No se pudo guardar el registro. Intenta más tarde.');
     } finally {
       setIsSaving(false);
     }

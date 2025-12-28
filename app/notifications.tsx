@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Pressable, TouchableOpacity, Alert } from "react-native"
+import { View, Text, ScrollView, Pressable, TouchableOpacity } from "react-native"
 import { useFocusEffect } from "expo-router"
 import {
     ArrowLeft,
@@ -17,6 +17,7 @@ import {
 import MyIcon from "@/components/ui/Icon"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { router } from "expo-router"
+import { useAlert } from "@/context/AlertContext"
 import { useOnboarding } from "@/context/OnboardingContext"
 import { useCyclePredictions } from "@/hooks/useCyclePredictions"
 import { useNotificationManager } from "@/hooks/useNotificationManager"
@@ -101,6 +102,7 @@ export default function NotificationCenterScreen() {
     const { data } = useOnboarding()
     const { daysUntilPeriod, fertileWindow, cycleDay, nextPeriodResult } = useCyclePredictions(data)
     const { preferences, clearNotifications } = useNotificationManager()
+    const { alertError, alertSuccess, confirm } = useAlert()
     const [readNotifications, setReadNotifications] = useState<Set<string>>(new Set())
     const [scheduledNotifications, setScheduledNotifications] = useState<any[]>([])
 
@@ -326,30 +328,23 @@ export default function NotificationCenterScreen() {
             setReadNotifications(new Set(allIds))
         } catch (error) {
             console.error('Error marking all as read:', error)
-            Alert.alert('Error', 'No se pudieron marcar las notificaciones como leídas.')
+            alertError('Error', 'No se pudieron marcar las notificaciones como leídas.')
         }
     }
 
     const handleDeleteAll = async () => {
-        Alert.alert(
+        confirm(
             'Eliminar todas las notificaciones',
             '¿Estás seguro que deseas eliminar todas las notificaciones programadas?',
-            [
-                { text: 'Cancelar', style: 'cancel' },
-                {
-                    text: 'Eliminar',
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            await clearNotifications()
-                            await loadScheduledNotifications()
-                            Alert.alert('Éxito', 'Todas las notificaciones han sido eliminadas.')
-                        } catch (error) {
-                            Alert.alert('Error', 'No se pudieron eliminar las notificaciones.')
-                        }
-                    }
+            async () => {
+                try {
+                    await clearNotifications()
+                    await loadScheduledNotifications()
+                    alertSuccess('Éxito', 'Todas las notificaciones han sido eliminadas.')
+                } catch (error) {
+                    alertError('Error', 'No se pudieron eliminar las notificaciones.')
                 }
-            ]
+            }
         )
     }
 
