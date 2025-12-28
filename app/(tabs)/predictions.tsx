@@ -3,13 +3,16 @@ import { useOnboarding } from '@/context/OnboardingContext';
 import { useCyclePredictions } from '@/hooks/useCyclePredictions';
 import { formatDate } from '@/utils/dates';
 import { router } from 'expo-router';
-import React from 'react';
-import { ImageBackground, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, ImageBackground, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function PredictionsScreen() {
   const insets = useSafeAreaInsets();
-  const { data, isLoading, isComplete } = useOnboarding();
+  const { data, isLoading, isComplete, updateData } = useOnboarding();
+  const [showPeriodStartPicker, setShowPeriodStartPicker] = useState(false);
+  const [selectedPeriodStartDate, setSelectedPeriodStartDate] = useState(new Date());
 
   // Redirect to onboarding if not complete
   React.useEffect(() => {
@@ -120,6 +123,36 @@ export default function PredictionsScreen() {
     return methods[data.contraceptiveMethod || 'none'] || 'No especificado';
   };
 
+  // Handle marking period as started
+  const handleMarkPeriodStarted = async (date: Date) => {
+    try {
+      // Normalize date to start of day
+      const normalizedDate = new Date(date);
+      normalizedDate.setHours(0, 0, 0, 0);
+
+      // Check if this is different from current lastPeriodStart
+      const currentLastPeriod = new Date(data.lastPeriodStart!);
+      currentLastPeriod.setHours(0, 0, 0, 0);
+
+      if (normalizedDate.getTime() === currentLastPeriod.getTime()) {
+        Alert.alert('Información', 'Esta fecha ya está registrada como tu último periodo.');
+        return;
+      }
+
+      // Update the last period start date
+      await updateData({ lastPeriodStart: normalizedDate });
+
+      Alert.alert(
+        'Éxito',
+        `Periodo marcado como iniciado el ${formatDate(normalizedDate, 'long')}. Las predicciones se han actualizado.`,
+        [{ text: 'OK' }]
+      );
+    } catch (error: any) {
+      console.error('Error marking period started:', error);
+      Alert.alert('Error', 'No se pudo actualizar la fecha del periodo. Intenta más tarde.');
+    }
+  };
+
   // return <PredictionsS />
 
   return (
@@ -217,6 +250,85 @@ export default function PredictionsScreen() {
             })}
           </View>
         </View>
+
+        {/* Mark Period Started Button */}
+        <View className="my-4">
+          <TouchableOpacity
+            onPress={() => {
+              setSelectedPeriodStartDate(new Date());
+              setShowPeriodStartPicker(true);
+            }}
+            className="bg-primary/10 border border-primary/30 rounded-2xl p-4 flex-row items-center justify-between"
+          >
+            <View className="flex-row items-center gap-3 flex-1">
+              <View className="w-10 h-10 rounded-full bg-primary/20 items-center justify-center">
+                <MyIcon name="Droplet" className="text-primary" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-base font-bold text-text-primary">
+                  Marcar inicio de periodo
+                </Text>
+                <Text className="text-sm text-text-secondary">
+                  ¿Tu periodo comenzó en otra fecha?
+                </Text>
+              </View>
+            </View>
+            <MyIcon name="ChevronRight" className="text-primary" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Date Picker for Period Start */}
+        {showPeriodStartPicker && (
+          <>
+            <DateTimePicker
+              value={selectedPeriodStartDate}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={(event, selectedDate) => {
+                if (Platform.OS === 'android') {
+                  setShowPeriodStartPicker(false);
+                }
+                if (event.type !== 'dismissed' && selectedDate) {
+                  setSelectedPeriodStartDate(selectedDate);
+                  // Update immediately on Android
+                  if (Platform.OS === 'android') {
+                    handleMarkPeriodStarted(selectedDate);
+                  }
+                } else if (Platform.OS === 'ios') {
+                  setShowPeriodStartPicker(false);
+                }
+              }}
+              maximumDate={new Date()}
+            />
+            {Platform.OS === 'ios' && (
+              <View className="bg-white rounded-2xl p-4 border border-gray-200 shadow-md">
+                <Text className="text-lg font-bold text-text-primary mb-2">
+                  Selecciona la fecha de inicio
+                </Text>
+                <Text className="text-sm text-text-secondary mb-4">
+                  {formatDate(selectedPeriodStartDate, 'long')}
+                </Text>
+                <View className="flex-row gap-3">
+                  <TouchableOpacity
+                    onPress={() => setShowPeriodStartPicker(false)}
+                    className="flex-1 py-3 rounded-xl bg-gray-100 items-center"
+                  >
+                    <Text className="text-base font-semibold text-text-primary">Cancelar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => {
+                      handleMarkPeriodStarted(selectedPeriodStartDate);
+                      setShowPeriodStartPicker(false);
+                    }}
+                    className="flex-1 py-3 rounded-xl bg-primary items-center"
+                  >
+                    <Text className="text-base font-semibold text-white">Confirmar</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          </>
+        )}
 
         {/* Details */}
         <View className="my-6">

@@ -26,14 +26,14 @@ export function SettingsItem({
 }: SettingsItemProps) {
     return (
         <TouchableOpacity className="flex-row items-center justify-between px-5 py-4" onPress={onPress}>
-            <View className="flex-row items-center gap-4">
+            <View className="flex-row items-center gap-4  flex-1">
                 <View
                     className={`h-10 w-10 items-center justify-center rounded-full ${iconBg}`}
                 >
                     <MyIcon name={icon} className={iconColor} />
                 </View>
 
-                <View>
+                <View className="flex-1">
                     <Text className="text-sm font-bold text-text-primary">
                         {title}
                     </Text>
@@ -44,7 +44,6 @@ export function SettingsItem({
                     )}
                 </View>
             </View>
-
             {showChevron && (
                 <ChevronRight size={22} color={colors.textPrimary} />
             )}

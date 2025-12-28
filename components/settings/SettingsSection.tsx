@@ -8,7 +8,7 @@ export function SettingsSection({
     children: React.ReactNode;
 }) {
     return (
-        <View className="mt-6 ">
+        <View className="mt-6 w-full">
             <Text className="mb-3 px-2 text-lg font-bold text-text-primary">
                 {title}
             </Text>

@@ -35,7 +35,7 @@ enum Flow {
 
 export default function RegisterScreen() {
   const params = useLocalSearchParams<{ date?: string; id?: string }>();
-  const { data, isLoading, isComplete } = useOnboarding();
+  const { data, isLoading, isComplete, updateData } = useOnboarding();
   const { user, isAuthenticated, localUserId } = useAuth();
   const [flow, setFlow] = useState(Flow.MEDIO);
   const [moods, setMoods] = useState<Moods[]>([Moods.FELIZ]);
@@ -148,6 +148,43 @@ export default function RegisterScreen() {
     );
   };
 
+  // Check if flow indicates a period (any flow except empty)
+  const isPeriodFlow = (flowValue: Flow): boolean => {
+    // Any flow value indicates a period (including light flow and spotting)
+    return flowValue !== undefined && flowValue !== null;
+  };
+
+  // Check if this date is a new period start
+  const isNewPeriodStart = (date: Date, flowValue: Flow): boolean => {
+    if (!data.lastPeriodStart || !isPeriodFlow(flowValue)) {
+      return false;
+    }
+
+    const logDate = new Date(date);
+    logDate.setHours(0, 0, 0, 0);
+
+    const lastPeriod = new Date(data.lastPeriodStart);
+    lastPeriod.setHours(0, 0, 0, 0);
+
+    const periodLength = data.periodLength || 5;
+    const periodEnd = new Date(lastPeriod);
+    periodEnd.setDate(periodEnd.getDate() + periodLength);
+
+    // If the log date is before the last period start, it's definitely a new period
+    if (logDate < lastPeriod) {
+      return true;
+    }
+
+    // If the log date is within the current period range, it's not a new period
+    if (logDate >= lastPeriod && logDate <= periodEnd) {
+      return false;
+    }
+
+    // If the log date is more than 2 days after the period end, it's likely a new period
+    const daysAfterPeriodEnd = Math.floor((logDate.getTime() - periodEnd.getTime()) / (1000 * 60 * 60 * 24));
+    return daysAfterPeriodEnd > 2;
+  };
+
   const handleSave = async () => {
     const userId = isAuthenticated && user ? user.id : localUserId;
     if (!userId) {
@@ -165,6 +202,90 @@ export default function RegisterScreen() {
     try {
       const dateStr = selectedDate.toISOString().split('T')[0];
 
+      // Check if this is a new period start
+      const isNewPeriod = isNewPeriodStart(selectedDate, flow);
+      
+      if (isNewPeriod) {
+        // Ask user if they want to update the last period start date
+        Alert.alert(
+          'Nuevo periodo detectado',
+          `¿Deseas actualizar la fecha de inicio de tu último periodo a ${formatDate(selectedDate, 'long')}?`,
+          [
+            {
+              text: 'No',
+              style: 'cancel',
+              onPress: async () => {
+                try {
+                  // Save log without updating period
+                  await DailyLogsService.save({
+                    user_id: userId,
+                    date: dateStr,
+                    symptoms: symptoms,
+                    flow: flow,
+                    mood: moods.join(','),
+                    notes: notes,
+                  });
+                  Alert.alert(
+                    'Guardado',
+                    'Registro guardado correctamente.',
+                    [
+                      {
+                        text: 'OK',
+                        onPress: () => router.back(),
+                      },
+                    ]
+                  );
+                } catch (error: any) {
+                  console.error('Save failed:', error);
+                  Alert.alert('Error', error.message || 'No se pudo guardar el registro. Intenta más tarde.');
+                } finally {
+                  setIsSaving(false);
+                }
+              },
+            },
+            {
+              text: 'Sí, actualizar',
+              onPress: async () => {
+                try {
+                  // Update last period start and save log
+                  const normalizedDate = new Date(selectedDate);
+                  normalizedDate.setHours(0, 0, 0, 0);
+                  
+                  await updateData({ lastPeriodStart: normalizedDate });
+                  
+                  await DailyLogsService.save({
+                    user_id: userId,
+                    date: dateStr,
+                    symptoms: symptoms,
+                    flow: flow,
+                    mood: moods.join(','),
+                    notes: notes,
+                  });
+
+                  Alert.alert(
+                    'Guardado',
+                    `Registro guardado y fecha de periodo actualizada a ${formatDate(normalizedDate, 'long')}. Las predicciones se han actualizado.`,
+                    [
+                      {
+                        text: 'OK',
+                        onPress: () => router.back(),
+                      },
+                    ]
+                  );
+                } catch (error: any) {
+                  console.error('Save failed:', error);
+                  Alert.alert('Error', error.message || 'No se pudo guardar el registro. Intenta más tarde.');
+                } finally {
+                  setIsSaving(false);
+                }
+              },
+            },
+          ]
+        );
+        return;
+      }
+
+      // Normal save (not a new period)
       await DailyLogsService.save({
         user_id: userId,
         date: dateStr,
