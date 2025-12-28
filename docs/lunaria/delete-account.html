@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Delete Account - Lunaria</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        line-height: 1.6;
+        color: #2e2a38;
+        background: linear-gradient(135deg, #f9f9f9 0%, #f5f5f5 100%);
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: white;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        color: #b19feb;
+        font-size: 2.5em;
+        margin-bottom: 10px;
+        border-bottom: 3px solid #b19feb;
+        padding-bottom: 15px;
+      }
+
+      h2 {
+        color: #b19feb;
+        font-size: 1.8em;
+        margin-top: 40px;
+        margin-bottom: 20px;
+      }
+
+      h3 {
+        color: #8e8aa0;
+        font-size: 1.3em;
+        margin-top: 30px;
+        margin-bottom: 15px;
+      }
+
+      p {
+        margin-bottom: 15px;
+        text-align: justify;
+      }
+
+      ul,
+      ol {
+        margin-left: 30px;
+        margin-bottom: 15px;
+      }
+
+      li {
+        margin-bottom: 8px;
+      }
+
+      strong {
+        color: #2e2a38;
+      }
+
+      .language-toggle {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .language-toggle button {
+        background: #b19feb;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        margin: 0 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background 0.3s;
+      }
+
+      .language-toggle button:hover {
+        background: #9a8bd4;
+      }
+
+      .language-toggle button.active {
+        background: #7a6bb8;
+      }
+
+      .language-section {
+        display: none;
+      }
+
+      .language-section.active {
+        display: block;
+      }
+
+      .contact-info {
+        background: #f9f9f9;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+        border-left: 4px solid #b19feb;
+      }
+
+      .divider {
+        height: 2px;
+        background: linear-gradient(to right, #b19feb, #f3b7c6);
+        margin: 50px 0;
+        border-radius: 2px;
+      }
+
+      .warning-box {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 20px 0;
+      }
+
+      a {
+        color: #b19feb;
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding: 20px;
+        }
+
+        h1 {
+          font-size: 2em;
+        }
+
+        h2 {
+          font-size: 1.5em;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Delete Account / Eliminar Cuenta</h1>
+
+      <div class="language-toggle">
+        <button onclick="showLanguage('en')" class="active" id="btn-en">
+          English
+        </button>
+        <button onclick="showLanguage('es')" id="btn-es">Español</button>
+      </div>
+
+      <!-- English Version -->
+      <div id="english" class="language-section active">
+        <h2>Delete Your Lunaria Account and Data</h2>
+        <p>
+          If you created an account in Lunaria, you may request the deletion of
+          your account and associated data at any time.
+        </p>
+
+        <h3>How to request account deletion</h3>
+        <p>
+          To delete your Lunaria account and data, choose one of the following
+          options:
+        </p>
+
+        <h4>Option 1 (Recommended):</h4>
+        <ul>
+          <li>Open the Lunaria app</li>
+          <li>Go to <strong>Settings → Account → Delete Account</strong></li>
+          <li>Confirm the deletion request</li>
+        </ul>
+
+        <h4>Option 2 (Email request):</h4>
+        <ul>
+          <li>
+            Send an email to:
+            <a href="mailto:contact@luismartinez.site"
+              >contact@luismartinez.site</a
+            >
+          </li>
+          <li>
+            Use the subject: <strong>"Lunaria – Delete My Account"</strong>
+          </li>
+          <li>Include the email address associated with your account</li>
+        </ul>
+
+        <div class="divider"></div>
+
+        <h3>What data is deleted</h3>
+        <p>
+          When you request account deletion, the following data is permanently
+          deleted:
+        </p>
+        <ul>
+          <li>User account (email and authentication data)</li>
+          <li>Menstrual cycle records</li>
+          <li>Daily logs (symptoms, mood, notes)</li>
+          <li>Profile and preferences</li>
+          <li>Cloud-synced data</li>
+        </ul>
+
+        <div class="divider"></div>
+
+        <h3>Data retention</h3>
+        <ul>
+          <li>
+            Account and personal data are deleted within
+            <strong>30 days</strong>
+          </li>
+          <li>
+            Anonymous diagnostic data, if any, may be retained for legal or
+            security purposes
+          </li>
+          <li>
+            Data stored locally on your device can be deleted by uninstalling
+            the app
+          </li>
+        </ul>
+
+        <div class="divider"></div>
+
+        <h3>Guest users</h3>
+        <p>If you use Lunaria without an account:</p>
+        <ul>
+          <li>Your data is stored only on your device</li>
+          <li>Uninstalling the app deletes all data</li>
+        </ul>
+
+        <div class="divider"></div>
+
+        <h3>Contact</h3>
+        <div class="contact-info">
+          <p>If you have questions, contact us at:</p>
+          <p>
+            📧 <strong>Email</strong>:
+            <a href="mailto:contact@luismartinez.site"
+              >contact@luismartinez.site</a
+            >
+          </p>
+        </div>
+      </div>
+
+      <!-- Spanish Version -->
+      <div id="spanish" class="language-section">
+        <h2>Eliminar Tu Cuenta y Datos de Lunaria</h2>
+        <p>
+          Si creaste una cuenta en Lunaria, puedes solicitar la eliminación de
+          tu cuenta y datos asociados en cualquier momento.
+        </p>
+
+        <h3>Cómo solicitar la eliminación de cuenta</h3>
+        <p>
+          Para eliminar tu cuenta y datos de Lunaria, elige una de las
+          siguientes opciones:
+        </p>
+
+        <h4>Opción 1 (Recomendada):</h4>
+        <ul>
+          <li>Abre la aplicación Lunaria</li>
+          <li>
+            Ve a <strong>Configuración → Cuenta → Eliminar Cuenta</strong>
+          </li>
+          <li>Confirma la solicitud de eliminación</li>
+        </ul>
+
+        <h4>Opción 2 (Solicitud por correo electrónico):</h4>
+        <ul>
+          <li>
+            Envía un correo electrónico a:
+            <a href="mailto:contact@luismartinez.site"
+              >contact@luismartinez.site</a
+            >
+          </li>
+          <li>
+            Usa el asunto: <strong>"Lunaria – Eliminar Mi Cuenta"</strong>
+          </li>
+          <li>
+            Incluye la dirección de correo electrónico asociada con tu cuenta
+          </li>
+        </ul>
+
+        <div class="divider"></div>
+
+        <h3>Qué datos se eliminan</h3>
+        <p>
+          Cuando solicitas la eliminación de cuenta, los siguientes datos se
+          eliminan permanentemente:
+        </p>
+        <ul>
+          <li>
+            Cuenta de usuario (correo electrónico y datos de autenticación)
+          </li>
+          <li>Registros del ciclo menstrual</li>
+          <li>Registros diarios (síntomas, estado de ánimo, notas)</li>
+          <li>Perfil y preferencias</li>
+          <li>Datos sincronizados en la nube</li>
+        </ul>
+
+        <div class="divider"></div>
+
+        <h3>Retención de datos</h3>
+        <ul>
+          <li>
+            La cuenta y los datos personales se eliminan en un plazo de
+            <strong>30 días</strong>
+          </li>
+          <li>
+            Los datos de diagnóstico anónimos, si los hay, pueden conservarse
+            por motivos legales o de seguridad
+          </li>
+          <li>
+            Los datos almacenados localmente en tu dispositivo se pueden
+            eliminar desinstalando la aplicación
+          </li>
+        </ul>
+
+        <div class="divider"></div>
+
+        <h3>Usuarios invitados</h3>
+        <p>Si usas Lunaria sin una cuenta:</p>
+        <ul>
+          <li>Tus datos se almacenan solo en tu dispositivo</li>
+          <li>Desinstalar la aplicación elimina todos los datos</li>
+        </ul>
+
+        <div class="divider"></div>
+
+        <h3>Contacto</h3>
+        <div class="contact-info">
+          <p>Si tienes preguntas, contáctanos en:</p>
+          <p>
+            📧 <strong>Correo Electrónico</strong>:
+            <a href="mailto:contact@luismartinez.site"
+              >contact@luismartinez.site</a
+            >
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function showLanguage(lang) {
+        // Hide all language sections
+        document.getElementById("english").classList.remove("active");
+        document.getElementById("spanish").classList.remove("active");
+
+        // Remove active class from all buttons
+        document.getElementById("btn-en").classList.remove("active");
+        document.getElementById("btn-es").classList.remove("active");
+
+        // Show selected language
+        if (lang === "en") {
+          document.getElementById("english").classList.add("active");
+          document.getElementById("btn-en").classList.add("active");
+        } else {
+          document.getElementById("spanish").classList.add("active");
+          document.getElementById("btn-es").classList.add("active");
+        }
+      }
+    </script>
+  </body>
+</html>
+

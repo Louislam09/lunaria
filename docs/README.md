@@ -1,6 +1,6 @@
 # GitHub Pages Setup Instructions
 
-This folder contains the Privacy Policy page for Lunaria that will be published on GitHub Pages.
+This folder contains the Privacy Policy and Delete Account pages for Lunaria that will be published on GitHub Pages.
 
 ## How to Enable GitHub Pages
 
@@ -22,16 +22,20 @@ This folder contains the Privacy Policy page for Lunaria that will be published 
    - It usually takes 1-2 minutes
    - You'll see a green checkmark when it's ready
 
-5. **Access your Privacy Policy**:
-   - Your Privacy Policy will be available at:
-     `https://[your-username].github.io/[repository-name]/`
-   - For example: `https://louislam09.github.io/lunaria/`
+5. **Access your pages**:
+   - Privacy Policy: `https://[your-username].github.io/[repository-name]/`
+   - Delete Account: `https://[your-username].github.io/[repository-name]/lunaria/delete-account.html`
+   - For example: 
+     - `https://louislam09.github.io/lunaria/` (Privacy Policy)
+     - `https://louislam09.github.io/lunaria/lunaria/delete-account.html` (Delete Account)
 
-## Updating the Privacy Policy
+## Updating Pages
 
-To update the Privacy Policy:
+To update the Privacy Policy or Delete Account page:
 
-1. Edit `docs/index.html` in your repository
+1. Edit the corresponding HTML file:
+   - Privacy Policy: `docs/index.html`
+   - Delete Account: `docs/lunaria/delete-account.html`
 2. Commit and push the changes
 3. GitHub Pages will automatically rebuild and deploy (usually within 1-2 minutes)
 
@@ -45,8 +49,17 @@ If you want to use a custom domain:
 
 ## Notes
 
-- The Privacy Policy page includes both English and Spanish versions
-- Users can toggle between languages using the buttons at the top
-- The page is mobile-responsive and styled to match Lunaria's design
-- The "Last Updated" date is automatically set to today's date when the page loads
+- Both pages include English and Spanish versions with language toggle
+- Pages are mobile-responsive and styled to match Lunaria's design
+- Privacy Policy "Last Updated" date is automatically set to today's date when the page loads
+
+## URLs for Google Play Console
+
+When submitting to Google Play, use these URLs:
+
+- **Privacy Policy URL**: `https://[your-username].github.io/[repository-name]/`
+- **Delete Account URL**: `https://[your-username].github.io/[repository-name]/lunaria/delete-account.html`
+
+If you configure a custom domain (e.g., `luismartinez.site`), you can use:
+- `https://luismartinez.site/lunaria/delete-account` (after setting up redirect or custom domain)
 
