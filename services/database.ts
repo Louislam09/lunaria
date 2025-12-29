@@ -3,12 +3,12 @@ import * as SQLite from 'expo-sqlite';
 let db: SQLite.SQLiteDatabase | null = null;
 
 export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
-    if (db) return db;
+  if (db) return db;
 
-    db = await SQLite.openDatabaseAsync('lunaria.db');
+  db = await SQLite.openDatabaseAsync('lunaria.db');
 
-    // Create tables
-    await db.execAsync(`
+  // Create tables
+  await db.execAsync(`
     CREATE TABLE IF NOT EXISTS profiles (
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL,
@@ -46,6 +46,7 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
       user_id TEXT NOT NULL,
       start_date TEXT NOT NULL,
       end_date TEXT,
+      delay INTEGER DEFAULT 0,
       synced INTEGER DEFAULT 0,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
@@ -71,18 +72,39 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
     CREATE INDEX IF NOT EXISTS idx_cycles_user ON cycles(user_id);
   `);
 
-    // Initialize sync settings with default value (daily)
-    await db.runAsync(
-        `INSERT OR IGNORE INTO sync_settings (key, value) VALUES ('sync_frequency', 'daily')`
-    );
+  // Migrations
+  try {
+    // Remove delay from daily_logs if it exists (cleanup from previous version)
+    await db.execAsync(`ALTER TABLE daily_logs DROP COLUMN delay`);
+  } catch (error: any) {
+    // Column doesn't exist, ignore error
+    if (!error.message?.includes('no such column')) {
+      console.warn('Migration warning:', error);
+    }
+  }
 
-    return db;
+  try {
+    // Add delay column to cycles if it doesn't exist
+    await db.execAsync(`ALTER TABLE cycles ADD COLUMN delay INTEGER DEFAULT 0`);
+  } catch (error: any) {
+    // Column already exists, ignore error
+    if (!error.message?.includes('duplicate column')) {
+      console.warn('Migration warning:', error);
+    }
+  }
+
+  // Initialize sync settings with default value (daily)
+  await db.runAsync(
+    `INSERT OR IGNORE INTO sync_settings (key, value) VALUES ('sync_frequency', 'daily')`
+  );
+
+  return db;
 }
 
 export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
-    if (!db) {
-        return await initDatabase();
-    }
-    return db;
+  if (!db) {
+    return await initDatabase();
+  }
+  return db;
 }
 

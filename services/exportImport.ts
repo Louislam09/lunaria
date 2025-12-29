@@ -165,13 +165,14 @@ export async function importData(userId: string): Promise<{ imported: number; er
       try {
         await db.runAsync(
           `INSERT OR REPLACE INTO cycles 
-           (id, user_id, start_date, end_date, synced, updated_at)
-           VALUES (?, ?, ?, ?, 0, CURRENT_TIMESTAMP)`,
+           (id, user_id, start_date, end_date, delay, synced, updated_at)
+           VALUES (?, ?, ?, ?, ?, 0, CURRENT_TIMESTAMP)`,
           [
             cycle.id || `imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             userId,
             cycle.start_date,
             cycle.end_date,
+            cycle.delay || 0,
           ]
         );
         imported++;

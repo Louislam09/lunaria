@@ -4,7 +4,7 @@ import MyIcon from "@/components/ui/Icon"
 import { useAuth } from "@/context/AuthContext"
 import { useAlert } from "@/context/AlertContext"
 import { useOnboarding } from "@/context/OnboardingContext"
-import { DailyLogsService } from "@/services/dataService"
+import { DailyLogsService, CyclesService } from "@/services/dataService"
 import { formatDate } from "@/utils/dates"
 import { getAvatarSource } from "@/utils/avatar"
 import Constants from 'expo-constants'
@@ -20,6 +20,7 @@ interface CycleHistory {
     end_date: string
     month: string
     duration: number
+    delay?: number
 }
 
 export default function ProfileScreen() {
@@ -50,8 +51,19 @@ export default function ProfileScreen() {
         if (!userId) return
 
         try {
-            // Get all logs and calculate cycles from period days
-            const logs = await DailyLogsService.getAll(userId)
+            // Get all logs and cycles
+            const [logs, cycles] = await Promise.all([
+                DailyLogsService.getAll(userId),
+                CyclesService.getAll(userId)
+            ])
+
+            // Create a map of cycles by start date for quick lookup
+            const cyclesMap = new Map<string, { delay: number }>()
+            cycles.forEach(cycle => {
+                if (cycle.delay > 0) {
+                    cyclesMap.set(cycle.start_date, { delay: cycle.delay })
+                }
+            })
 
             // Filter logs with flow (period days) and sort by date
             const periodLogs = logs
@@ -112,12 +124,13 @@ export default function ProfileScreen() {
             }
 
             // Create cycle history from last 2 periods
-            const cycles: CycleHistory[] = []
+            const cyclesHistory: CycleHistory[] = []
             const recentPeriods = periodStarts.slice(-2).reverse() // Most recent first
 
             for (let i = 0; i < recentPeriods.length; i++) {
                 const period = recentPeriods[i]
                 const startDate = new Date(period.date)
+                const startDateStr = period.date
 
                 // Calculate cycle duration (days between this period start and next period start)
                 let cycleDuration = averageCycleLength
@@ -130,17 +143,21 @@ export default function ProfileScreen() {
                     cycleDuration = differenceInDays(startDate, lastPeriod)
                 }
 
+                // Check if this cycle had a delay
+                const cycleDelay = cyclesMap.get(startDateStr)?.delay || 0
+
                 const monthName = startDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
 
-                cycles.push({
+                cyclesHistory.push({
                     start_date: period.date,
                     end_date: period.endDate,
                     month: monthName.charAt(0).toUpperCase() + monthName.slice(1),
-                    duration: cycleDuration > 0 ? cycleDuration : averageCycleLength
+                    duration: cycleDuration > 0 ? cycleDuration : averageCycleLength,
+                    delay: cycleDelay > 0 ? cycleDelay : undefined
                 })
             }
 
-            setCycleHistory(cycles)
+            setCycleHistory(cyclesHistory)
         } catch (error) {
             console.error('Failed to load cycle history:', error)
         }
@@ -382,15 +399,21 @@ export default function ProfileScreen() {
                             {cycleHistory.map((cycle, index) => {
                                 const startFormatted = formatCycleDate(cycle.start_date)
                                 const endFormatted = formatCycleDate(cycle.end_date)
+                                
+                                // Build subtitle with delay info if present
+                                let subtitle = `${startFormatted} - ${endFormatted} • ${cycle.duration} día${cycle.duration > 1 ? 's' : ''}`
+                                if (cycle.delay && cycle.delay > 0) {
+                                    subtitle += ` • Retraso: ${cycle.delay} día${cycle.delay > 1 ? 's' : ''}`
+                                }
 
                                 return (
                                     <SettingsItem
                                         key={`${cycle.start_date}-${index}`}
                                         icon={index === 0 ? "Clock" : "Check"}
-                                        iconBg={index === 0 ? "bg-pink-100" : "bg-purple-100"}
-                                        iconColor={index === 0 ? "text-pink-500" : "text-purple-500"}
+                                        iconBg={index === 0 ? "bg-pink-100" : cycle.delay && cycle.delay > 0 ? "bg-orange-100" : "bg-purple-100"}
+                                        iconColor={index === 0 ? "text-pink-500" : cycle.delay && cycle.delay > 0 ? "text-orange-500" : "text-purple-500"}
                                         title={cycle.month}
-                                        subtitle={`${startFormatted} - ${endFormatted} • ${cycle.duration} día${cycle.duration > 1 ? 's' : ''}`}
+                                        subtitle={subtitle}
                                         showDivider={index < cycleHistory.length - 1}
                                     />
                                 )

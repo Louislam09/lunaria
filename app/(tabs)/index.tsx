@@ -6,20 +6,26 @@ import MyIcon from '@/components/ui/Icon';
 import { SyncStatusIndicator } from '@/components/ui/SyncStatusIndicator';
 import Tooltip from '@/components/ui/Tooltip';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { useAlert } from '@/context/AlertContext';
+import { useAuth } from '@/context/AuthContext';
 import { getAvatarSource } from '@/utils/avatar';
 import { useCyclePredictions } from '@/hooks/useCyclePredictions';
+import { usePeriodConfirmation } from '@/hooks/usePeriodConfirmation';
 import { useNotificationManager } from '@/hooks/useNotificationManager';
+import { CyclesService } from '@/services/dataService';
 import { getAllScheduledNotifications } from '@/services/notifications';
 import { getReadNotifications } from '@/services/readNotifications';
 import { colors } from '@/utils/colors';
 import { formatDate } from '@/utils/dates';
 import { router } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { PHASE_INSIGHTS } from '@/constants/phaseInsights';
 
 export default function HomeScreen() {
-  const { data, isLoading, isComplete } = useOnboarding();
+  const { data, isLoading, isComplete, updateData } = useOnboarding();
+  const { user, isAuthenticated, localUserId } = useAuth();
+  const { confirm, alertSuccess } = useAlert();
 
   // Redirect to onboarding if not complete
   useEffect(() => {
@@ -42,15 +48,113 @@ export default function HomeScreen() {
     fertileWindow,
   } = useCyclePredictions(data);
 
+  const { needsConfirmation, predictedDate, checkConfirmation } = usePeriodConfirmation();
+
   const { preferences } = useNotificationManager();
   const [scheduledNotifications, setScheduledNotifications] = useState<any[]>([]);
   const [readNotifications, setReadNotifications] = useState<Set<string>>(new Set());
+  const confirmationShownRef = useRef(false);
+  const [currentDelay, setCurrentDelay] = useState<number | null>(null);
 
   // Load scheduled notifications and read status for unread count
   useEffect(() => {
     loadScheduledNotifications();
     loadReadNotifications();
+    loadCurrentDelay();
   }, []);
+
+  // Load current delay if period is delayed
+  const loadCurrentDelay = async () => {
+    if (!predictedDate || !data.lastPeriodStart) return;
+
+    const userId = isAuthenticated && user ? user.id : localUserId;
+    if (!userId) return;
+
+    try {
+      const predictedDateStr = new Date(predictedDate);
+      predictedDateStr.setHours(0, 0, 0, 0);
+      const dateStr = predictedDateStr.toISOString().split('T')[0];
+
+      const cycle = await CyclesService.getByStartDate(userId, dateStr);
+      if (cycle && cycle.delay > 0) {
+        setCurrentDelay(cycle.delay);
+      } else {
+        setCurrentDelay(null);
+      }
+    } catch (error) {
+      console.error('Error loading current delay:', error);
+    }
+  };
+
+  // Reload delay when predicted date changes
+  useEffect(() => {
+    if (predictedDate) {
+      loadCurrentDelay();
+    }
+  }, [predictedDate]);
+
+  // Check for period confirmation when component mounts or data changes
+  useEffect(() => {
+    if (isComplete && data.lastPeriodStart && needsConfirmation && predictedDate && !confirmationShownRef.current) {
+      confirmationShownRef.current = true;
+      handlePeriodConfirmation();
+    }
+
+    // Reset confirmation flag if needsConfirmation becomes false (e.g., user confirmed or new day)
+    if (!needsConfirmation) {
+      confirmationShownRef.current = false;
+    }
+  }, [isComplete, needsConfirmation, predictedDate]);
+
+  const handlePeriodConfirmation = async () => {
+    if (!predictedDate) return;
+
+    const userId = isAuthenticated && user ? user.id : localUserId;
+    if (!userId) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split('T')[0];
+
+    confirm(
+      '¿Llegó tu periodo?',
+      `Según nuestras predicciones, tu periodo debería haber llegado hoy (${formatDate(predictedDate, 'long')}). ¿Ya llegó?`,
+      async () => {
+        // User says YES - period arrived
+        try {
+          // Navigate to registro screen with today's date to log the period
+          router.push(`/registro?date=${todayStr}`);
+          await checkConfirmation();
+        } catch (error) {
+          console.error('Error navigating to registro:', error);
+        }
+      },
+      async () => {
+        // User says NO - it's a delay (retraso)
+        try {
+          const predictedDateObj = new Date(predictedDate);
+          predictedDateObj.setHours(0, 0, 0, 0);
+          const predictedDateStr = predictedDateObj.toISOString().split('T')[0];
+          const daysDelay = Math.floor((today.getTime() - predictedDateObj.getTime()) / (1000 * 60 * 60 * 24));
+
+          // Mark delay on cycle
+          await CyclesService.markDelay(userId, predictedDateStr, daysDelay);
+
+          // Reload delay to update UI
+          await loadCurrentDelay();
+
+          alertSuccess(
+            'Retraso registrado',
+            `Hemos registrado que tu periodo se retrasó ${daysDelay} día${daysDelay > 1 ? 's' : ''}. Te notificaremos cuando llegue.`
+          );
+
+          await checkConfirmation();
+        } catch (error) {
+          console.error('Error marking delay:', error);
+        }
+      }
+    );
+  };
 
   const loadScheduledNotifications = async () => {
     try {
@@ -236,64 +340,101 @@ export default function HomeScreen() {
       <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
         <View className="h-16" />
 
-        {/* Next period card */}
-        <View className="mt-6 bg-background rounded-[40px] p-6 items-center">
-          <Text className="uppercase text-base font-medium text-text-muted mb-4">
-            Próximo periodo
-          </Text>
-
-          {/* Circular counter */}
-          <View className="w-50 h-50 items-center justify-center">
-            <CircularProgress
-              value={progress}
-              size={180}
-              color={colors.lavender}
-            />
-
-            <View className="absolute items-center">
-              <Text className="text-6xl font-bold text-text-primary">
-                {/* 5 */}
-                {daysUntilPeriod}
+        {/* Delayed Period Card or Next Period Card */}
+        {currentDelay && currentDelay > 0 ? (
+          <View className="mt-6 bg-rose-50 rounded-[40px] p-6 items-center border border-rose-100">
+            {/* Header with exclamation icon */}
+            <View className="flex-row items-center gap-2 mb-4">
+              <MyIcon name="CircleAlert" size={24} className="text-red-500" />
+              <Text className="uppercase text-base font-bold text-red-500">
+                PERIODO RETRASADO
               </Text>
-              <Text className="text-text-muted text-base">días</Text>
             </View>
-          </View>
 
-          <Text className="text-lg font-bold mt-4 text-text-primary">
-            {/* Jueves, 24 de Octubre */}
-            {formatDate(nextPeriodResult.date, 'long')}
-          </Text>
+            {/* Circular delay indicator */}
+            <View className="w-50 h-50 items-center justify-center mb-4">
+              <CircularProgress
+                value={100}
+                size={180}
+                color="#EF4444"
+              />
 
-          <View className="mt-2 px-3 py-1 w-fit rounded-full bg-primary/20">
-            <Text className="text-primary text-sm font-bold">
-              Predicción {data.cycleType === 'regular' ? 'regular' : 'irregular'}
+              <View className="absolute items-center">
+                <Text className="text-6xl font-bold text-text-primary">
+                  {currentDelay}
+                </Text>
+                <Text className="text-red-500 text-base font-medium">
+                  día{currentDelay > 1 ? 's' : ''} de retraso
+                </Text>
+              </View>
+            </View>
+
+            <Text className="text-xl font-bold mt-2 text-text-primary">
+              Esperando inicio
+            </Text>
+
+            <Text className="text-sm text-text-muted text-center mt-3 px-4">
+              La predicción puede variar. Consulta tu médico si tienes dudas.
             </Text>
           </View>
-        </View>
+        ) : (
+          <View className="mt-6 bg-background rounded-[40px] p-6 items-center">
+            <Text className="uppercase text-base font-medium text-text-muted mb-4">
+              Próximo periodo
+            </Text>
+
+            {/* Circular counter */}
+            <View className="w-50 h-50 items-center justify-center">
+              <CircularProgress
+                value={progress}
+                size={180}
+                color={colors.lavender}
+              />
+
+              <View className="absolute items-center">
+                <Text className="text-6xl font-bold text-text-primary">
+                  {daysUntilPeriod}
+                </Text>
+                <Text className="text-text-muted text-base">días</Text>
+              </View>
+            </View>
+
+            <Text className="text-lg font-bold mt-4 text-text-primary">
+              {formatDate(nextPeriodResult.date, 'long')}
+            </Text>
+
+            <View className="mt-2 px-3 py-1 w-fit rounded-full bg-primary/20">
+              <Text className="text-primary text-sm font-bold">
+                Predicción {data.cycleType === 'regular' ? 'regular' : 'irregular'}
+              </Text>
+            </View>
+          </View>
+        )}
 
         {/* Current phase */}
-        <View className={`w-full mt-6 ${phaseColors.bgColor} rounded-[32px] p-5 shadow-md border ${phaseColors.borderColor} relative `}>
+        <View className={`w-full mt-6 ${currentDelay && currentDelay > 0 ? 'bg-orange-50 border-orange-200' : phaseColors.bgColor} rounded-[32px] p-5 shadow-md border ${currentDelay && currentDelay > 0 ? 'border-orange-200' : phaseColors.borderColor} relative `}>
           <View className='w-full h-full absolute inset-0 bg-white/70 m-5 rounded-3xl blur-sm' />
 
           <View className="flex-row items-center gap-2 mb-3">
-            <MyIcon name="Droplet" size={20} className={`${phaseColors.iconColor} fill-current`} />
+            <MyIcon name="Droplet" size={20} className={`${currentDelay && currentDelay > 0 ? 'text-orange-500' : phaseColors.iconColor} fill-current`} />
 
-            <Text className={`${phaseColors.textColor} font-bold uppercase text-sm`}>
+            <Text className={`${currentDelay && currentDelay > 0 ? 'text-orange-500' : phaseColors.textColor} font-bold uppercase text-sm`}>
               Estado actual
             </Text>
           </View>
 
           <Text className="text-2xl font-bold text-text-primary">
-            {/* Fase Lútea */}
-            {getPhaseName(phase)}
+            {currentDelay && currentDelay > 0 ? 'Ciclo Extendido' : getPhaseName(phase)}
           </Text>
 
           <Text className="text-text-muted mt-2">
-            {/* Día 19 del ciclo. Tu energía puede empezar a disminuir. */}
-            {getPhaseDescription(phase, cycleDay)}
+            {currentDelay && currentDelay > 0
+              ? `Día ${cycleDay} del ciclo. Es normal tener variaciones ocasionales.`
+              : getPhaseDescription(phase, cycleDay)
+            }
           </Text>
 
-          <TouchableOpacity onPress={() => router.push('/registro')} activeOpacity={0.6} className={`w-full mt-5 ${phaseColors.buttonBg} py-5 rounded-full items-center justify-center flex-row gap-2`}>
+          <TouchableOpacity onPress={() => router.push('/registro')} activeOpacity={0.6} className={`w-full mt-5 ${currentDelay && currentDelay > 0 ? 'bg-orange-500' : phaseColors.buttonBg} py-5 rounded-full items-center justify-center flex-row gap-2`}>
             <MyIcon name="NotebookPen" size={20} className="text-white " />
             <Text className="text-white font-bold text-base">
               Registrar síntomas

@@ -310,15 +310,16 @@ export const CyclesService = {
     user_id: string;
     start_date: string;
     end_date?: string;
+    delay?: number;
   }): Promise<string> {
     const db = await getDatabase();
     const id = cycle.id || `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     await db.runAsync(
       `INSERT OR REPLACE INTO cycles 
-       (id, user_id, start_date, end_date, synced, updated_at)
-       VALUES (?, ?, ?, ?, 0, CURRENT_TIMESTAMP)`,
-      [id, cycle.user_id, cycle.start_date, cycle.end_date]
+       (id, user_id, start_date, end_date, delay, synced, updated_at)
+       VALUES (?, ?, ?, ?, ?, 0, CURRENT_TIMESTAMP)`,
+      [id, cycle.user_id, cycle.start_date, cycle.end_date, cycle.delay || 0]
     );
 
     // Queue for sync
@@ -332,6 +333,7 @@ export const CyclesService = {
           user: cycle.user_id,
           startDate: cycle.start_date,
           endDate: cycle.end_date,
+          delay: cycle.delay || 0,
         }),
       ]
     );
@@ -344,6 +346,7 @@ export const CyclesService = {
     id: string;
     start_date: string;
     end_date: string | null;
+    delay: number;
     synced: boolean;
   }>> {
     const db = await getDatabase();
@@ -351,13 +354,83 @@ export const CyclesService = {
       id: string;
       start_date: string;
       end_date: string | null;
+      delay: number;
       synced: number;
     }>(`SELECT * FROM cycles WHERE user_id = ? ORDER BY start_date DESC`, [userId]);
 
     return result.map((row) => ({
       ...row,
+      delay: row.delay || 0,
       synced: Boolean(row.synced),
     }));
+  },
+
+  // Get cycle by start date
+  async getByStartDate(userId: string, startDate: string): Promise<{
+    id: string;
+    start_date: string;
+    end_date: string | null;
+    delay: number;
+    synced: boolean;
+  } | null> {
+    const db = await getDatabase();
+    const result = await db.getFirstAsync<{
+      id: string;
+      start_date: string;
+      end_date: string | null;
+      delay: number;
+      synced: number;
+    }>(`SELECT * FROM cycles WHERE user_id = ? AND start_date = ?`, [userId, startDate]);
+
+    if (!result) return null;
+
+    return {
+      ...result,
+      delay: result.delay || 0,
+      synced: Boolean(result.synced),
+    };
+  },
+
+  // Mark delay on a cycle (creates cycle if doesn't exist)
+  async markDelay(userId: string, predictedStartDate: string, delayDays: number): Promise<string> {
+    const db = await getDatabase();
+    
+    // Check if cycle already exists for this predicted date
+    const existing = await this.getByStartDate(userId, predictedStartDate);
+    
+    if (existing) {
+      // Update existing cycle with delay
+      await db.runAsync(
+        `UPDATE cycles SET delay = ?, synced = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+        [delayDays, existing.id]
+      );
+
+      // Queue for sync
+      await db.runAsync(
+        `INSERT OR REPLACE INTO sync_queue (id, table_name, record_id, operation, data)
+         VALUES (?, 'cycles', ?, 'update', ?)`,
+        [
+          `sync_${existing.id}`,
+          existing.id,
+          JSON.stringify({
+            user: userId,
+            startDate: existing.start_date,
+            endDate: existing.end_date,
+            delay: delayDays,
+          }),
+        ]
+      );
+
+      return existing.id;
+    } else {
+      // Create new cycle record with delay
+      return await this.save({
+        user_id: userId,
+        start_date: predictedStartDate,
+        end_date: null,
+        delay: delayDays,
+      });
+    }
   },
 };
 

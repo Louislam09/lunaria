@@ -172,9 +172,9 @@ export async function syncFromPocketBase(userId: string): Promise<void> {
         for (const cycle of cycles) {
             await db.runAsync(
                 `INSERT OR REPLACE INTO cycles 
-         (id, user_id, start_date, end_date, synced)
-         VALUES (?, ?, ?, ?, 1)`,
-                [cycle.id, cycle.user, cycle.startDate, cycle.endDate]
+         (id, user_id, start_date, end_date, delay, synced)
+         VALUES (?, ?, ?, ?, ?, 1)`,
+                [cycle.id, cycle.user, cycle.startDate, cycle.endDate, cycle.delay || 0]
             );
         }
 
