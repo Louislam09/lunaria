@@ -62,7 +62,7 @@ export default function SettingsScreen() {
   };
 
   const userName = data.name || user?.name || 'Usuario';
-  const userEmail = user?.email || 'usuario@email.com';
+  const userEmail = user?.email || ' ';
 
   // Redirect to onboarding if not complete
   useEffect(() => {

@@ -77,7 +77,7 @@ export function ProfileMenu({ onMenuClose }: ProfileMenuProps) {
                         {name}
                     </Text>
                     <Text className="text-xs text-text-muted mt-0.5">
-                        {user?.email || 'usuario@email.com'}
+                        {user?.email || ' '}
                     </Text>
                 </View>
             </View>

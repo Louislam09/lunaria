@@ -31,7 +31,7 @@ export default function ProfileScreen() {
     const [plan, setPlan] = useState<'premium' | 'free'>('free')
     const [isPickingImage, setIsPickingImage] = useState(false)
     const userName = data.name || user?.name || 'Usuario'
-    const userEmail = user?.email || 'usuario@email.com'
+    const userEmail = user?.email || ' '
     const { averageCycleLength = 28, periodLength = 5 } = data
 
     const userId = isAuthenticated && user ? user.id : localUserId
@@ -204,7 +204,7 @@ export default function ProfileScreen() {
                     {
                         text: 'Cancelar',
                         style: 'cancel',
-                        onPress: () => {},
+                        onPress: () => { },
                     },
                     {
                         text: 'Galería',

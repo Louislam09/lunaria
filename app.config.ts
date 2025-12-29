@@ -92,7 +92,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
                         "timePicker": {
                             "numbersSelectorColor": {
                                 "light": colors.lavender,
-                                "dark": colors.lavender
                             }
                         }
                     }
