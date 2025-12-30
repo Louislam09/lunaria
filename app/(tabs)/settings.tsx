@@ -16,6 +16,7 @@ import { exportData, importData } from '@/services/exportImport';
 import { sendTestNotification, getAllScheduledNotifications } from '@/services/notifications';
 import { formatDate } from '@/utils/dates';
 import Constants from 'expo-constants';
+import * as Updates from 'expo-updates';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -25,6 +26,8 @@ import * as FileSystem from 'expo-file-system';
 
 export default function SettingsScreen() {
   const version = Constants.expoConfig?.version;
+  const build = Constants.expoConfig?.android?.versionCode ?? "";
+  const appVersion = `Versión ${version} (Build ${build})`;
   const { data, reset, isLoading, isComplete, updateData } = useOnboarding();
   const { user, logout, isAuthenticated, localUserId } = useAuth();
   const { sync, setSyncFrequency, frequency, pendingItems, lastSyncTime, isSyncing } = useSync();
@@ -39,6 +42,7 @@ export default function SettingsScreen() {
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
   const [showLastPeriodPicker, setShowLastPeriodPicker] = useState(false);
   const [isPickingImage, setIsPickingImage] = useState(false);
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
 
   // Notification manager
   const {
@@ -290,6 +294,51 @@ export default function SettingsScreen() {
     } catch (error: any) {
       console.error('Error saving avatar:', error);
       alertError('Error', 'No se pudo guardar la foto de perfil. Intenta más tarde.');
+    }
+  };
+
+  const handleCheckForUpdates = async () => {
+    // Only check for updates in production builds
+    if (!Updates.isEnabled) {
+      alertWarning('No disponible', 'La verificación de actualizaciones solo está disponible en versiones de producción.');
+      return;
+    }
+
+    try {
+      setIsCheckingUpdate(true);
+      const update = await Updates.checkForUpdateAsync();
+
+      if (update.isAvailable) {
+        confirm(
+          'Actualización disponible',
+          'Hay una nueva actualización disponible. ¿Deseas descargarla ahora?',
+          async () => {
+            try {
+              await Updates.fetchUpdateAsync();
+              alertSuccess(
+                'Actualización descargada',
+                'La actualización se ha descargado correctamente. Se reiniciará la aplicación para aplicar los cambios.'
+              );
+              await Updates.reloadAsync();
+            } catch (error: any) {
+              console.error('Error fetching update:', error);
+              alertError('Error', 'No se pudo descargar la actualización. Intenta más tarde.');
+            } finally {
+              setIsCheckingUpdate(false);
+            }
+          },
+          () => {
+            setIsCheckingUpdate(false);
+          }
+        );
+      } else {
+        alertSuccess('Todo actualizado', 'Tu aplicación está actualizada a la última versión.');
+        setIsCheckingUpdate(false);
+      }
+    } catch (error: any) {
+      console.error('Error checking for updates:', error);
+      alertError('Error', 'No se pudo verificar actualizaciones. Intenta más tarde.');
+      setIsCheckingUpdate(false);
     }
   };
 
@@ -631,6 +680,16 @@ export default function SettingsScreen() {
         {/* Reset */}
         <SettingsSection title="Opciones Avanzadas">
           <SettingsItem
+            icon="Download"
+            iconBg="bg-blue-100"
+            iconColor="text-blue-500"
+            title="Verificar actualizaciones"
+            subtitle={isCheckingUpdate ? 'Verificando...' : 'Buscar nuevas versiones'}
+            onPress={handleCheckForUpdates}
+            showDivider
+            disabled={isCheckingUpdate}
+          />
+          <SettingsItem
             icon="RefreshCcw"
             iconBg="bg-gray-100"
             iconColor="text-gray-500"
@@ -652,7 +711,7 @@ export default function SettingsScreen() {
           )}
 
           <Text className="text-sm font-medium text-text-muted">
-            Versión {version}
+            {appVersion}
           </Text>
         </View>
       </ScrollView>

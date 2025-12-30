@@ -18,8 +18,9 @@ import { getReadNotifications } from '@/services/readNotifications';
 import { colors } from '@/utils/colors';
 import { formatDate } from '@/utils/dates';
 import { router } from 'expo-router';
+import * as Updates from 'expo-updates';
 import React, { useEffect, useMemo, useState, useRef } from 'react';
-import { Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, ScrollView, Text, TouchableOpacity, View, RefreshControl } from 'react-native';
 import { PHASE_INSIGHTS } from '@/constants/phaseInsights';
 
 export default function HomeScreen() {
@@ -55,6 +56,7 @@ export default function HomeScreen() {
   const [readNotifications, setReadNotifications] = useState<Set<string>>(new Set());
   const confirmationShownRef = useRef(false);
   const [currentDelay, setCurrentDelay] = useState<number | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Load scheduled notifications and read status for unread count
   useEffect(() => {
@@ -191,6 +193,50 @@ export default function HomeScreen() {
       setReadNotifications(readIds);
     } catch (error) {
       console.error('Error loading read notifications:', error);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      // Reload data
+      await loadScheduledNotifications();
+      await loadReadNotifications();
+      await loadCurrentDelay();
+      await checkConfirmation();
+
+      // Check for app updates if enabled
+      if (Updates.isEnabled) {
+        try {
+          const update = await Updates.checkForUpdateAsync();
+
+          if (!update.isAvailable) {
+            alertSuccess('Ya tienes la última versión ✅');
+            return;
+          }
+
+          if (update.isAvailable) {
+            // Silently download update in background
+            await Updates.fetchUpdateAsync();
+            // Show success message
+            alertSuccess(
+              'Actualización disponible',
+              'Se ha descargado una nueva actualización. La aplicación se reiniciará para aplicar los cambios.'
+            );
+            // Reload after a short delay
+            setTimeout(() => {
+              Updates.reloadAsync();
+            }, 1000);
+          }
+        } catch (updateError) {
+          // Silently fail update check - don't show error to user
+          console.log('Update check failed:', updateError);
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing:', error);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -357,7 +403,18 @@ export default function HomeScreen() {
       </View>
 
       {/* Scroll content */}
-      <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1 px-4"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.lavender}
+            colors={[colors.lavender]}
+          />
+        }
+      >
         <View className="h-16" />
 
         {/* Delayed Period Card or Next Period Card */}

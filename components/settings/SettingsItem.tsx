@@ -12,6 +12,7 @@ type SettingsItemProps = {
     showDivider?: boolean;
     showChevron?: boolean;
     onPress?: () => void;
+    disabled?: boolean;
 }
 
 export function SettingsItem({
@@ -23,9 +24,14 @@ export function SettingsItem({
     showDivider = true,
     showChevron = true,
     onPress,
+    disabled = false,
 }: SettingsItemProps) {
     return (
-        <TouchableOpacity className="flex-row items-center justify-between px-5 py-4" onPress={onPress}>
+        <TouchableOpacity 
+            className={`flex-row items-center justify-between px-5 py-4 ${disabled ? 'opacity-50' : ''}`} 
+            onPress={disabled ? undefined : onPress}
+            disabled={disabled}
+        >
             <View className="flex-row items-center gap-4  flex-1">
                 <View
                     className={`h-10 w-10 items-center justify-center rounded-full ${iconBg}`}
