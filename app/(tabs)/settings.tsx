@@ -6,10 +6,13 @@ import { SyncFrequencyPicker } from '@/components/settings/SyncFrequencyPicker';
 import { TimePicker } from '@/components/settings/TimePicker';
 import { ToggleRow } from '@/components/settings/ToggleRow';
 import MyIcon from '@/components/ui/Icon';
+import { Paywall } from '@/components/revenuecat/Paywall';
+import { CustomerCenter } from '@/components/revenuecat/CustomerCenter';
 import { useAuth } from '@/context/AuthContext';
 import { useAlert } from '@/context/AlertContext';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { useSync } from '@/context/SyncContext';
+import { useRevenueCat } from '@/context/RevenueCatContext';
 import { useNotificationManager } from '@/hooks/useNotificationManager';
 import { Conflict, detectConflicts, resolveConflictLocal, resolveConflictRemote } from '@/services/conflictResolution';
 import { exportData, importData } from '@/services/exportImport';
@@ -29,6 +32,7 @@ export default function SettingsScreen() {
   const { user, logout, isAuthenticated, localUserId } = useAuth();
   const { sync, setSyncFrequency, frequency, pendingItems, lastSyncTime, isSyncing } = useSync();
   const { alertError, alertSuccess, alertWarning, confirm, actionSheet } = useAlert();
+  const { isPro, isLoading: isLoadingRevenueCat } = useRevenueCat();
   const { averageCycleLength = 28, cycleRangeMin, cycleRangeMax, periodLength = 5 } = data;
   const [aiPredictionEnabled, setAiPredictionEnabled] = useState(true);
   const [conflicts, setConflicts] = useState<Conflict[]>([]);
@@ -39,6 +43,9 @@ export default function SettingsScreen() {
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
   const [showLastPeriodPicker, setShowLastPeriodPicker] = useState(false);
   const [isPickingImage, setIsPickingImage] = useState(false);
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [showCustomerCenter, setShowCustomerCenter] = useState(false);
 
   // Notification manager
   const {
@@ -317,9 +324,33 @@ export default function SettingsScreen() {
           name={userName}
           email={userEmail}
           avatarUrl={data.avatarUrl}
-          isPremium={false}
+          isPremium={isPro}
           onEditPress={handlePickImage}
         />
+
+        {/* Suscripción */}
+        <SettingsSection title="Suscripción">
+          <SettingsItem
+            icon="Crown"
+            iconBg="bg-yellow-100"
+            iconColor="text-yellow-500"
+            title="Lunaria Pro"
+            subtitle={isPro ? 'Activa' : 'Desbloquea todas las funciones'}
+            onPress={() => setShowPaywall(true)}
+            showDivider={isPro}
+          />
+          {isPro && (
+            <SettingsItem
+              icon="Settings"
+              iconBg="bg-blue-100"
+              iconColor="text-blue-500"
+              title="Gestionar Suscripción"
+              subtitle="Ver y administrar tu suscripción"
+              onPress={() => setShowCustomerCenter(true)}
+              showDivider={false}
+            />
+          )}
+        </SettingsSection>
 
         {/* Mi Ciclo */}
         <SettingsSection title="Mi Ciclo">
@@ -663,6 +694,21 @@ export default function SettingsScreen() {
         conflicts={conflicts}
         onResolve={handleResolveConflict}
         onClose={() => setShowConflictModal(false)}
+      />
+
+      {/* RevenueCat Paywall */}
+      <Paywall
+        visible={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        onPurchaseComplete={() => {
+          setShowPaywall(false);
+        }}
+      />
+
+      {/* RevenueCat Customer Center */}
+      <CustomerCenter
+        visible={showCustomerCenter}
+        onClose={() => setShowCustomerCenter(false)}
       />
     </View>
   );
