@@ -151,6 +151,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
             },
         },
         updates: {
+            url: "https://u.expo.dev/96967cfe-83c1-46f4-81bb-1a1cfb2d5f88",
             fallbackToCacheTimeout: 0,
             checkAutomatically: 'ON_LOAD',
         },
