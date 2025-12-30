@@ -25,7 +25,7 @@ import { PHASE_INSIGHTS } from '@/constants/phaseInsights';
 export default function HomeScreen() {
   const { data, isLoading, isComplete, updateData } = useOnboarding();
   const { user, isAuthenticated, localUserId } = useAuth();
-  const { confirm, alertSuccess } = useAlert();
+  const { alert, alertSuccess } = useAlert();
 
   // Redirect to onboarding if not complete
   useEffect(() => {
@@ -95,8 +95,21 @@ export default function HomeScreen() {
 
   // Check for period confirmation when component mounts or data changes
   useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📅 Period Confirmation Effect:', {
+        isComplete,
+        hasLastPeriodStart: !!data.lastPeriodStart,
+        needsConfirmation,
+        hasPredictedDate: !!predictedDate,
+        confirmationShown: confirmationShownRef.current
+      });
+    }
+
     if (isComplete && data.lastPeriodStart && needsConfirmation && predictedDate && !confirmationShownRef.current) {
       confirmationShownRef.current = true;
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ Showing confirmation dialog');
+      }
       handlePeriodConfirmation();
     }
 
@@ -115,45 +128,64 @@ export default function HomeScreen() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const todayStr = today.toISOString().split('T')[0];
+    const predictedDateObj = new Date(predictedDate);
+    predictedDateObj.setHours(0, 0, 0, 0);
+    const daysDelay = Math.floor((today.getTime() - predictedDateObj.getTime()) / (1000 * 60 * 60 * 24));
 
-    confirm(
-      '¿Llegó tu periodo?',
-      `Según nuestras predicciones, tu periodo debería haber llegado hoy (${formatDate(predictedDate, 'long')}). ¿Ya llegó?`,
-      async () => {
-        // User says YES - period arrived
-        try {
-          // Navigate to registro screen with today's date to log the period
-          router.push(`/registro?date=${todayStr}`);
-          await checkConfirmation();
-        } catch (error) {
-          console.error('Error navigating to registro:', error);
-        }
-      },
-      async () => {
-        // User says NO - it's a delay (retraso)
-        try {
-          const predictedDateObj = new Date(predictedDate);
-          predictedDateObj.setHours(0, 0, 0, 0);
-          const predictedDateStr = predictedDateObj.toISOString().split('T')[0];
-          const daysDelay = Math.floor((today.getTime() - predictedDateObj.getTime()) / (1000 * 60 * 60 * 24));
+    // Check if there's already a delay recorded
+    const predictedDateStr = predictedDateObj.toISOString().split('T')[0];
+    const existingCycle = await CyclesService.getByStartDate(userId, predictedDateStr);
+    const hasExistingDelay = existingCycle && existingCycle.delay > 0;
 
-          // Mark delay on cycle
-          await CyclesService.markDelay(userId, predictedDateStr, daysDelay);
+    // Build message based on whether delay already exists
+    const message = hasExistingDelay && daysDelay > existingCycle.delay
+      ? `Tu periodo se retrasó ${existingCycle.delay} día${existingCycle.delay > 1 ? 's' : ''} y ahora lleva ${daysDelay} día${daysDelay > 1 ? 's' : ''} de retraso. ¿Ya llegó?`
+      : `Según nuestras predicciones, tu periodo debería haber llegado ${daysDelay === 0 ? 'hoy' : `hace ${daysDelay} día${daysDelay > 1 ? 's' : ''}`} (${formatDate(predictedDate, 'long')}). ¿Ya llegó?`;
 
-          // Reload delay to update UI
-          await loadCurrentDelay();
+    alert({
+      title: '¿Llegó tu periodo?',
+      message: message,
+      type: 'warning',
+      buttons: [
+        {
+          text: 'No',
+          style: 'cancel',
+          onPress: async () => {
+            // User says NO - it's a delay (retraso)
+            try {
+              // Mark delay on cycle (will update if already exists)
+              await CyclesService.markDelay(userId, predictedDateStr, daysDelay);
 
-          alertSuccess(
-            'Retraso registrado',
-            `Hemos registrado que tu periodo se retrasó ${daysDelay} día${daysDelay > 1 ? 's' : ''}. Te notificaremos cuando llegue.`
-          );
+              // Reload delay to update UI
+              await loadCurrentDelay();
 
-          await checkConfirmation();
-        } catch (error) {
-          console.error('Error marking delay:', error);
-        }
-      }
-    );
+              alertSuccess(
+                'Retraso registrado',
+                `Hemos registrado que tu periodo se retrasó ${daysDelay} día${daysDelay > 1 ? 's' : ''}. Te notificaremos cuando llegue.`
+              );
+
+              await checkConfirmation();
+            } catch (error) {
+              console.error('Error marking delay:', error);
+            }
+          },
+        },
+        {
+          text: 'Sí',
+          style: 'default',
+          onPress: async () => {
+            // User says YES - period arrived
+            try {
+              // Navigate to registro screen with today's date to log the period
+              router.push(`/registro?date=${todayStr}`);
+              await checkConfirmation();
+            } catch (error) {
+              console.error('Error navigating to registro:', error);
+            }
+          },
+        },
+      ],
+    });
   };
 
   const loadScheduledNotifications = async () => {

@@ -33,7 +33,13 @@ export function AlertProvider({ children }: { children: ReactNode }) {
     });
 
     const hideAlert = useCallback(() => {
-        setAlertState((prev) => ({ ...prev, visible: false }));
+        setAlertState((prev) => {
+            // Call custom onDismiss if provided before hiding
+            if (prev.onDismiss) {
+                prev.onDismiss();
+            }
+            return { ...prev, visible: false };
+        });
     }, []);
 
     const showAlert = useCallback((options: AlertOptions) => {

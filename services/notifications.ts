@@ -54,10 +54,10 @@ export async function initializeNotificationChannels() {
     showBadge: true,
   });
 
-  // Daily log reminder channel
+  // Drug reminder channel
   await Notifications.setNotificationChannelAsync('daily_log', {
-    name: 'Recordatorio Diario',
-    description: 'Recordatorios para registrar tus síntomas diarios',
+    name: 'Recordatorio de Medicamentos',
+    description: 'Recordatorios para tomar tus medicamentos',
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 150],
     lightColor: '#E91E63',
@@ -182,6 +182,9 @@ export async function schedulePeriodReminders(
   daysBefore: number[],
   time: string
 ): Promise<string[]> {
+  // Cancel existing period reminders first
+  await cancelPeriodReminders();
+
   const identifiers: string[] = [];
 
   for (const days of daysBefore) {
@@ -234,6 +237,9 @@ export async function scheduleFertileWindowNotification(
     return null;
   }
 
+  // Cancel existing fertile window notifications first
+  await cancelFertileWindowNotification();
+
   const identifier = NOTIFICATION_IDS.FERTILE_PREFIX + fertileWindowStart.getTime();
 
   await Notifications.scheduleNotificationAsync({
@@ -266,21 +272,42 @@ export async function scheduleDailyLogReminder(
   time: string,
   enabled: boolean
 ): Promise<string | null> {
-  // Cancel existing daily log reminder first
-  await cancelDailyLogReminder();
-
   if (!enabled) {
+    // Cancel existing notifications if disabled
+    await cancelDailyLogReminder();
     return null;
   }
 
   const { hour, minute } = parseTime(time);
+
+  // Check if notification is already scheduled
+  const isAlreadyScheduled = await getAllScheduledNotifications();
+  const dailyLogNotifications = isAlreadyScheduled.filter(
+    (notification: any) => notification?.trigger?.channelId === 'daily_log'
+  );
+
+  // If already scheduled, don't schedule again
+  if (dailyLogNotifications.length > 0) {
+    return null;
+  }
+
+  // Calculate the target time for today or tomorrow
+  const now = new Date();
+  const targetTime = new Date();
+  targetTime.setHours(hour, minute, 0, 0);
+
+  // If time has passed today, schedule for tomorrow
+  if (targetTime <= now) {
+    targetTime.setDate(targetTime.getDate() + 1);
+  }
+
   const identifier = NOTIFICATION_IDS.DAILY_LOG_PREFIX + 'recurring';
 
   await Notifications.scheduleNotificationAsync({
     identifier,
     content: {
-      title: 'Registro diario',
-      body: '¿Cómo te sientes hoy? Recuerda registrar tus síntomas.',
+      title: 'Recordatorio de medicamentos',
+      body: 'Es hora de tomar tus medicamentos.',
       sound: true,
       data: {
         type: 'daily_log',
@@ -288,11 +315,10 @@ export async function scheduleDailyLogReminder(
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
-      hour,
-      minute,
-      repeats: true,
+      hour: targetTime.getHours(),
+      minute: targetTime.getMinutes(),
+      channelId: 'daily_log',
     },
-    ...(Platform.OS === 'android' && { channelId: 'daily_log' }),
   });
 
   return identifier;
@@ -386,8 +412,8 @@ export async function cancelFertileWindowNotification(): Promise<void> {
 export async function cancelDailyLogReminder(): Promise<void> {
   try {
     const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-    const dailyLogNotifications = scheduled.filter((n) =>
-      n.identifier.startsWith(NOTIFICATION_IDS.DAILY_LOG_PREFIX)
+    const dailyLogNotifications = scheduled.filter(
+      (notification: any) => notification?.trigger?.channelId === 'daily_log'
     );
 
     await Promise.all(

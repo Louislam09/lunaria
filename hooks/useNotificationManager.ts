@@ -80,11 +80,7 @@ export function useNotificationManager(): UseNotificationManagerReturn {
         }
       }
 
-      // Cancel old notifications first
-      await cancelPeriodReminders();
-      await cancelFertileWindowNotification();
-
-      // Schedule period reminders
+      // Schedule period reminders (function handles cancellation internally)
       if (
         preferences.periodReminders.enabled &&
         predictions.nextPeriodResult.date &&
@@ -123,8 +119,8 @@ export function useNotificationManager(): UseNotificationManagerReturn {
         }
       }
 
-      // Schedule daily log reminder (recurring)
-      if (preferences.dailyLogReminder.enabled && preferences.dailyLogReminder.repeat) {
+      // Schedule daily log reminder (recurring) - only if not already scheduled
+      if (preferences.dailyLogReminder.enabled) {
         await scheduleDailyLogReminder(
           preferences.dailyLogReminder.time,
           preferences.dailyLogReminder.enabled
@@ -155,14 +151,78 @@ export function useNotificationManager(): UseNotificationManagerReturn {
       const updated = await updateNotificationPreferences(updates);
       setPreferences(updated);
 
-      // Reschedule notifications if enabled
-      if (updated.enabled) {
-        await rescheduleNotifications();
-      } else {
+      if (!updated.enabled) {
         await clearNotifications();
+        return;
+      }
+
+      // Handle daily log reminder changes separately
+      const dailyLogChanged = updates.dailyLogReminder?.time !== undefined ||
+        updates.dailyLogReminder?.enabled !== undefined;
+
+      if (dailyLogChanged) {
+        // Cancel existing daily log reminder if time changed or disabled
+        if (updates.dailyLogReminder?.time !== undefined || !updated.dailyLogReminder?.enabled) {
+          await cancelDailyLogReminder();
+        }
+
+        // Schedule new notification if enabled
+        if (updated.dailyLogReminder?.enabled) {
+          await scheduleDailyLogReminder(
+            updated.dailyLogReminder.time,
+            updated.dailyLogReminder.enabled
+          );
+        }
+      }
+
+      // Handle period and fertile window notification changes
+      const periodOrFertileChanged = updates.periodReminders !== undefined ||
+        updates.fertileWindowReminders !== undefined;
+
+      if (periodOrFertileChanged) {
+        // Cancel old period and fertile window notifications
+        await cancelPeriodReminders();
+        await cancelFertileWindowNotification();
+
+        // Schedule period reminders
+        if (
+          updated.periodReminders.enabled &&
+          predictions.nextPeriodResult.date &&
+          updated.periodReminders.daysBefore.length > 0
+        ) {
+          await schedulePeriodReminders(
+            predictions.nextPeriodResult.date,
+            updated.periodReminders.daysBefore,
+            updated.periodReminders.time
+          );
+        }
+
+        // Schedule fertile window notification
+        if (
+          updated.fertileWindowReminders.enabled &&
+          predictions.fertileWindow &&
+          data.cycleType === 'regular' &&
+          data.averageCycleLength
+        ) {
+          const cycleLength = data.averageCycleLength;
+          const fertileWindow = getFertileWindow(cycleLength);
+          if (fertileWindow) {
+            const fertileStartDay = fertileWindow.startDay;
+            const lastPeriodStart = new Date(data.lastPeriodStart!);
+            const fertileStartDate = new Date(lastPeriodStart);
+            fertileStartDate.setDate(fertileStartDate.getDate() + fertileStartDay);
+
+            if (fertileStartDate.getTime() > Date.now()) {
+              await scheduleFertileWindowNotification(
+                fertileStartDate,
+                updated.fertileWindowReminders.time
+              );
+            }
+          }
+        }
       }
     },
-    [rescheduleNotifications, clearNotifications]
+    [preferences, predictions, data]
   );
 
   return {

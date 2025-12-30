@@ -504,13 +504,13 @@ export default function SettingsScreen() {
                 )}
               </View>
 
-              {/* Daily Log Reminder */}
+              {/* Drug Reminder */}
               <View className="px-5 py-3 bg-gray-50 border-t border-gray-200">
                 <ToggleRow
-                  icon="PenTool"
-                  iconBg="bg-pink-100"
-                  iconColor="text-pink-500"
-                  title="Recordatorio diario"
+                  icon="Pill"
+                  iconBg="bg-red-100"
+                  iconColor="text-red-500"
+                  title="Recordatorio de medicamentos"
                   subtitle={preferences.dailyLogReminder.enabled ? 'Activado' : 'Desactivado'}
                   value={preferences.dailyLogReminder.enabled}
                   onChange={async (enabled) => {

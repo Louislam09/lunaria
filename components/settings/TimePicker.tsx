@@ -20,11 +20,22 @@ export function TimePicker({ value, onChange, disabled = false }: TimePickerProp
     return date;
   };
 
-  // Format Date to HH:mm string
+  // Format Date to HH:mm string (for storage)
   const formatTime = (date: Date): string => {
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${hours}:${minutes}`;
+  };
+
+  // Format time for display with AM/PM
+  const formatDisplayTime = (timeStr: string): string => {
+    const [hour, minute] = timeStr.split(':').map(Number);
+    const hours = hour || 0;
+    const minutes = minute || 0;
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHour = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+    const displayMinute = minutes.toString().padStart(2, '0');
+    return `${displayHour}:${displayMinute} ${period}`;
   };
 
   const handleChange = (event: any, selectedDate?: Date) => {
@@ -36,16 +47,15 @@ export function TimePicker({ value, onChange, disabled = false }: TimePickerProp
     }
   };
 
-  const displayTime = value || '09:00';
+  const displayTime = formatDisplayTime(value || '09:00');
 
   return (
     <View>
       <TouchableOpacity
         onPress={() => !disabled && setShowPicker(true)}
         disabled={disabled}
-        className={`px-4 py-2 rounded-xl border ${
-          disabled ? 'bg-gray-100 border-gray-200' : 'bg-white border-gray-300'
-        }`}
+        className={`px-4 py-2 rounded-xl border ${disabled ? 'bg-gray-100 border-gray-200' : 'bg-white border-gray-300'
+          }`}
       >
         <Text className={`text-sm font-semibold ${disabled ? 'text-gray-400' : 'text-text-primary'}`}>
           {displayTime}
@@ -56,7 +66,7 @@ export function TimePicker({ value, onChange, disabled = false }: TimePickerProp
         <DateTimePicker
           value={parseTime(value)}
           mode="time"
-          is24Hour={true}
+          is24Hour={false}
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={handleChange}
           textColor={colors.textPrimary}
