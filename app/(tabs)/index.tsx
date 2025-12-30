@@ -95,21 +95,9 @@ export default function HomeScreen() {
 
   // Check for period confirmation when component mounts or data changes
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('📅 Period Confirmation Effect:', {
-        isComplete,
-        hasLastPeriodStart: !!data.lastPeriodStart,
-        needsConfirmation,
-        hasPredictedDate: !!predictedDate,
-        confirmationShown: confirmationShownRef.current
-      });
-    }
 
     if (isComplete && data.lastPeriodStart && needsConfirmation && predictedDate && !confirmationShownRef.current) {
       confirmationShownRef.current = true;
-      if (process.env.NODE_ENV === 'development') {
-        console.log('✅ Showing confirmation dialog');
-      }
       handlePeriodConfirmation();
     }
 

@@ -54,18 +54,6 @@ export function usePeriodConfirmation(): PeriodConfirmationState {
     // 3. There's no period flow logged for today
     const needsConf = isOnOrAfterPredictedDay && !hasConfirmed && (!todayLog || !todayLog.flow);
 
-    // Debug logging
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔍 Period Confirmation Check:', {
-        today: todayStr,
-        predictedDate: predictedDate.toISOString().split('T')[0],
-        daysDiff,
-        isOnOrAfterPredictedDay,
-        hasConfirmed,
-        hasFlow: todayLog?.flow,
-        needsConfirmation: needsConf
-      });
-    }
 
     return needsConf;
   }, [data, cyclePredictions.nextPeriodResult, hasConfirmed, todayLog]);
