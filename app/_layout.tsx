@@ -100,7 +100,7 @@ const Layout = (props) => {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, paddingTop: top, backgroundColor: colors.lavender + "99" }}>
+    <GestureHandlerRootView style={{ flex: 1, paddingTop: top, backgroundColor: colors.moonWhite }}>
       <AlertProvider>
         <AuthProvider>
           <SyncProvider>
