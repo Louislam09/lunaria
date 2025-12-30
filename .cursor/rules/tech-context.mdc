@@ -1,0 +1,98 @@
+---
+alwaysApply: true
+---
+
+## Tech Stack
+
+- **React Native**: 0.81.5 with Expo SDK ~54.0.30
+- **React**: 19.1.0
+- **TypeScript**: ~5.9.2
+- **Expo Router**: ~6.0.21 (file-based routing)
+- **NativeWind**: 5.0.0-preview.2 (Tailwind CSS for React Native)
+- **Tailwind CSS**: ^4.1.17 (via @tailwindcss/postcss)
+- **State Management**: @legendapp/state ^3.0.0-beta.42
+- **Backend**: PocketBase ^0.26.5
+- **Local Database**: Expo SQLite ~16.0.10
+- **Build & Deploy**: EAS (Expo Application Services)
+- **Package Manager**: Yarn 1.22.22+
+- **Node.js**: >= 20.19.4
+
+## Architecture
+
+Local-first architecture with cloud synchronization:
+
+- **Local Storage**: Expo SQLite (`lunaria.db`) for offline-first data persistence
+- **Cloud Sync**: PocketBase for authentication and data synchronization
+- **Routing**: Expo Router with file-based routing in `app/` directory
+- **State Management**:
+  - React Context API (AuthContext, SyncContext, AlertContext, OnboardingContext)
+  - Legend State for reactive state management
+- **Sync Strategy**: Configurable sync frequency (daily/weekly/monthly) with manual sync option
+
+### Project Structure
+
+```
+app/                    # Expo Router screens (file-based routing)
+  (tabs)/              # Tab navigation screens
+  onboarding/         # Onboarding wizard flow
+features/              # Feature-based organization
+  auth/               # Authentication and user management
+  calendar/           # Calendar view with period tracking
+  daily-log/          # Daily symptom and cycle tracking
+  notifications/      # Push notifications and reminders
+  onboarding/         # Onboarding wizard components
+  predictions/        # Cycle predictions and fertile window
+  profile/            # User profile management
+  settings/           # App settings and configuration
+  sync/               # Cloud synchronization logic
+context/              # React Context providers
+  AuthContext.tsx     # Authentication state
+  SyncContext.tsx      # Cloud sync management
+services/             # Business logic & API services
+  database.ts         # SQLite database operations
+  dataService.ts      # Data CRUD operations
+  syncService.ts      # Cloud synchronization
+  pocketbase.ts       # PocketBase client
+components/           # Reusable UI components
+  ui/                 # Base UI components
+hooks/                # Custom React hooks
+utils/                # Utility functions
+constants/            # App constants and configuration
+```
+
+**Features Directory**: Feature-specific code is organized in `features/` by domain. Each feature folder can contain:
+
+- Components specific to that feature
+- Hooks related to that feature
+- Utilities and helpers
+- Types and interfaces
+- Tests
+
+This structure allows for better organization and maintainability as features grow.
+
+## Styling Guidelines
+
+- **Primary**: NativeWind (Tailwind CSS for React Native)
+- Use Tailwind utility classes for styling
+- All components must be mobile responsive
+- Follow mobile-first design approach
+- Use Tailwind responsive prefixes (sm:, md:, lg:, xl:) for breakpoints when needed
+- Custom styles in `global.css` when necessary
+
+## Authentication & Data Flow
+
+- **Guest Mode**: Users can explore the app without authentication (no data persistence)
+- **Authenticated Mode**: Full data persistence with PocketBase cloud sync
+- **Local-First**: All data operations save to SQLite immediately, then sync to cloud
+- **Sync Queue**: Changes are queued locally and synced based on configured frequency
+
+## General Guidelines
+
+- Always use TypeScript for new code. Avoid plain JavaScript files.
+- Only add comments when necessary. Avoid redundant comments that state the obvious. Let the code be self-documenting.
+- Always browse the web before choosing a library to do a task. Make sure you use the latest version and best practices.
+- If you do not know about a library or have latest information about a subject, search online to always get the latest information and refer docs.
+- Always use the best industry standards for production grade apps when working on a task.
+- Never modify unit tests to fix the real issue. Only modify it when the user specifically asks for it.
+- Follow Expo best practices and React Native patterns.
+- Ensure all features work offline-first (save to SQLite immediately, sync later).

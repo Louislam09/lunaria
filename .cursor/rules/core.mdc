@@ -1,0 +1,83 @@
+---
+alwaysApply: true
+---
+
+## Core Rules
+
+### Understanding First
+
+Before making any changes:
+
+1. **Read relevant files** - Understand the current implementation
+2. **Check existing patterns** - Follow established code patterns and architecture
+3. **Review context** - Check `.cursor/rules/` and project documentation
+4. **Understand the impact** - Consider how changes affect the codebase
+
+### Communication & Clarity
+
+- **Always explain** what you're doing and why
+- **Ask for clarification** when requirements are unclear
+- **Propose approaches** for complex changes before implementing
+- **Show examples** when suggesting new patterns or refactoring
+
+### Change Management
+
+**Small Changes** (proceed directly):
+
+- Bug fixes
+- Typo corrections
+- Simple refactoring
+- Adding comments/documentation
+- Following existing patterns
+
+**Significant Changes** (propose first):
+
+- New features or major functionality
+- Architectural changes
+- Breaking changes to APIs
+- Database schema changes
+- New dependencies
+- Changes affecting multiple files
+
+For significant changes:
+
+1. Explain the approach
+2. Show what files will be affected
+3. Highlight any risks or considerations
+4. Wait for confirmation before proceeding
+
+### Code Quality Standards
+
+- **TypeScript first** - Use TypeScript for all new code
+- **Follow project patterns** - Match existing code style and architecture
+- **Local-first architecture** - All data operations save to SQLite first, sync later
+- **Offline support** - Ensure features work without network connection
+- **Error handling** - Include proper error handling and user feedback
+- **Self-documenting code** - Write clear code that explains itself (minimal comments)
+
+### React Native / Expo Best Practices
+
+- Use Expo Router file-based routing patterns
+- Follow NativeWind (Tailwind) styling conventions
+- Respect guest vs authenticated mode patterns
+- Use Context API for shared state (AuthContext, SyncContext, etc.)
+- Ensure mobile-first responsive design
+- Test on both iOS and Android when possible
+
+### When Uncertain
+
+If you're unsure about:
+
+- **User intent** - Ask clarifying questions
+- **Implementation approach** - Propose options and explain trade-offs
+- **Breaking changes** - Always confirm before proceeding
+- **Dependencies** - Research and verify compatibility first
+
+### Documentation Updates
+
+Update documentation when:
+
+- Adding new features or patterns
+- Changing architecture or significant patterns
+- Discovering important implementation details
+- User requests documentation updates

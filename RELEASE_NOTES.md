@@ -127,3 +127,4 @@ Gracias por confiar en Lunaria para el seguimiento de tu salud menstrual. Estamo
 
 **Versión 1.0.0** - Primera versión pública
 **Fecha de lanzamiento**: [Fecha de lanzamiento]
+
