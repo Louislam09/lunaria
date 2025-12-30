@@ -364,11 +364,19 @@ export default function ProfileScreen() {
                             </View>
 
                             {/* Premium Badge */}
-                            <View className="mt-4 rounded-full bg-primary/10 px-4 py-1.5">
-                                <Text className="text-xs font-bold uppercase tracking-wide text-primary">
-                                    USUARIO {plan === 'premium' ? 'PREMIUM' : 'FREE'}
-                                </Text>
-                            </View>
+                            {plan === 'premium' ? (
+                                <View className="mt-4 rounded-full bg-primary/10 px-4 py-1.5">
+                                    <Text className="text-xs font-bold uppercase tracking-wide text-primary">
+                                        USUARIO PREMIUM
+                                    </Text>
+                                </View>
+                            ) : (
+                                <View className="mt-4 rounded-full bg-primary/10 px-4 py-1.5">
+                                    <Text className="text-xs font-bold uppercase tracking-wide text-primary">
+                                        USUARIO FREE
+                                    </Text>
+                                </View>
+                            )}
                         </View>
                     </View>
                 </View>
@@ -399,7 +407,7 @@ export default function ProfileScreen() {
                             {cycleHistory.map((cycle, index) => {
                                 const startFormatted = formatCycleDate(cycle.start_date)
                                 const endFormatted = formatCycleDate(cycle.end_date)
-                                
+
                                 // Build subtitle with delay info if present
                                 let subtitle = `${startFormatted} - ${endFormatted} • ${cycle.duration} día${cycle.duration > 1 ? 's' : ''}`
                                 if (cycle.delay && cycle.delay > 0) {

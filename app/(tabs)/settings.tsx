@@ -317,7 +317,7 @@ export default function SettingsScreen() {
           name={userName}
           email={userEmail}
           avatarUrl={data.avatarUrl}
-          isPremium
+          isPremium={false}
           onEditPress={handlePickImage}
         />
 
