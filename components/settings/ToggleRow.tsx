@@ -12,6 +12,7 @@ type ToggleRowProps = {
     subtitle?: string;
     value: boolean;
     showDivider?: boolean;
+    disabled?: boolean;
     onChange: (value: boolean) => void;
 }
 
@@ -23,15 +24,17 @@ export function ToggleRow({
     subtitle,
     value,
     showDivider = true,
+    disabled = false,
     onChange,
 }: ToggleRowProps) {
     // use expo-haptics
     const handleChange = (value: boolean) => {
+        if (disabled) return;
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onChange(value);
     };
     return (
-        <View className="px-5 py-4">
+        <View className={`px-5 py-4 ${disabled ? 'opacity-50' : ''}`}>
             <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center gap-4">
                     <View
@@ -50,7 +53,13 @@ export function ToggleRow({
                     </View>
                 </View>
 
-                <Switch value={value} onChange={({ nativeEvent: { value } }) => handleChange(value)} thumbColor={colors.moonWhite} trackColor={{ true: colors.lavender, false: colors.textPrimary }} />
+                <Switch 
+                    value={value} 
+                    onChange={({ nativeEvent: { value } }) => handleChange(value)} 
+                    disabled={disabled}
+                    thumbColor={colors.moonWhite} 
+                    trackColor={{ true: colors.lavender, false: colors.textPrimary }} 
+                />
             </View>
 
             {showDivider && (

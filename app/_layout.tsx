@@ -2,6 +2,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { AlertProvider } from "@/context/AlertContext";
 import { OnboardingProvider } from "@/context/OnboardingContext";
 import { SyncProvider } from "@/context/SyncContext";
+import { PremiumProvider } from "@/context/PremiumContext";
 import { colors } from "@/utils/colors";
 import {
   DMSans_400Regular,
@@ -103,18 +104,20 @@ const Layout = (props) => {
     <GestureHandlerRootView style={{ flex: 1, paddingTop: top, backgroundColor: colors.moonWhite }}>
       <AlertProvider>
         <AuthProvider>
-          <SyncProvider>
-            <OnboardingProvider>
-              <SystemBars style="auto" />
-              <Stack
-                initialRouteName="index"
-                screenOptions={{
-                  headerShown: false,
-                }}
-              />
-              <View style={{ paddingBottom: bottom, backgroundColor: colors.moonWhite }} />
-            </OnboardingProvider>
-          </SyncProvider>
+          <PremiumProvider>
+            <SyncProvider>
+              <OnboardingProvider>
+                <SystemBars style="auto" />
+                <Stack
+                  initialRouteName="index"
+                  screenOptions={{
+                    headerShown: false,
+                  }}
+                />
+                <View style={{ paddingBottom: bottom, backgroundColor: colors.moonWhite }} />
+              </OnboardingProvider>
+            </SyncProvider>
+          </PremiumProvider>
         </AuthProvider>
       </AlertProvider>
     </GestureHandlerRootView>

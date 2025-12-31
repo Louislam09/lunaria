@@ -8,6 +8,8 @@ export const DailyLogsService = {
     user_id: string;
     date: string;
     symptoms: string[];
+    custom_symptoms?: string[];
+    symptom_severities?: Record<string, number>;
     flow: string;
     mood: string;
     notes: string;
@@ -17,13 +19,15 @@ export const DailyLogsService = {
 
     await db.runAsync(
       `INSERT OR REPLACE INTO daily_logs 
-       (id, user_id, date, symptoms, flow, mood, notes, synced, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 0, CURRENT_TIMESTAMP)`,
+       (id, user_id, date, symptoms, custom_symptoms, symptom_severities, flow, mood, notes, synced, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, CURRENT_TIMESTAMP)`,
       [
         id,
         log.user_id,
         log.date,
         JSON.stringify(log.symptoms || []),
+        JSON.stringify(log.custom_symptoms || []),
+        JSON.stringify(log.symptom_severities || {}),
         log.flow,
         log.mood,
         log.notes,
@@ -41,6 +45,8 @@ export const DailyLogsService = {
           user: log.user_id,
           date: log.date,
           symptoms: log.symptoms,
+          custom_symptoms: log.custom_symptoms || [],
+          symptom_severities: log.symptom_severities || {},
           flow: log.flow,
           mood: log.mood,
           notes: log.notes,

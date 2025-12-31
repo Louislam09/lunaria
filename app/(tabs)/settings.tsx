@@ -5,11 +5,13 @@ import { SettingsSection } from '@/components/settings/SettingsSection';
 import { SyncFrequencyPicker } from '@/components/settings/SyncFrequencyPicker';
 import { TimePicker } from '@/components/settings/TimePicker';
 import { ToggleRow } from '@/components/settings/ToggleRow';
+import { PremiumSection } from '@/components/settings/PremiumSection';
 import MyIcon from '@/components/ui/Icon';
 import { useAuth } from '@/context/AuthContext';
 import { useAlert } from '@/context/AlertContext';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { useSync } from '@/context/SyncContext';
+import { usePremium } from '@/hooks/usePremium';
 import { useNotificationManager } from '@/hooks/useNotificationManager';
 import { Conflict, detectConflicts, resolveConflictLocal, resolveConflictRemote } from '@/services/conflictResolution';
 import { exportData, importData } from '@/services/exportImport';
@@ -32,6 +34,7 @@ export default function SettingsScreen() {
   const { user, logout, isAuthenticated, localUserId } = useAuth();
   const { sync, setSyncFrequency, frequency, pendingItems, lastSyncTime, isSyncing } = useSync();
   const { alertError, alertSuccess, alertWarning, confirm, actionSheet } = useAlert();
+  const { isPremium } = usePremium();
   const { averageCycleLength = 28, cycleRangeMin, cycleRangeMax, periodLength = 5 } = data;
   const [aiPredictionEnabled, setAiPredictionEnabled] = useState(true);
   const [conflicts, setConflicts] = useState<Conflict[]>([]);
@@ -366,7 +369,6 @@ export default function SettingsScreen() {
           name={userName}
           email={userEmail}
           avatarUrl={data.avatarUrl}
-          isPremium={false}
           onEditPress={handlePickImage}
         />
 
@@ -615,6 +617,11 @@ export default function SettingsScreen() {
           )}
         </SettingsSection>
 
+        {/* Premium */}
+        <SettingsSection title="Premium">
+          <PremiumSection />
+        </SettingsSection>
+
         {/* Preferencias */}
         <SettingsSection title="Preferencias">
           <ToggleRow
@@ -622,9 +629,10 @@ export default function SettingsScreen() {
             iconBg="bg-purple-100"
             iconColor="text-purple-500"
             title="Predicción Inteligente"
-            subtitle="Usar IA para análisis"
-            value={aiPredictionEnabled}
-            onChange={setAiPredictionEnabled}
+            subtitle={isPremium ? "Usar IA para análisis" : "Función Premium"}
+            value={isPremium ? aiPredictionEnabled : false}
+            onChange={isPremium ? setAiPredictionEnabled : () => {}}
+            disabled={!isPremium}
             showDivider={false}
           />
         </SettingsSection>
@@ -673,8 +681,21 @@ export default function SettingsScreen() {
             title="Importar Datos"
             subtitle={isImporting ? 'Importando...' : 'Restaurar desde archivo'}
             onPress={handleImport}
-            showDivider={false}
+            showDivider={isPremium}
           />
+          {isPremium && (
+            <SettingsItem
+              icon="FileText"
+              iconBg="bg-purple-100"
+              iconColor="text-purple-500"
+              title="Generar Reporte de Salud"
+              subtitle="Crear reporte PDF para compartir"
+              onPress={() => {
+                alertWarning('Próximamente', 'La generación de reportes PDF estará disponible pronto');
+              }}
+              showDivider={false}
+            />
+          )}
         </SettingsSection>
 
         {/* Reset */}

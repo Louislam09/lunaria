@@ -33,12 +33,22 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
       user_id TEXT NOT NULL,
       date TEXT NOT NULL,
       symptoms TEXT,
+      custom_symptoms TEXT,
+      symptom_severities TEXT,
       flow TEXT,
       mood TEXT,
       notes TEXT,
       synced INTEGER DEFAULT 0,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(user_id, date)
+    );
+    
+    CREATE TABLE IF NOT EXISTS custom_symptoms (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(user_id, name)
     );
     
     CREATE TABLE IF NOT EXISTS cycles (
@@ -91,6 +101,39 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
     if (!error.message?.includes('duplicate column')) {
       console.warn('Migration warning:', error);
     }
+  }
+
+  // Premium features migrations
+  try {
+    // Add custom symptoms columns to daily_logs
+    await db.execAsync(`ALTER TABLE daily_logs ADD COLUMN custom_symptoms TEXT`);
+  } catch (error: any) {
+    if (!error.message?.includes('duplicate column')) {
+      console.warn('Migration warning:', error);
+    }
+  }
+
+  try {
+    await db.execAsync(`ALTER TABLE daily_logs ADD COLUMN symptom_severities TEXT`);
+  } catch (error: any) {
+    if (!error.message?.includes('duplicate column')) {
+      console.warn('Migration warning:', error);
+    }
+  }
+
+  try {
+    // Create custom_symptoms table
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS custom_symptoms (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, name)
+      );
+    `);
+  } catch (error: any) {
+    console.warn('Migration warning:', error);
   }
 
   // Initialize sync settings with default value (daily)

@@ -3,6 +3,7 @@ import { Pencil } from "lucide-react-native";
 import { View, Text, Image, TouchableOpacity, ImageSourcePropType } from "react-native";
 import MyIcon from "../ui/Icon";
 import { getAvatarSource } from "@/utils/avatar";
+import { usePremium } from "@/hooks/usePremium";
 
 type ProfileCardProps = {
     name: string;
@@ -16,9 +17,11 @@ export function ProfileCard({
     name,
     email,
     avatarUrl,
-    isPremium = false,
+    isPremium: isPremiumProp,
     onEditPress,
 }: ProfileCardProps) {
+    const { isPremium: isPremiumFromContext } = usePremium();
+    const isPremium = isPremiumProp ?? isPremiumFromContext;
     const avatarSource: ImageSourcePropType = getAvatarSource(avatarUrl);
 
     return (

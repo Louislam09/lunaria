@@ -2,6 +2,8 @@ import MyIcon from '@/components/ui/Icon';
 import { useAlert } from '@/context/AlertContext';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { useCyclePredictions } from '@/hooks/useCyclePredictions';
+import { usePremium } from '@/hooks/usePremium';
+import { PremiumUpsell } from '@/components/premium/PremiumUpsell';
 import { formatDate } from '@/utils/dates';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
@@ -13,8 +15,10 @@ export default function PredictionsScreen() {
   const insets = useSafeAreaInsets();
   const { data, isLoading, isComplete, updateData } = useOnboarding();
   const { alertError, alertSuccess, alertInfo } = useAlert();
+  const { isPremium } = usePremium();
   const [showPeriodStartPicker, setShowPeriodStartPicker] = useState(false);
   const [selectedPeriodStartDate, setSelectedPeriodStartDate] = useState(new Date());
+  const [showUpsell, setShowUpsell] = useState(!isPremium && data.cycleType === 'irregular');
 
   // Redirect to onboarding if not complete
   React.useEffect(() => {
@@ -251,6 +255,22 @@ export default function PredictionsScreen() {
             })}
           </View>
         </View>
+
+        {/* Premium Upsell for Irregular Cycles */}
+        {showUpsell && data.cycleType === 'irregular' && (
+          <View className="my-4">
+            <PremiumUpsell
+              title="Predicciones más precisas"
+              description="Para ciclos irregulares, Premium ofrece predicciones mejoradas con IA basadas en tu historial completo."
+              features={[
+                'Análisis avanzado de patrones',
+                'Predicciones adaptativas',
+                'Insights personalizados',
+              ]}
+              onDismiss={() => setShowUpsell(false)}
+            />
+          </View>
+        )}
 
         {/* Mark Period Started Button */}
         <View className="my-4">

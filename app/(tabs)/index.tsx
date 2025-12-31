@@ -12,6 +12,8 @@ import { getAvatarSource } from '@/utils/avatar';
 import { useCyclePredictions } from '@/hooks/useCyclePredictions';
 import { usePeriodConfirmation } from '@/hooks/usePeriodConfirmation';
 import { useNotificationManager } from '@/hooks/useNotificationManager';
+import { usePremium } from '@/hooks/usePremium';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import { CyclesService } from '@/services/dataService';
 import { getAllScheduledNotifications } from '@/services/notifications';
 import { getReadNotifications } from '@/services/readNotifications';
@@ -22,6 +24,7 @@ import * as Updates from 'expo-updates';
 import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { Pressable, ScrollView, Text, TouchableOpacity, View, RefreshControl } from 'react-native';
 import { PHASE_INSIGHTS } from '@/constants/phaseInsights';
+import { PremiumGate } from '@/components/premium/PremiumGate';
 
 export default function HomeScreen() {
   const { data, isLoading, isComplete, updateData } = useOnboarding();
@@ -52,6 +55,8 @@ export default function HomeScreen() {
   const { needsConfirmation, predictedDate, checkConfirmation } = usePeriodConfirmation();
 
   const { preferences } = useNotificationManager();
+  const { isPremium } = usePremium();
+  const { analytics } = useAnalytics();
   const [scheduledNotifications, setScheduledNotifications] = useState<any[]>([]);
   const [readNotifications, setReadNotifications] = useState<Set<string>>(new Set());
   const confirmationShownRef = useRef(false);
@@ -539,6 +544,82 @@ export default function HomeScreen() {
             <MyIcon name="Shield" size={32} className={`${risk.textColor} fill-${risk.color}`} />
           </View>
         </View>
+
+        {/* Premium Analytics Insights */}
+        {isPremium && analytics && analytics.totalCycles > 0 && (
+          <View className="mt-6">
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-xl font-bold text-text-primary">
+                Análisis Premium
+              </Text>
+              <TouchableOpacity
+                onPress={() => router.push('/(tabs)/analytics')}
+                className="flex-row items-center gap-1"
+              >
+                <Text className="text-primary font-semibold text-sm">Ver más</Text>
+                <MyIcon name="ChevronRight" className="text-primary" size={16} />
+              </TouchableOpacity>
+            </View>
+
+            <View className="flex-row gap-3">
+              <View className="flex-1 bg-gradient-to-br from-primary/10 to-primary/5 rounded-3xl p-4 border border-primary/20">
+                <View className="flex-row items-center gap-2 mb-2">
+                  <MyIcon name="TrendingUp" className="text-primary" size={18} />
+                  <Text className="text-xs font-semibold text-primary uppercase">
+                    Regularidad
+                  </Text>
+                </View>
+                <Text className="text-2xl font-bold text-text-primary">
+                  {analytics.cycleRegularityScore}%
+                </Text>
+                <Text className="text-xs text-text-muted mt-1">
+                  {analytics.cycleRegularityScore >= 80
+                    ? 'Muy regular'
+                    : analytics.cycleRegularityScore >= 60
+                    ? 'Regular'
+                    : 'Irregular'}
+                </Text>
+              </View>
+
+              <View className="flex-1 bg-gradient-to-br from-green-50 to-green-100/50 rounded-3xl p-4 border border-green-200">
+                <View className="flex-row items-center gap-2 mb-2">
+                  <MyIcon name="BarChart" className="text-green-600" size={18} />
+                  <Text className="text-xs font-semibold text-green-600 uppercase">
+                    Promedio
+                  </Text>
+                </View>
+                <Text className="text-2xl font-bold text-text-primary">
+                  {analytics.averageCycleLength}
+                </Text>
+                <Text className="text-xs text-text-muted mt-1">días por ciclo</Text>
+              </View>
+            </View>
+
+            {analytics.symptomPatterns.length > 0 && (
+              <View className="mt-3 bg-white rounded-3xl p-4 border border-gray-200 shadow-md">
+                <Text className="text-sm font-semibold text-text-primary mb-2">
+                  Síntoma más frecuente
+                </Text>
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-base text-text-primary">
+                    {analytics.symptomPatterns[0].symptom}
+                  </Text>
+                  <View className="flex-row items-center gap-2">
+                    <Text className="text-sm font-semibold text-text-muted">
+                      {analytics.symptomPatterns[0].frequency}x
+                    </Text>
+                    <View className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <View
+                        className="h-full bg-primary"
+                        style={{ width: `${analytics.symptomPatterns[0].percentage}%` }}
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Insights */}
         <Text className="mt-8 mb-4 text-xl font-bold text-text-primary">
