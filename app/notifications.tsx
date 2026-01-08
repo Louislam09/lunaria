@@ -68,7 +68,7 @@ function NotificationCard({ icon, title, description, time, highlight, onPress }
         const color = icon.className?.split("-")[1];
         return color === 'primary' ? "bg-primary/10" : `bg-${color}-100`;
     }, [icon.className])
-    
+
     return (
         <TouchableOpacity
             onPress={onPress}
@@ -144,13 +144,13 @@ export default function NotificationCenterScreen() {
 
         // Period approaching notification (show if within 3 days)
         if (daysUntilPeriod <= 3 && daysUntilPeriod > 0 && preferences?.periodReminders.enabled) {
-            const scheduledPeriodNotif = scheduledNotifications.find(n => 
-                n.identifier.startsWith('period-reminder-') && 
-                n.trigger && 
+            const scheduledPeriodNotif = scheduledNotifications.find(n =>
+                n.identifier.startsWith('period-reminder-') &&
+                n.trigger &&
                 typeof n.trigger === 'object' &&
                 'date' in n.trigger
             )
-            
+
             notifs.push({
                 id: 'period-approaching',
                 type: 'period',
@@ -159,7 +159,7 @@ export default function NotificationCenterScreen() {
                 icon: 'Calendar',
                 iconBg: 'bg-blue-50',
                 iconColor: 'text-blue-500',
-                timestamp: scheduledPeriodNotif && 'date' in scheduledPeriodNotif.trigger 
+                timestamp: scheduledPeriodNotif && 'date' in scheduledPeriodNotif.trigger
                     ? new Date(scheduledPeriodNotif.trigger.date as number)
                     : new Date(now.getTime() - 2 * 60 * 60 * 1000),
                 isRead: readNotifications.has('period-approaching'),
@@ -169,15 +169,15 @@ export default function NotificationCenterScreen() {
 
         // Fertile window notification
         if (
-            fertileWindow && 
-            cycleDay >= fertileWindow.startDay && 
+            fertileWindow &&
+            cycleDay >= fertileWindow.startDay &&
             cycleDay <= fertileWindow.endDay &&
             preferences?.fertileWindowReminders.enabled
         ) {
-            const scheduledFertileNotif = scheduledNotifications.find(n => 
+            const scheduledFertileNotif = scheduledNotifications.find(n =>
                 n.identifier.startsWith('fertile-window-')
             )
-            
+
             notifs.push({
                 id: 'fertile-window',
                 type: 'fertile',
@@ -196,10 +196,10 @@ export default function NotificationCenterScreen() {
 
         // Daily log reminder (show if enabled)
         if (preferences?.dailyLogReminder.enabled) {
-            const scheduledDailyLog = scheduledNotifications.find(n => 
+            const scheduledDailyLog = scheduledNotifications.find(n =>
                 n.identifier.startsWith('daily-log-')
             )
-            
+
             notifs.push({
                 id: 'daily-log',
                 type: 'daily_log',
@@ -225,16 +225,16 @@ export default function NotificationCenterScreen() {
             if (scheduled.trigger && typeof scheduled.trigger === 'object' && 'date' in scheduled.trigger) {
                 const triggerDate = new Date(scheduled.trigger.date as number)
                 const now = new Date()
-                
+
                 // Only show future notifications that aren't already shown above
                 if (triggerDate.getTime() > now.getTime() && !notifs.find(n => n.scheduledId === scheduled.identifier)) {
                     const content = scheduled.content
                     const notificationType = content?.data?.type || 'analysis'
-                    
+
                     let iconName = 'Bell'
                     let iconBg = 'bg-gray-50'
                     let iconColor = 'text-gray-500'
-                    
+
                     if (notificationType === 'period') {
                         iconName = 'Calendar'
                         iconBg = 'bg-blue-50'
@@ -248,7 +248,7 @@ export default function NotificationCenterScreen() {
                         iconBg = 'bg-pink-50'
                         iconColor = 'text-pink-500'
                     }
-                    
+
                     notifs.push({
                         id: `scheduled-${scheduled.identifier}`,
                         type: notificationType as any,
@@ -295,12 +295,12 @@ export default function NotificationCenterScreen() {
     const groupedNotifications = useMemo(() => {
         const groups: { [key: string]: Notification[] } = {}
         const now = new Date()
-        
+
         notifications.forEach(notif => {
             const notifDate = startOfDay(notif.timestamp)
             const today = startOfDay(now)
             const yesterday = startOfDay(new Date(now.getTime() - 24 * 60 * 60 * 1000))
-            
+
             let groupKey = ''
             if (isTodayDate(notif.timestamp)) {
                 groupKey = 'Hoy'
@@ -309,13 +309,13 @@ export default function NotificationCenterScreen() {
             } else {
                 groupKey = format(notif.timestamp, 'EEEE, d MMMM', { locale: es })
             }
-            
+
             if (!groups[groupKey]) {
                 groups[groupKey] = []
             }
             groups[groupKey].push(notif)
         })
-        
+
         return groups
     }, [notifications])
 
@@ -359,7 +359,7 @@ export default function NotificationCenterScreen() {
 
         // Navigate based on type
         if (notification.type === 'daily_log') {
-            router.push('/registro')
+            router.push('/register')
         } else if (notification.type === 'period' || notification.type === 'fertile') {
             router.push('/(tabs)/predictions')
         }
@@ -380,7 +380,7 @@ export default function NotificationCenterScreen() {
                 </View>
                 {/* Actions */}
                 <View className="flex-row justify-between w-full">
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         onPress={handleMarkAllRead}
                         disabled={unreadCount === 0}
                         activeOpacity={0.7}
@@ -391,7 +391,7 @@ export default function NotificationCenterScreen() {
                         </Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         onPress={handleDeleteAll}
                         disabled={scheduledNotifications.length === 0}
                         activeOpacity={0.7}
@@ -426,10 +426,10 @@ export default function NotificationCenterScreen() {
                         <Section key={groupKey} title={groupKey}>
                             {groupNotifications.map((notification) => {
                                 const isTodayNotif = isTodayDate(notification.timestamp)
-                                const timeDisplay = isTodayNotif 
+                                const timeDisplay = isTodayNotif
                                     ? formatTimestamp(notification.timestamp)
                                     : formatTime(notification.timestamp)
-                                
+
                                 return (
                                     <NotificationCard
                                         key={notification.id}

@@ -70,7 +70,7 @@ utils/
 ✅ Onboarding flow (4 steps)
 ✅ Dashboard/Home screen with cycle predictions
 ✅ Predictions screen with calendar
-✅ Daily log/Registro screen with date navigation
+✅ Daily log/register screen with date navigation
 ✅ Calendar screen with period tracking
 ✅ Authentication context (ready for PocketBase integration)
 ✅ Local-first architecture with SQLite
@@ -84,6 +84,7 @@ utils/
 ## Database Schema
 
 The app uses SQLite with the following tables:
+
 - `profiles`: User profile data
 - `daily_logs`: Daily cycle tracking logs
 - `cycles`: Menstrual cycle records
@@ -93,6 +94,7 @@ The app uses SQLite with the following tables:
 ## Sync Configuration
 
 Users can configure sync frequency in Settings:
+
 - **Daily**: Syncs every 24 hours
 - **Weekly**: Syncs once per week
 - **Monthly**: Syncs once per month
@@ -102,12 +104,14 @@ Sync happens automatically on app start if needed, or manually via Settings.
 ## Next Steps
 
 1. Set up PocketBase backend with collections:
+
    - `users` (auth)
    - `profiles`
    - `daily_logs`
    - `cycles`
 
 2. Configure PocketBase access rules:
+
    - `@request.auth.id = user.id` for all collections
 
 3. Test sync functionality:

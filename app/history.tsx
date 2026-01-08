@@ -206,7 +206,7 @@ function MonthSection({ group, groupIndex, lastPeriodStart }: { group: GroupedLo
             log={log}
             lastPeriodStart={lastPeriodStart}
             onPress={() => router.push({
-              pathname: '/registro',
+              pathname: '/register',
               params: {
                 date: log.date,
                 id: log.id,
@@ -383,7 +383,7 @@ export default function HistoryScreen() {
             Historial
           </Text>
 
-          <TouchableOpacity onPress={() => router.push('/registro')} className="h-10 w-10 items-center justify-center rounded-full bg-primary shadow-lg">
+          <TouchableOpacity onPress={() => router.push('/register')} className="h-10 w-10 items-center justify-center rounded-full bg-primary shadow-lg">
             <MyIcon name="Plus" size={20} className="text-white" />
           </TouchableOpacity>
         </View>

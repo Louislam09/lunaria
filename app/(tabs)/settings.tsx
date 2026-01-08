@@ -1,4 +1,6 @@
 import { ConflictResolutionModal } from '@/components/settings/ConflictResolutionModal';
+import { CycleLengthPicker } from '@/components/settings/CycleLengthPicker';
+import { PeriodLengthPicker } from '@/components/settings/PeriodLengthPicker';
 import { ProfileCard } from '@/components/settings/ProfileCard';
 import { SettingsItem } from '@/components/settings/SettingsItem';
 import { SettingsSection } from '@/components/settings/SettingsSection';
@@ -19,7 +21,7 @@ import Constants from 'expo-constants';
 import * as Updates from 'expo-updates';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, ScrollView, Text, TextInput, TouchableOpacity, View, Modal, Pressable } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
@@ -43,6 +45,8 @@ export default function SettingsScreen() {
   const [showLastPeriodPicker, setShowLastPeriodPicker] = useState(false);
   const [isPickingImage, setIsPickingImage] = useState(false);
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [showPeriodLengthModal, setShowPeriodLengthModal] = useState(false);
+  const [showCycleLengthModal, setShowCycleLengthModal] = useState(false);
 
   // Notification manager
   const {
@@ -378,6 +382,8 @@ export default function SettingsScreen() {
             iconColor="text-blue-500"
             title="Duración del periodo"
             subtitle={`${periodLength} día${periodLength > 1 ? 's' : ''}`}
+            showChevron={true}
+            onPress={() => setShowPeriodLengthModal(true)}
           />
           <SettingsItem
             icon="RefreshCw"
@@ -386,6 +392,10 @@ export default function SettingsScreen() {
             title="Duración del ciclo"
             subtitle={`${averageCycleLength} día${averageCycleLength > 1 ? 's' : ''}`}
             showDivider
+            showChevron={true}
+            onPress={() => {
+              setShowCycleLengthModal(true);
+            }}
           />
           <SettingsItem
             icon="CalendarDays"
@@ -423,6 +433,36 @@ export default function SettingsScreen() {
               )}
             </>
           )}
+
+          {/* Period Length Modal */}
+          <PeriodLengthPicker
+            visible={showPeriodLengthModal}
+            onClose={() => setShowPeriodLengthModal(false)}
+            onSave={(newPeriodLength) => {
+              updateData({ periodLength: newPeriodLength });
+              alertSuccess('Actualizado', 'Duración del periodo actualizada correctamente.');
+            }}
+            initialPeriodLength={periodLength}
+          />
+
+          {/* Cycle Length Modal */}
+          <CycleLengthPicker
+            visible={showCycleLengthModal}
+            onClose={() => setShowCycleLengthModal(false)}
+            onSave={(cycleLength, cycleType, cycleRangeMin, cycleRangeMax) => {
+              updateData({
+                averageCycleLength: cycleLength,
+                cycleType: cycleType,
+                cycleRangeMin: cycleRangeMin,
+                cycleRangeMax: cycleRangeMax,
+              });
+              alertSuccess('Actualizado', 'Duración del ciclo actualizada correctamente.');
+            }}
+            initialCycleLength={averageCycleLength}
+            initialCycleType={data.cycleType || 'regular'}
+            initialCycleRangeMin={cycleRangeMin}
+            initialCycleRangeMax={cycleRangeMax}
+          />
         </SettingsSection>
 
         {/* Notificaciones */}

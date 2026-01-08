@@ -95,7 +95,7 @@ The app follows the design document in `doc/lunaria-design.md`:
 - Dashboard (`/home`)
 - Predictions (`/predictions`)
 - Calendar (`/calendar`)
-- Daily Log (`/registro`)
+- Daily Log (`/register`)
 - Settings (`/settings`)
 
 ## Development Notes

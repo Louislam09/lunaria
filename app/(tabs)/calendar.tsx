@@ -3,7 +3,12 @@ import MyIcon from '@/components/ui/Icon';
 import { SyncStatusIndicator } from '@/components/ui/SyncStatusIndicator';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { useCyclePredictions } from '@/hooks/useCyclePredictions';
+import { useAuth } from '@/context/AuthContext';
+import { useAlert } from '@/context/AlertContext';
+import { CyclesService } from '@/services/dataService';
+import { getActivePeriod, ActivePeriod } from '@/utils/periodDetection';
 import { getCycleDay } from '@/utils/predictions';
+import { formatDate } from '@/utils/dates';
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { Platform, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -86,8 +91,12 @@ const MyCalendar = styled(Calendar, {
 export default function CalendarScreen() {
   const insets = useSafeAreaInsets();
   const { data, isLoading, isComplete } = useOnboarding();
+  const { user, isAuthenticated, localUserId } = useAuth();
+  const { alertSuccess, alertError } = useAlert();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selected, setSelected] = useState(CalendarUtils.getCalendarDateString(new Date()));
+  const [activePeriod, setActivePeriod] = useState<ActivePeriod | null>(null);
+  const [isMarkingEnd, setIsMarkingEnd] = useState(false);
 
   const today = useMemo(() => {
     const d = new Date();
@@ -105,6 +114,61 @@ export default function CalendarScreen() {
       router.replace('/onboarding/wizard');
     }
   }, [isLoading, isComplete]);
+
+  // Load active period detection
+  useEffect(() => {
+    const loadActivePeriod = async () => {
+      if (!data.lastPeriodStart || !isComplete) return;
+
+      const userId = isAuthenticated && user ? user.id : localUserId;
+      if (!userId) return;
+
+      try {
+        const period = await getActivePeriod(userId, new Date(data.lastPeriodStart));
+        setActivePeriod(period);
+      } catch (error) {
+        console.error('Error loading active period:', error);
+        setActivePeriod(null);
+      }
+    };
+
+    loadActivePeriod();
+  }, [data.lastPeriodStart, isComplete, isAuthenticated, user, localUserId]);
+
+  // Handle marking period end
+  const handleMarkPeriodEnd = async () => {
+    if (!activePeriod || isMarkingEnd) return;
+
+    const userId = isAuthenticated && user ? user.id : localUserId;
+    if (!userId) {
+      alertError('Error', 'No se pudo identificar el usuario.');
+      return;
+    }
+
+    setIsMarkingEnd(true);
+    try {
+      // Use today's date or the last flow date as end date
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const endDateStr = today.toISOString().split('T')[0];
+
+      await CyclesService.markPeriodEnd(userId, endDateStr, activePeriod.startDate);
+
+      alertSuccess(
+        'Periodo finalizado',
+        `Se ha marcado el fin de tu periodo. El ciclo se ha actualizado correctamente.`
+      );
+
+      // Reload active period to update UI
+      const period = await getActivePeriod(userId, new Date(data.lastPeriodStart));
+      setActivePeriod(period);
+    } catch (error: any) {
+      console.error('Error marking period end:', error);
+      alertError('Error', error.message || 'No se pudo marcar el fin del periodo. Intenta más tarde.');
+    } finally {
+      setIsMarkingEnd(false);
+    }
+  };
 
   // Get cycle predictions from hook
   const cyclePredictions = useCyclePredictions(data);
@@ -464,9 +528,32 @@ export default function CalendarScreen() {
         </View>
 
         {/* ───── FAB ───── */}
-        <View className="mt-6 mb-10">
+        <View className="mt-6 mb-10 gap-3">
+          {activePeriod?.isActive ? (
+            <Pressable
+              onPress={handleMarkPeriodEnd}
+              disabled={isMarkingEnd}
+              className={`py-4 rounded-2xl ${isMarkingEnd ? 'bg-gray-400' : 'bg-rose-600'} items-center justify-center flex-row shadow-lg active:opacity-90`}
+            >
+              {isMarkingEnd ? (
+                <>
+                  <MyIcon name="Loader" size={20} className="text-white" />
+                  <Text className="ml-2 text-white font-bold text-lg">
+                    Marcando...
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <MyIcon name="Check" size={20} className="text-white" />
+                  <Text className="ml-2 text-white font-bold text-lg">
+                    Marcar Fin del Periodo
+                  </Text>
+                </>
+              )}
+            </Pressable>
+          ) : null}
           <Pressable
-            onPress={() => router.push('/registro')}
+            onPress={() => router.push('/register')}
             className="py-4 rounded-2xl bg-primary items-center justify-center flex-row shadow-lg active:opacity-90"
           >
             <MyIcon name="Droplet" size={20} className="text-white" />

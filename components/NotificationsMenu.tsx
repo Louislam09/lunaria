@@ -212,7 +212,7 @@ export function NotificationsMenu({ onMenuClose }: NotificationsMenuProps) {
 
         // Navigate based on type
         if (notification.type === 'daily_log') {
-            router.push('/registro')
+            router.push('/register')
         } else if (notification.type === 'period' || notification.type === 'fertile') {
             router.push('/(tabs)/predictions')
         } else if (notification.type === 'analysis' && notification.id === 'scheduled-info') {

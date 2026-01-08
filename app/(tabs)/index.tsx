@@ -22,6 +22,7 @@ import * as Updates from 'expo-updates';
 import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { Pressable, ScrollView, Text, TouchableOpacity, View, RefreshControl } from 'react-native';
 import { PHASE_INSIGHTS } from '@/constants/phaseInsights';
+import { DailyTip } from '@/components/DailyTip';
 
 export default function HomeScreen() {
   const { data, isLoading, isComplete, updateData } = useOnboarding();
@@ -167,7 +168,7 @@ export default function HomeScreen() {
             // User says YES - period arrived
             try {
               // Navigate to registro screen with today's date to log the period
-              router.push(`/registro?date=${todayStr}`);
+              router.push(`/register?date=${todayStr}`);
               await checkConfirmation();
             } catch (error) {
               console.error('Error navigating to registro:', error);
@@ -511,7 +512,7 @@ export default function HomeScreen() {
             }
           </Text>
 
-          <TouchableOpacity onPress={() => router.push('/registro')} activeOpacity={0.6} className={`w-full mt-5 ${currentDelay && currentDelay > 0 ? 'bg-orange-500' : phaseColors.buttonBg} py-5 rounded-full items-center justify-center flex-row gap-2`}>
+          <TouchableOpacity onPress={() => router.push('/register')} activeOpacity={0.6} className={`w-full mt-5 ${currentDelay && currentDelay > 0 ? 'bg-orange-500' : phaseColors.buttonBg} py-5 rounded-full items-center justify-center flex-row gap-2`}>
             <MyIcon name="NotebookPen" size={20} className="text-white " />
             <Text className="text-white font-bold text-base">
               Registrar síntomas
@@ -539,6 +540,9 @@ export default function HomeScreen() {
             <MyIcon name="Shield" size={32} className={`${risk.textColor} fill-${risk.color}`} />
           </View>
         </View>
+
+        {/* Daily Tip */}
+        {cycleDay && <DailyTip cycleDay={cycleDay} />}
 
         {/* Insights */}
         <Text className="mt-8 mb-4 text-xl font-bold text-text-primary">

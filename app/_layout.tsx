@@ -31,7 +31,7 @@ function redirect(notification: Notifications.Notification) {
   if (notificationType === 'period' || notificationType === 'fertile') {
     router.push('/(tabs)/predictions');
   } else if (notificationType === 'daily_log') {
-    router.push('/registro');
+    router.push('/register');
   }
   // Educational and test notifications don't need navigation
 }
@@ -100,7 +100,7 @@ const Layout = (props) => {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, paddingTop: top, backgroundColor: colors.moonWhite }}>
+    <GestureHandlerRootView style={{ flex: 1, paddingTop: top, backgroundColor: 'transparent' }}>
       <AlertProvider>
         <AuthProvider>
           <SyncProvider>

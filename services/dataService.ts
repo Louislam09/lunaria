@@ -432,5 +432,59 @@ export const CyclesService = {
       });
     }
   },
+
+  // Mark period end - updates the most recent cycle without end_date
+  async markPeriodEnd(userId: string, endDate: string, startDate?: string): Promise<string> {
+    const db = await getDatabase();
+    
+    // Find the most recent cycle without an end_date
+    const cyclesWithoutEnd = await db.getAllAsync<{
+      id: string;
+      start_date: string;
+      end_date: string | null;
+      delay: number;
+      synced: number;
+    }>(
+      `SELECT * FROM cycles WHERE user_id = ? AND end_date IS NULL ORDER BY start_date DESC LIMIT 1`,
+      [userId]
+    );
+
+    if (cyclesWithoutEnd.length > 0) {
+      // Update existing cycle with end_date
+      const cycle = cyclesWithoutEnd[0];
+      await db.runAsync(
+        `UPDATE cycles SET end_date = ?, synced = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+        [endDate, cycle.id]
+      );
+
+      // Queue for sync
+      await db.runAsync(
+        `INSERT OR REPLACE INTO sync_queue (id, table_name, record_id, operation, data)
+         VALUES (?, 'cycles', ?, 'update', ?)`,
+        [
+          `sync_${cycle.id}`,
+          cycle.id,
+          JSON.stringify({
+            user: userId,
+            startDate: cycle.start_date,
+            endDate: endDate,
+            delay: cycle.delay || 0,
+          }),
+        ]
+      );
+
+      return cycle.id;
+    } else if (startDate) {
+      // No cycle found, create a new one with start_date and end_date
+      return await this.save({
+        user_id: userId,
+        start_date: startDate,
+        end_date: endDate,
+        delay: 0,
+      });
+    } else {
+      throw new Error('No cycle found to mark end and no start_date provided');
+    }
+  },
 };
 

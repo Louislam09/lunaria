@@ -10,6 +10,7 @@ import { getCycleDay } from "@/utils/predictions";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Keyboard, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import Svg, { Defs, LinearGradient, Path, Stop, } from "react-native-svg";
 
 enum Moods {
   FELIZ = "feliz",
@@ -25,13 +26,96 @@ enum Symptoms {
   FATIGA = "fatiga",
   DOLOR_DE_CABEZA = "dolor de cabeza",
   DOLOR_DE_ESPALDA = "dolor de espalda",
+  PECHOS_SENSIBLES = "pechos sensibles",
+  NÁUSEAS = "náuseas",
+  VÓMITO = "vómito",
+  HINCHAZÓN = "hinchazón",
+  ESTREÑIMIENTO = "estreñimiento",
+  DIARREA = "diarrea",
 }
 
 enum Flow {
+  NINGUNO = "ninguno",
   LEVE = "leve",
   MEDIO = "medio",
   ALTO = "alto",
   MANCHA = "mancha",
+}
+
+const dropColor = "#fe315b";
+
+// react native svg
+const flowIcons = {
+  // empty drop - no droplets, just outline
+  [Flow.NINGUNO]: <Svg width="48" height="48" viewBox="0 0 48 48">
+    <Path d="M24 2C24 2 8 20 8 32a16 16 0 0032 0C40 20 24 2 24 2z" fill="none" stroke={colors.textMuted} strokeWidth="1.5" />
+  </Svg>,
+  // 1 drop - single centered droplet
+  [Flow.LEVE]: <Svg width="48" height="48" viewBox="0 0 48 48">
+    <Defs>
+      <LinearGradient id="gradientLeve" x1="0%" y1="0%" x2="0%" y2="100%">
+        <Stop offset="0%" stopColor={dropColor} stopOpacity="0.9" />
+        <Stop offset="100%" stopColor={dropColor} stopOpacity="0.7" />
+      </LinearGradient>
+    </Defs>
+    <Path d="M24 2C24 2 8 20 8 32a16 16 0 0032 0C40 20 24 2 24 2z" fill="url(#gradientLeve)" />
+  </Svg>,
+  // 2 drops - one larger bottom-left, one smaller top-right
+  [Flow.MEDIO]: <Svg width="48" height="48" viewBox="0 0 48 48">
+    <Defs>
+      <LinearGradient id="gradientMedio1" x1="0%" y1="0%" x2="0%" y2="100%">
+        <Stop offset="0%" stopColor={dropColor} stopOpacity="0.9" />
+        <Stop offset="100%" stopColor={dropColor} stopOpacity="0.7" />
+      </LinearGradient>
+      <LinearGradient id="gradientMedio2" x1="0%" y1="0%" x2="0%" y2="100%">
+        <Stop offset="0%" stopColor={dropColor} stopOpacity="0.8" />
+        <Stop offset="100%" stopColor={dropColor} stopOpacity="0.6" />
+      </LinearGradient>
+    </Defs>
+    <Path d="M16 28C16 28 6 38 6 44a10 10 0 0020 0C26 38 16 28 16 28z" fill="url(#gradientMedio1)" />
+    <Path d="M30 8C30 8 22 16 22 20a8 8 0 0016 0C38 16 30 8 30 8z" fill="url(#gradientMedio2)" />
+  </Svg>,
+  // 3 drops - large top-left, medium top-right, small bottom-center
+  [Flow.ALTO]: <Svg width="48" height="48" viewBox="0 0 48 48">
+    <Defs>
+      <LinearGradient id="gradientAlto1" x1="0%" y1="0%" x2="0%" y2="100%">
+        <Stop offset="0%" stopColor={dropColor} stopOpacity="0.95" />
+        <Stop offset="100%" stopColor={dropColor} stopOpacity="0.75" />
+      </LinearGradient>
+      <LinearGradient id="gradientAlto2" x1="0%" y1="0%" x2="0%" y2="100%">
+        <Stop offset="0%" stopColor={dropColor} stopOpacity="0.85" />
+        <Stop offset="100%" stopColor={dropColor} stopOpacity="0.65" />
+      </LinearGradient>
+      <LinearGradient id="gradientAlto3" x1="0%" y1="0%" x2="0%" y2="100%">
+        <Stop offset="0%" stopColor={dropColor} stopOpacity="0.8" />
+        <Stop offset="100%" stopColor={dropColor} stopOpacity="0.6" />
+      </LinearGradient>
+    </Defs>
+    <Path d="M12 4C12 4 2 16 2 24a10 10 0 0020 0C22 16 12 4 12 4z" fill="url(#gradientAlto1)" />
+    <Path d="M30 8C30 8 22 16 22 22a8 8 0 0016 0C38 16 30 8 30 8z" fill="url(#gradientAlto2)" />
+    <Path d="M24 32C24 32 20 36 20 40a4 4 0 008 0C28 36 24 32 24 32z" fill="url(#gradientAlto3)" />
+  </Svg>,
+  // 4 drops - large top-center, two medium left/right, small bottom-center
+  [Flow.MANCHA]: <Svg width="48" height="48" viewBox="0 0 48 48">
+    <Defs>
+      <LinearGradient id="gradientMancha1" x1="0%" y1="0%" x2="0%" y2="100%">
+        <Stop offset="0%" stopColor={dropColor} stopOpacity="0.95" />
+        <Stop offset="100%" stopColor={dropColor} stopOpacity="0.75" />
+      </LinearGradient>
+      <LinearGradient id="gradientMancha2" x1="0%" y1="0%" x2="0%" y2="100%">
+        <Stop offset="0%" stopColor={dropColor} stopOpacity="0.85" />
+        <Stop offset="100%" stopColor={dropColor} stopOpacity="0.65" />
+      </LinearGradient>
+      <LinearGradient id="gradientMancha3" x1="0%" y1="0%" x2="0%" y2="100%">
+        <Stop offset="0%" stopColor={dropColor} stopOpacity="0.8" />
+        <Stop offset="100%" stopColor={dropColor} stopOpacity="0.6" />
+      </LinearGradient>
+    </Defs>
+    <Path d="M24 6C24 6 14 18 14 26a10 10 0 0020 0C34 18 24 6 24 6z" fill="url(#gradientMancha1)" />
+    <Path d="M10 30C10 30 5 35 5 39a5 5 0 0010 0C15 35 10 30 10 30z" fill="url(#gradientMancha2)" />
+    <Path d="M38 30C38 30 33 35 33 39a5 5 0 0010 0C43 35 38 30 38 30z" fill="url(#gradientMancha2)" />
+    <Path d="M24 38C24 38 21 41 21 44a3 3 0 006 0C27 41 24 38 24 38z" fill="url(#gradientMancha3)" />
+  </Svg>,
 }
 
 export default function RegisterScreen() {
@@ -39,8 +123,8 @@ export default function RegisterScreen() {
   const { data, isLoading, isComplete, updateData } = useOnboarding();
   const { user, isAuthenticated, localUserId } = useAuth();
   const { alertError, alertSuccess, confirm } = useAlert();
-  const [flow, setFlow] = useState(Flow.MEDIO);
-  const [moods, setMoods] = useState<Moods[]>([Moods.FELIZ]);
+  const [flow, setFlow] = useState<Flow | undefined>(undefined);
+  const [moods, setMoods] = useState<Moods[]>([]);
   const [symptoms, setSymptoms] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -88,14 +172,14 @@ export default function RegisterScreen() {
       const dateStr = selectedDate.toISOString().split('T')[0];
       const existing = await DailyLogsService.getByDate(userId, dateStr);
       if (existing) {
-        setFlow(existing.flow as Flow);
-        setMoods(existing.mood ? existing.mood.split(',') as Moods[] : [Moods.FELIZ]);
+        setFlow(existing.flow ? (existing.flow as Flow) : undefined);
+        setMoods(existing.mood ? existing.mood.split(',') as Moods[] : []);
         setSymptoms(existing.symptoms);
         setNotes(existing.notes);
       } else {
-        // Reset to defaults
-        setFlow(Flow.MEDIO);
-        setMoods([Moods.FELIZ]);
+        // Reset to empty
+        setFlow(undefined);
+        setMoods([]);
         setSymptoms([]);
         setNotes("");
       }
@@ -122,26 +206,33 @@ export default function RegisterScreen() {
   };
 
   const flowOptions = [
-    { label: "Leve", value: Flow.LEVE },
-    { label: "Medio", value: Flow.MEDIO },
-    { label: "Alto", value: Flow.ALTO },
-    { label: "Mancha", value: Flow.MANCHA },
+    { label: "Ninguno", value: Flow.NINGUNO, icon: 'Droplet' },
+    { label: "Leve", value: Flow.LEVE, icon: 'Droplet' },
+    { label: "Medio", value: Flow.MEDIO, icon: 'Droplet' },
+    { label: "Alto", value: Flow.ALTO, icon: 'Droplet' },
+    { label: "Mancha", value: Flow.MANCHA, icon: 'Droplet' },
   ];
 
   const moodOptions = [
-    { key: Moods.FELIZ, label: "Feliz", icon: 'Smile', color: "text-[#facc15]", border: "border-[#facc15]" },
-    { key: Moods.TRISTE, label: "Triste", icon: 'Frown', color: "text-[#256af4]", border: "border-[#256af4]" },
-    { key: Moods.IRRITABLE, label: "Irritable", icon: 'Angry', color: "text-[#ef4444]", border: "border-[#ef4444]" },
-    { key: Moods.SENSIBLE, label: "Sensible", icon: 'Droplet', color: "text-[#60a5fa]", border: "border-[#60a5fa]" },
-    { key: Moods.ANSIOSA, label: "Ansiosa", icon: 'CircleAlert', color: "text-[#a855f7]", border: "border-[#a855f7]" }
+    { key: Moods.FELIZ, label: "Feliz", emoji: '😁', color: "text-[#facc15]", border: "border-[#facc15]" },
+    { key: Moods.TRISTE, label: "Triste", emoji: '😢', color: "text-[#256af4]", border: "border-[#256af4]" },
+    { key: Moods.IRRITABLE, label: "Irritable", emoji: '😠', color: "text-[#ef4444]", border: "border-[#ef4444]" },
+    { key: Moods.SENSIBLE, label: "Sensible", emoji: '🥺', color: "text-[#60a5fa]", border: "border-[#60a5fa]" },
+    { key: Moods.ANSIOSA, label: "Ansiosa", emoji: '😰', color: "text-[#a855f7]", border: "border-[#a855f7]" }
   ];
 
   const symptomOptions = [
-    { label: Symptoms.CÓLICOS, icon: 'Activity' },
-    { label: Symptoms.ACNÉ, icon: 'CircleAlert' },
-    { label: Symptoms.FATIGA, icon: 'BatteryLow' },
-    { label: Symptoms.DOLOR_DE_CABEZA, icon: 'Brain' },
-    { label: Symptoms.DOLOR_DE_ESPALDA, icon: 'Activity' },
+    { label: Symptoms.CÓLICOS, emoji: '💢' },
+    { label: Symptoms.ACNÉ, emoji: '🔴' },
+    { label: Symptoms.FATIGA, emoji: '😴' },
+    { label: Symptoms.DOLOR_DE_CABEZA, emoji: '🤕' },
+    { label: Symptoms.DOLOR_DE_ESPALDA, emoji: '😣' },
+    { label: Symptoms.PECHOS_SENSIBLES, emoji: '💗' },
+    { label: Symptoms.NÁUSEAS, emoji: '🤢' },
+    { label: Symptoms.VÓMITO, emoji: '🤮' },
+    { label: Symptoms.HINCHAZÓN, emoji: '🫄' },
+    { label: Symptoms.ESTREÑIMIENTO, emoji: '😖' },
+    { label: Symptoms.DIARREA, emoji: '💩' },
   ]
 
   const toggleSymptom = (symptom: Symptoms) => {
@@ -151,13 +242,13 @@ export default function RegisterScreen() {
   };
 
   // Check if flow indicates a period (any flow except empty)
-  const isPeriodFlow = (flowValue: Flow): boolean => {
+  const isPeriodFlow = (flowValue: Flow | undefined): boolean => {
     // Any flow value indicates a period (including light flow and spotting)
     return flowValue !== undefined && flowValue !== null;
   };
 
   // Check if this date is a new period start
-  const isNewPeriodStart = (date: Date, flowValue: Flow): boolean => {
+  const isNewPeriodStart = (date: Date, flowValue: Flow | undefined): boolean => {
     if (!data.lastPeriodStart || !isPeriodFlow(flowValue)) {
       return false;
     }
@@ -202,7 +293,7 @@ export default function RegisterScreen() {
 
       // Check if this is a new period start
       const isNewPeriod = isNewPeriodStart(selectedDate, flow);
-      
+
       if (isNewPeriod) {
         // Ask user if they want to update the last period start date
         confirm(
@@ -214,14 +305,14 @@ export default function RegisterScreen() {
               // Update last period start and save log
               const normalizedDate = new Date(selectedDate);
               normalizedDate.setHours(0, 0, 0, 0);
-              
+
               await updateData({ lastPeriodStart: normalizedDate });
-              
+
               await DailyLogsService.save({
                 user_id: userId,
                 date: dateStr,
                 symptoms: symptoms,
-                flow: flow,
+                flow: flow || '',
                 mood: moods.join(','),
                 notes: notes,
               });
@@ -246,7 +337,7 @@ export default function RegisterScreen() {
                 user_id: userId,
                 date: dateStr,
                 symptoms: symptoms,
-                flow: flow,
+                flow: flow || '',
                 mood: moods.join(','),
                 notes: notes,
               });
@@ -268,7 +359,7 @@ export default function RegisterScreen() {
         user_id: userId,
         date: dateStr,
         symptoms: symptoms,
-        flow: flow,
+        flow: flow || '',
         mood: moods.join(','),
         notes: notes,
       });
@@ -339,28 +430,46 @@ export default function RegisterScreen() {
 
           {/* Menstruación */}
           <View className="mt-6">
-            <Text className="text-lg font-bold mb-3 text-text-primary">
-              Menstruación
-            </Text>
-            <View className="flex-row bg-background rounded-full p-1.5 border border-gray-200 shadow-md">
-              {flowOptions.map(({ label, value }) => (
-                <Pressable
-                  key={value}
-                  onPress={() => setFlow(value)}
-                  className={`flex-1 py-2.5 rounded-full ${flow === value ? "bg-primary" : ""
-                    }`}
-                >
-                  <Text
-                    className={`text-center text-sm font-medium ${flow === value
-                      ? "text-white"
-                      : "text-text-muted"
-                      }`}
-                  >
-                    {label}
-                  </Text>
-                </Pressable>
-              ))}
+            <View className="flex-row items-center justify-between mb-3">
+              <Text className="text-lg font-bold text-text-primary">
+                Menstruación
+              </Text>
+              <Text className="text-xs text-text-muted italic">
+                (Opcional - solo si ya comenzó)
+              </Text>
             </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-3 px-4 py-1" className="-mx-4 ">
+              <View className="flex-row gap-3">
+                {flowOptions.map(({ value, label, icon: IconName }) => {
+                  const active = flow === value;
+                  return (
+                    <TouchableOpacity activeOpacity={0.6}
+                      key={value}
+                      onPress={() => setFlow(value)}
+                      className={`w-20 h-24 shadow-md rounded-2xl items-center justify-center gap-2 border ${active
+                        ? `bg-primary/10 border-primary`
+                        : "border-gray-200 bg-background"
+                        }`}
+                    >
+                      {flowIcons[value]}
+                      <Text
+                        className={`text-sm ${active
+                          ? `font-bold text-primary`
+                          : "font-medium text-text-muted"
+                          }`}
+                      >
+                        {label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
+            {!flow && (
+              <Text className="text-xs text-text-muted mt-2 italic">
+                Puedes registrar síntomas pre-menstruales sin seleccionar flujo
+              </Text>
+            )}
           </View>
           {/* Estado de ánimo */}
           <View className="mt-6">
@@ -369,7 +478,7 @@ export default function RegisterScreen() {
             </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-3 px-4 py-1" className="-mx-4 ">
               <View className="flex-row gap-3">
-                {moodOptions.map(({ key, label, icon: IconName, color, border }) => {
+                {moodOptions.map(({ key, label, emoji, color, border }) => {
                   const active = moods.includes(key);
                   return (
                     <TouchableOpacity activeOpacity={0.6}
@@ -380,11 +489,7 @@ export default function RegisterScreen() {
                         : "border-gray-200 bg-background"
                         }`}
                     >
-                      <MyIcon
-                        name={IconName as any}
-                        size={28}
-                        className={color}
-                      />
+                      <Text style={{ fontSize: 28 }}>{emoji}</Text>
                       <Text
                         className={`text-sm ${active
                           ? `font-bold text-`
@@ -401,17 +506,27 @@ export default function RegisterScreen() {
           </View>
           {/* Síntomas */}
           <View className="mt-6">
-            <Text className="text-lg font-bold mb-3 text-text-primary">
-              Síntomas Físicos
-            </Text>
+            <View className="flex-row items-center justify-between mb-3">
+              <Text className="text-lg font-bold text-text-primary">
+                Síntomas Físicos
+              </Text>
+              {!flow && (
+                <View className="flex-row items-center gap-1">
+                  <MyIcon name="Info" size={14} className="text-primary" />
+                  <Text className="text-xs text-primary font-medium">
+                    Pre-periodo
+                  </Text>
+                </View>
+              )}
+            </View>
             <View className="flex-row flex-wrap gap-2">
-              {symptomOptions.map(({ label, icon: Icon }) => (
+              {symptomOptions.map(({ label, emoji }) => (
                 <TouchableOpacity activeOpacity={0.6}
                   onPress={() => toggleSymptom(label)}
                   key={label}
                   className={`flex-row items-center gap-2 px-4 py-3 rounded-full bg-background border border-gray-200 shadow-md ${symptoms.includes(label) ? "bg-primary border-primary" : "bg-background border-gray-200"}`}
                 >
-                  <MyIcon name={Icon as any} size={16} className={symptoms.includes(label) ? "text-white" : "text-text-primary"} />
+                  <Text style={{ fontSize: 16 }}>{emoji}</Text>
                   <Text className={`text-sm font-medium ${symptoms.includes(label) ? "text-white" : "text-text-primary"}`}>
                     {label}
                   </Text>
