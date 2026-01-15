@@ -1,6 +1,6 @@
 import { colors } from '@/utils/colors';
 import { Tabs } from 'expo-router';
-import { CalendarDays, Home, Settings, TrendingUp } from 'lucide-react-native';
+import { CalendarDays, Home, Settings, TrendingUp, BarChart3 } from 'lucide-react-native';
 import { Platform } from 'react-native';
 
 export default function TabsLayout() {
@@ -44,6 +44,13 @@ export default function TabsLayout() {
         options={{
           title: 'Predicciones',
           tabBarIcon: ({ color, size }) => <TrendingUp size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="analytics"
+        options={{
+          title: 'Analíticas',
+          tabBarIcon: ({ color, size }) => <BarChart3 size={size} color={color} />,
         }}
       />
       <Tabs.Screen

@@ -1,30 +1,19 @@
-import { View, Text, ScrollView, Pressable, TouchableOpacity } from "react-native"
-import { useFocusEffect } from "expo-router"
-import {
-    ArrowLeft,
-    Calendar,
-    Baby,
-    Edit3,
-    BarChart3,
-    Pill,
-    Bell,
-    Home,
-    Settings,
-    CalendarDays,
-    ShieldCheck,
-    icons,
-} from "lucide-react-native"
 import MyIcon from "@/components/ui/Icon"
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { router } from "expo-router"
 import { useAlert } from "@/context/AlertContext"
 import { useOnboarding } from "@/context/OnboardingContext"
 import { useCyclePredictions } from "@/hooks/useCyclePredictions"
 import { useNotificationManager } from "@/hooks/useNotificationManager"
-import { getAllScheduledNotifications, cancelAllNotifications } from "@/services/notifications"
-import { getReadNotifications, markAsRead, markAllAsRead as markAllAsReadService } from "@/services/readNotifications"
+import { getAllScheduledNotifications } from "@/services/notifications"
+import { getReadNotifications, markAllAsRead as markAllAsReadService, markAsRead } from "@/services/readNotifications"
 import { differenceInDays, differenceInHours, format, isToday as isTodayDate, isYesterday as isYesterdayDate, startOfDay } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { router, useFocusEffect } from "expo-router"
+import {
+    ShieldCheck,
+    icons
+} from "lucide-react-native"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { ScrollView, Text, TouchableOpacity, View } from "react-native"
 
 interface Notification {
     id: string

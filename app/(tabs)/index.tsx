@@ -544,6 +544,28 @@ export default function HomeScreen() {
         {/* Daily Tip */}
         {cycleDay && <DailyTip cycleDay={cycleDay} />}
 
+        {/* Analytics Quick Link */}
+        <TouchableOpacity
+          onPress={() => router.push('/analytics')}
+          activeOpacity={0.6}
+          className="mt-8 bg-purple-50 rounded-3xl p-5 border border-purple-100 shadow-md"
+        >
+          <View className="flex-row items-center gap-3">
+            <View className="w-12 h-12 rounded-full bg-purple-100 items-center justify-center">
+              <MyIcon name="ChartBar" size={24} className="text-purple-600" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-lg font-bold text-text-primary mb-1">
+                Ver Analíticas
+              </Text>
+              <Text className="text-sm text-text-muted">
+                Descubre patrones y estadísticas de tu ciclo
+              </Text>
+            </View>
+            <MyIcon name="ChevronRight" size={20} className="text-purple-600" />
+          </View>
+        </TouchableOpacity>
+
         {/* Insights */}
         <Text className="mt-8 mb-4 text-xl font-bold text-text-primary">
           Resumen de hoy

@@ -1,7 +1,7 @@
 import { KeyboardPaddingView } from "@/components/keyboard-padding";
 import MyIcon from "@/components/ui/Icon";
-import { useAuth } from "@/context/AuthContext";
 import { useAlert } from "@/context/AlertContext";
+import { useAuth } from "@/context/AuthContext";
 import { useOnboarding } from "@/context/OnboardingContext";
 import { DailyLogsService } from "@/services/dataService";
 import { colors } from "@/utils/colors";
@@ -241,42 +241,42 @@ export default function RegisterScreen() {
     );
   };
 
-  // Check if flow indicates a period (any flow except empty)
-  const isPeriodFlow = (flowValue: Flow | undefined): boolean => {
-    // Any flow value indicates a period (including light flow and spotting)
-    return flowValue !== undefined && flowValue !== null;
-  };
+  // // Check if flow indicates a period (any flow except empty)
+  // const isPeriodFlow = (flowValue: Flow | undefined): boolean => {
+  //   // Any flow value indicates a period (including light flow and spotting)
+  //   return flowValue !== undefined && flowValue !== null;
+  // };
 
-  // Check if this date is a new period start
-  const isNewPeriodStart = (date: Date, flowValue: Flow | undefined): boolean => {
-    if (!data.lastPeriodStart || !isPeriodFlow(flowValue)) {
-      return false;
-    }
+  // // Check if this date is a new period start
+  // const isNewPeriodStart = (date: Date, flowValue: Flow | undefined): boolean => {
+  //   if (!data.lastPeriodStart || !isPeriodFlow(flowValue)) {
+  //     return false;
+  //   }
 
-    const logDate = new Date(date);
-    logDate.setHours(0, 0, 0, 0);
+  //   const logDate = new Date(date);
+  //   logDate.setHours(0, 0, 0, 0);
 
-    const lastPeriod = new Date(data.lastPeriodStart);
-    lastPeriod.setHours(0, 0, 0, 0);
+  //   const lastPeriod = new Date(data.lastPeriodStart);
+  //   lastPeriod.setHours(0, 0, 0, 0);
 
-    const periodLength = data.periodLength || 5;
-    const periodEnd = new Date(lastPeriod);
-    periodEnd.setDate(periodEnd.getDate() + periodLength);
+  //   const periodLength = data.periodLength || 5;
+  //   const periodEnd = new Date(lastPeriod);
+  //   periodEnd.setDate(periodEnd.getDate() + periodLength);
 
-    // If the log date is before the last period start, it's definitely a new period
-    if (logDate < lastPeriod) {
-      return true;
-    }
+  //   // If the log date is before the last period start, it's definitely a new period
+  //   if (logDate < lastPeriod) {
+  //     return true;
+  //   }
 
-    // If the log date is within the current period range, it's not a new period
-    if (logDate >= lastPeriod && logDate <= periodEnd) {
-      return false;
-    }
+  //   // If the log date is within the current period range, it's not a new period
+  //   if (logDate >= lastPeriod && logDate <= periodEnd) {
+  //     return false;
+  //   }
 
-    // If the log date is more than 2 days after the period end, it's likely a new period
-    const daysAfterPeriodEnd = Math.floor((logDate.getTime() - periodEnd.getTime()) / (1000 * 60 * 60 * 24));
-    return daysAfterPeriodEnd > 2;
-  };
+  //   // If the log date is more than 2 days after the period end, it's likely a new period
+  //   const daysAfterPeriodEnd = Math.floor((logDate.getTime() - periodEnd.getTime()) / (1000 * 60 * 60 * 24));
+  //   return daysAfterPeriodEnd > 2;
+  // };
 
   const handleSave = async () => {
     const userId = isAuthenticated && user ? user.id : localUserId;
@@ -290,69 +290,6 @@ export default function RegisterScreen() {
     setIsSaving(true);
     try {
       const dateStr = selectedDate.toISOString().split('T')[0];
-
-      // Check if this is a new period start
-      const isNewPeriod = isNewPeriodStart(selectedDate, flow);
-
-      if (isNewPeriod) {
-        // Ask user if they want to update the last period start date
-        confirm(
-          'Nuevo periodo detectado',
-          `¿Deseas actualizar la fecha de inicio de tu último periodo a ${formatDate(selectedDate, 'long')}?`,
-          async () => {
-            // Yes, update period
-            try {
-              // Update last period start and save log
-              const normalizedDate = new Date(selectedDate);
-              normalizedDate.setHours(0, 0, 0, 0);
-
-              await updateData({ lastPeriodStart: normalizedDate });
-
-              await DailyLogsService.save({
-                user_id: userId,
-                date: dateStr,
-                symptoms: symptoms,
-                flow: flow || '',
-                mood: moods.join(','),
-                notes: notes,
-              });
-
-              alertSuccess(
-                'Guardado',
-                `Registro guardado y fecha de periodo actualizada a ${formatDate(normalizedDate, 'long')}. Las predicciones se han actualizado.`
-              );
-              router.back();
-            } catch (error: any) {
-              console.error('Save failed:', error);
-              alertError('Error', error.message || 'No se pudo guardar el registro. Intenta más tarde.');
-            } finally {
-              setIsSaving(false);
-            }
-          },
-          async () => {
-            // No, just save log
-            try {
-              // Save log without updating period
-              await DailyLogsService.save({
-                user_id: userId,
-                date: dateStr,
-                symptoms: symptoms,
-                flow: flow || '',
-                mood: moods.join(','),
-                notes: notes,
-              });
-              alertSuccess('Guardado', 'Registro guardado correctamente.');
-              router.back();
-            } catch (error: any) {
-              console.error('Save failed:', error);
-              alertError('Error', error.message || 'No se pudo guardar el registro. Intenta más tarde.');
-            } finally {
-              setIsSaving(false);
-            }
-          }
-        );
-        return;
-      }
 
       // Normal save (not a new period)
       await DailyLogsService.save({
