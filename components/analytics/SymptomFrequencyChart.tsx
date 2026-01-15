@@ -22,17 +22,41 @@ export function SymptomFrequencyChart({ data, title = 'Frecuencia de síntomas' 
   }
 
   const screenWidth = Dimensions.get('window').width - 64;
-  
+
   // Take top 8 symptoms to avoid overcrowding
   const topSymptoms = data.slice(0, 8);
 
+  // Map common symptoms to shorter abbreviations
+  const symptomAbbreviations: Record<string, string> = {
+    'dolor de cabeza': 'D. Cabeza',
+    'dolor de espalda': 'D. Espalda',
+    'pechos sensibles': 'P. Sensibles',
+    'dolor de pecho': 'D. Pecho',
+  };
+
   const chartData = {
     labels: topSymptoms.map(s => {
-      // Truncate long symptom names
-      if (s.symptom.length > 10) {
-        return s.symptom.substring(0, 8) + '...';
+      const symptomLower = s.symptom.toLowerCase();
+
+      // Use abbreviation if available
+      if (symptomAbbreviations[symptomLower]) {
+        return symptomAbbreviations[symptomLower];
       }
-      return s.symptom;
+
+      // For other symptoms, use full name if short enough, otherwise truncate smarter
+      if (s.symptom.length <= 12) {
+        return s.symptom;
+      }
+
+      // Smart truncation: try to break at word boundaries
+      const words = s.symptom.split(' ');
+      if (words.length > 1) {
+        // If multiple words, use first word + abbreviation of second
+        return words[0] + ' ' + words[1].substring(0, 4) + '.';
+      }
+
+      // Single long word: truncate to 10 chars
+      return s.symptom.substring(0, 10) + '...';
     }),
     datasets: [
       {
@@ -65,8 +89,8 @@ export function SymptomFrequencyChart({ data, title = 'Frecuencia de síntomas' 
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <BarChart
           data={chartData}
-          width={Math.max(screenWidth, topSymptoms.length * 50)}
-          height={220}
+          width={Math.max(screenWidth, topSymptoms.length * 70)}
+          height={240}
           chartConfig={chartConfig}
           style={{
             marginVertical: 8,
@@ -80,6 +104,8 @@ export function SymptomFrequencyChart({ data, title = 'Frecuencia de síntomas' 
           segments={4}
           showValuesOnTopOfBars
           fromZero
+          yAxisLabel=""
+          yAxisSuffix=""
         />
       </ScrollView>
       <View className="mt-2">
