@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { DailyLogsService, CyclesService } from '@/services/dataService';
@@ -31,6 +31,7 @@ export interface AnalyticsData {
   phaseCorrelations: PhaseCorrelation[];
   isLoading: boolean;
   error: string | null;
+  refetch: () => Promise<void>;
 }
 
 export function useAnalytics(): AnalyticsData {
@@ -43,32 +44,33 @@ export function useAnalytics(): AnalyticsData {
 
   const userId = isAuthenticated && user ? user.id : localUserId;
 
-  // Load data
-  useEffect(() => {
+  // Load data function
+  const loadData = useCallback(async () => {
     if (!userId || onboardingLoading) return;
 
-    const loadData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
+    try {
+      setIsLoading(true);
+      setError(null);
 
-        const [logsData, cyclesData] = await Promise.all([
-          DailyLogsService.getAll(userId),
-          CyclesService.getAll(userId),
-        ]);
+      const [logsData, cyclesData] = await Promise.all([
+        DailyLogsService.getAll(userId),
+        CyclesService.getAll(userId),
+      ]);
 
-        setLogs(logsData);
-        setCycles(cyclesData);
-      } catch (err: any) {
-        console.error('Error loading analytics data:', err);
-        setError(err.message || 'Error al cargar los datos');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadData();
+      setLogs(logsData);
+      setCycles(cyclesData);
+    } catch (err: any) {
+      console.error('Error loading analytics data:', err);
+      setError(err.message || 'Error al cargar los datos');
+    } finally {
+      setIsLoading(false);
+    }
   }, [userId, onboardingLoading]);
+
+  // Load data on mount and when dependencies change
+  useEffect(() => {
+    loadData();
+  }, []);
 
   // Calculate analytics
   const analytics = useMemo(() => {
@@ -179,5 +181,8 @@ export function useAnalytics(): AnalyticsData {
     }
   }, [logs, cycles, data, isLoading, error, userId]);
 
-  return analytics;
+  return {
+    ...analytics,
+    refetch: loadData,
+  };
 }

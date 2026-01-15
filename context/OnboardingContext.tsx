@@ -33,6 +33,7 @@ type OnboardingContextType = {
   data: Partial<OnboardingData>;
   updateData: (values: Partial<OnboardingData>) => void;
   reset: () => void;
+  refresh: () => Promise<void>;
   completeOnboarding: () => Promise<void>;
   isComplete: boolean;
   isLoading: boolean;
@@ -171,7 +172,6 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     }
   };
 
-
   const reset = async () => {
     setData({});
     setIsComplete(false);
@@ -187,11 +187,17 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const refresh = async () => {
+    setIsLoading(true);
+    await loadData();
+  };
+
   return (
     <OnboardingContext.Provider value={{
       data,
       updateData,
       reset,
+      refresh,
       completeOnboarding,
       isComplete,
       isLoading,

@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { colors } from '@/utils/colors';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { CycleStatsCard } from '@/components/analytics/CycleStatsCard';
 import { PatternInsightCard } from '@/components/analytics/PatternInsightCard';
 import { TrendChart } from '@/components/analytics/TrendChart';
@@ -13,22 +13,27 @@ import MyIcon from '@/components/ui/Icon';
 import { SyncStatusIndicator } from '@/components/ui/SyncStatusIndicator';
 
 export default function AnalyticsScreen() {
-  const { data, isLoading: onboardingLoading, isComplete } = useOnboarding();
+  const { data, isLoading: onboardingLoading, isComplete, refresh: refreshOnboarding } = useOnboarding();
   const analytics = useAnalytics();
+  const { refetch: refetchAnalytics } = analytics;
   const [refreshing, setRefreshing] = React.useState(false);
 
   // Redirect to onboarding if not complete
-  React.useEffect(() => {
+  useEffect(() => {
     if (!onboardingLoading && !isComplete) {
       router.replace('/onboarding/wizard');
     }
   }, [onboardingLoading, isComplete]);
 
-  const onRefresh = React.useCallback(async () => {
-    setRefreshing(true);
-    // The hook will automatically reload data
-    setTimeout(() => setRefreshing(false), 1000);
-  }, []);
+  // Refresh data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!onboardingLoading && isComplete && refetchAnalytics) {
+        refetchAnalytics();
+      }
+    }, [onboardingLoading, isComplete])
+  );
+
 
   if (onboardingLoading || !isComplete || !data.lastPeriodStart) {
     return (
@@ -89,7 +94,7 @@ export default function AnalyticsScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={onRefresh}
+            onRefresh={refetchAnalytics}
             tintColor={colors.lavender}
             colors={[colors.lavender]}
           />
@@ -121,6 +126,20 @@ export default function AnalyticsScreen() {
               </View>
             )}
 
+            {/* Symptom Frequency */}
+            {analytics.symptomFrequency.length > 0 && (
+              <View className="mt-6">
+                <SymptomFrequencyChart data={analytics.symptomFrequency} />
+              </View>
+            )}
+
+            {/* Mood Patterns */}
+            {analytics.moodFrequency.length > 0 && (
+              <View className="mt-6 mb-8">
+                <MoodPatternChart data={analytics.moodFrequency} />
+              </View>
+            )}
+
             {/* Cycle Length Trend */}
             {analytics.cycleTrends.length > 0 && (
               <View className="mt-6">
@@ -140,20 +159,6 @@ export default function AnalyticsScreen() {
                   type="period"
                   title="Tendencia de Duración del Periodo"
                 />
-              </View>
-            )}
-
-            {/* Symptom Frequency */}
-            {analytics.symptomFrequency.length > 0 && (
-              <View className="mt-6">
-                <SymptomFrequencyChart data={analytics.symptomFrequency} />
-              </View>
-            )}
-
-            {/* Mood Patterns */}
-            {analytics.moodFrequency.length > 0 && (
-              <View className="mt-6 mb-8">
-                <MoodPatternChart data={analytics.moodFrequency} />
               </View>
             )}
           </>
