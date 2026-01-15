@@ -45,6 +45,12 @@ export function ProfileMenu({ onMenuClose }: ProfileMenuProps) {
         onMenuClose()
     }
 
+    const onPeriodHistory = () => {
+        console.log('Period history')
+        router.push('/period-history')
+        onMenuClose()
+    }
+
     const actions: Action[] = [
         {
             icon: "User",
@@ -52,6 +58,13 @@ export function ProfileMenu({ onMenuClose }: ProfileMenuProps) {
             onPress: onViewProfile,
             bgColor: "bg-purple-100",
             iconColor: "text-purple-600"
+        },
+        {
+            icon: "Calendar",
+            title: "Historial de periodos",
+            onPress: onPeriodHistory,
+            bgColor: "bg-gray-200",
+            iconColor: "text-gray-500"
         },
         {
             icon: "Settings",

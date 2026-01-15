@@ -2,23 +2,60 @@ import { useOnboarding } from '@/context/OnboardingContext';
 import { colors } from '@/utils/colors';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Slider from '@react-native-community/slider';
+import { isValid } from 'date-fns';
 import { Calendar, Check, Infinity, RefreshCw } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 export default function Step1() {
-  const { data, updateData } = useOnboarding();
+  const { data, updateData, isLoading } = useOnboarding();
 
   const [name, setName] = useState(data.name || '');
-  const [birthDate, setBirthDate] = useState(data.birthDate || new Date(2000, 0, 1));
+  const [birthDate, setBirthDate] = useState(() => {
+    if (data.birthDate) {
+      const date = data.birthDate instanceof Date ? data.birthDate : new Date(data.birthDate);
+      return isValid(date) ? date : new Date(2000, 0, 1);
+    }
+    return new Date(2000, 0, 1);
+  });
   const [showBirthDatePicker, setShowBirthDatePicker] = useState(false);
-  const [lastPeriod, setLastPeriod] = useState<Date | null>(data.lastPeriodStart || null);
+  const [lastPeriod, setLastPeriod] = useState<Date | null>(() => {
+    if (data.lastPeriodStart) {
+      const date = data.lastPeriodStart instanceof Date ? data.lastPeriodStart : new Date(data.lastPeriodStart);
+      return isValid(date) ? date : null;
+    }
+    return null;
+  });
   const [showLastPeriodPicker, setShowLastPeriodPicker] = useState(false);
   const [cycleType, setCycleType] = useState<'regular' | 'irregular'>(data.cycleType || 'regular');
   const [periodLength, setPeriodLength] = useState(data.periodLength || 5);
   const [averageCycleLength, setAverageCycleLength] = useState(data.averageCycleLength || 28);
   const [cycleRangeMin, setCycleRangeMin] = useState(data.cycleRangeMin || 21);
   const [cycleRangeMax, setCycleRangeMax] = useState(data.cycleRangeMax || 35);
+  const birthDateInitialized = useRef(false);
+  const lastPeriodInitialized = useRef(false);
+
+  // Sync local state with context when data is first loaded from storage
+  // Only sync once after loading completes to avoid resetting user selections
+  useEffect(() => {
+    if (!isLoading && !birthDateInitialized.current && data.birthDate) {
+      const date = data.birthDate instanceof Date ? data.birthDate : new Date(data.birthDate);
+      if (isValid(date)) {
+        setBirthDate(date);
+        birthDateInitialized.current = true;
+      }
+    }
+  }, [isLoading, data.birthDate]);
+
+  useEffect(() => {
+    if (!isLoading && !lastPeriodInitialized.current && data.lastPeriodStart) {
+      const date = data.lastPeriodStart instanceof Date ? data.lastPeriodStart : new Date(data.lastPeriodStart);
+      if (isValid(date)) {
+        setLastPeriod(date);
+        lastPeriodInitialized.current = true;
+      }
+    }
+  }, [isLoading, data.lastPeriodStart]);
 
   // Update context when local state changes
   useEffect(() => {
@@ -140,7 +177,11 @@ export default function Step1() {
                   setShowBirthDatePicker(false);
                 }
                 if (event.type !== 'dismissed' && selectedDate) {
-                  setBirthDate(selectedDate);
+                  // Ensure we create a new Date object to avoid reference issues
+                  const newDate = new Date(selectedDate);
+                  if (isValid(newDate)) {
+                    setBirthDate(newDate);
+                  }
                 }
               }}
               maximumDate={new Date()}

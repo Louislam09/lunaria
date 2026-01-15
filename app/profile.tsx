@@ -7,8 +7,9 @@ import { useOnboarding } from "@/context/OnboardingContext"
 import { DailyLogsService, CyclesService } from "@/services/dataService"
 import { formatDate } from "@/utils/dates"
 import { getAvatarSource } from "@/utils/avatar"
+import { getAllPeriods } from "@/utils/periodHistory"
 import Constants from 'expo-constants'
-import { differenceInYears, differenceInDays } from 'date-fns'
+import { differenceInYears } from 'date-fns'
 import { router, Stack } from "expo-router"
 import { useEffect, useState } from "react"
 import { ScrollView, Text, TouchableOpacity, View } from "react-native"
@@ -57,105 +58,25 @@ export default function ProfileScreen() {
                 CyclesService.getAll(userId)
             ])
 
-            // Create a map of cycles by start date for quick lookup
-            const cyclesMap = new Map<string, { delay: number }>()
-            cycles.forEach(cycle => {
-                if (cycle.delay > 0) {
-                    cyclesMap.set(cycle.start_date, { delay: cycle.delay })
-                }
-            })
+            const lastPeriodStart = data.lastPeriodStart ? new Date(data.lastPeriodStart) : undefined
+            const allPeriods = getAllPeriods(logs, cycles, averageCycleLength, lastPeriodStart)
 
-            // Filter logs with flow (period days) and sort by date
-            const periodLogs = logs
-                .filter(log => {
-                    const flow = log.flow?.toLowerCase()
-                    return flow && (flow === 'leve' || flow === 'ligero' || flow === 'medio' || flow === 'alto' || flow === 'abundante')
-                })
-                .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-
-            if (periodLogs.length === 0) {
+            if (allPeriods.length === 0) {
                 setCycleHistory([])
                 return
             }
 
-            // Find period starts (first day of each period - gaps > 2 days indicate new period)
-            const periodStarts: Array<{ date: string; endDate: string }> = []
-            let currentPeriodStart: string | null = null
-            let currentPeriodEnd: string | null = null
+            // Get last 2 periods for profile display
+            const recentPeriods = allPeriods.slice(0, 2) // Already sorted newest first
 
-            for (let i = 0; i < periodLogs.length; i++) {
-                const logDate = periodLogs[i].date
-
-                if (!currentPeriodStart) {
-                    currentPeriodStart = logDate
-                    currentPeriodEnd = logDate
-                } else {
-                    const prevDate = periodLogs[i - 1].date
-                    const daysDiff = differenceInDays(new Date(logDate), new Date(prevDate))
-
-                    if (daysDiff > 2) {
-                        // Save previous period
-                        if (currentPeriodStart && currentPeriodEnd) {
-                            periodStarts.push({
-                                date: currentPeriodStart,
-                                endDate: currentPeriodEnd
-                            })
-                        }
-                        // Start new period
-                        currentPeriodStart = logDate
-                        currentPeriodEnd = logDate
-                    } else {
-                        currentPeriodEnd = logDate
-                    }
-                }
-            }
-
-            // Add last period
-            if (currentPeriodStart && currentPeriodEnd) {
-                periodStarts.push({
-                    date: currentPeriodStart,
-                    endDate: currentPeriodEnd
-                })
-            }
-
-            if (periodStarts.length < 2) {
-                setCycleHistory([])
-                return
-            }
-
-            // Create cycle history from last 2 periods
-            const cyclesHistory: CycleHistory[] = []
-            const recentPeriods = periodStarts.slice(-2).reverse() // Most recent first
-
-            for (let i = 0; i < recentPeriods.length; i++) {
-                const period = recentPeriods[i]
-                const startDate = new Date(period.date)
-                const startDateStr = period.date
-
-                // Calculate cycle duration (days between this period start and next period start)
-                let cycleDuration = averageCycleLength
-                if (i < recentPeriods.length - 1) {
-                    const nextPeriodStart = new Date(recentPeriods[i + 1].date)
-                    cycleDuration = differenceInDays(startDate, nextPeriodStart)
-                } else if (data.lastPeriodStart) {
-                    // For the most recent period, calculate from lastPeriodStart
-                    const lastPeriod = new Date(data.lastPeriodStart)
-                    cycleDuration = differenceInDays(startDate, lastPeriod)
-                }
-
-                // Check if this cycle had a delay
-                const cycleDelay = cyclesMap.get(startDateStr)?.delay || 0
-
-                const monthName = startDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
-
-                cyclesHistory.push({
-                    start_date: period.date,
-                    end_date: period.endDate,
-                    month: monthName.charAt(0).toUpperCase() + monthName.slice(1),
-                    duration: cycleDuration > 0 ? cycleDuration : averageCycleLength,
-                    delay: cycleDelay > 0 ? cycleDelay : undefined
-                })
-            }
+            // Convert to CycleHistory format for compatibility
+            const cyclesHistory: CycleHistory[] = recentPeriods.map(period => ({
+                start_date: period.startDate,
+                end_date: period.endDate,
+                month: period.month,
+                duration: period.cycleLength || averageCycleLength,
+                delay: period.delay
+            }))
 
             setCycleHistory(cyclesHistory)
         } catch (error) {
@@ -427,7 +348,7 @@ export default function ProfileScreen() {
                                 )
                             })}
                             <TouchableOpacity
-                                onPress={() => router.push('/history')}
+                                onPress={() => router.push('/period-history')}
                                 className="px-5 py-3 pb-4"
                             >
                                 <Text className="text-sm font-medium text-blue-500 text-center ">
