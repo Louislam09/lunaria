@@ -2,6 +2,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { AlertProvider } from "@/context/AlertContext";
 import { OnboardingProvider } from "@/context/OnboardingContext";
 import { SyncProvider } from "@/context/SyncContext";
+import { TinyBaseProvider } from "@/context/TinyBaseContext";
 import { colors } from "@/utils/colors";
 import {
   DMSans_400Regular,
@@ -101,22 +102,24 @@ const Layout = (props) => {
 
   return (
     <GestureHandlerRootView style={{ flex: 1, paddingTop: top, backgroundColor: 'transparent' }}>
-      <AlertProvider>
-        <AuthProvider>
-          <SyncProvider>
-            <OnboardingProvider>
-              <SystemBars style="auto" />
-              <Stack
-                initialRouteName="index"
-                screenOptions={{
-                  headerShown: false,
-                }}
-              />
-              <View style={{ paddingBottom: bottom, backgroundColor: colors.moonWhite }} />
-            </OnboardingProvider>
-          </SyncProvider>
-        </AuthProvider>
-      </AlertProvider>
+      <TinyBaseProvider>
+        <AlertProvider>
+          <AuthProvider>
+            <SyncProvider>
+              <OnboardingProvider>
+                <SystemBars style="auto" />
+                <Stack
+                  initialRouteName="index"
+                  screenOptions={{
+                    headerShown: false,
+                  }}
+                />
+                <View style={{ paddingBottom: bottom, backgroundColor: colors.moonWhite }} />
+              </OnboardingProvider>
+            </SyncProvider>
+          </AuthProvider>
+        </AlertProvider>
+      </TinyBaseProvider>
     </GestureHandlerRootView>
   );
 }

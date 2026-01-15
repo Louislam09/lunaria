@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
-import { View, Text, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { colors } from '@/utils/colors';
-import { router, useFocusEffect } from 'expo-router';
+import { router } from 'expo-router';
 import { CycleStatsCard } from '@/components/analytics/CycleStatsCard';
 import { PatternInsightCard } from '@/components/analytics/PatternInsightCard';
 import { TrendChart } from '@/components/analytics/TrendChart';
@@ -13,10 +13,8 @@ import MyIcon from '@/components/ui/Icon';
 import { SyncStatusIndicator } from '@/components/ui/SyncStatusIndicator';
 
 export default function AnalyticsScreen() {
-  const { data, isLoading: onboardingLoading, isComplete, refresh: refreshOnboarding } = useOnboarding();
+  const { data, isLoading: onboardingLoading, isComplete } = useOnboarding();
   const analytics = useAnalytics();
-  const { refetch: refetchAnalytics } = analytics;
-  const [refreshing, setRefreshing] = React.useState(false);
 
   // Redirect to onboarding if not complete
   useEffect(() => {
@@ -24,15 +22,6 @@ export default function AnalyticsScreen() {
       router.replace('/onboarding/wizard');
     }
   }, [onboardingLoading, isComplete]);
-
-  // Refresh data when screen comes into focus
-  useFocusEffect(
-    React.useCallback(() => {
-      if (!onboardingLoading && isComplete && refetchAnalytics) {
-        refetchAnalytics();
-      }
-    }, [onboardingLoading, isComplete])
-  );
 
 
   if (onboardingLoading || !isComplete || !data.lastPeriodStart) {
@@ -91,14 +80,6 @@ export default function AnalyticsScreen() {
       <ScrollView
         className="flex-1 px-4"
         showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={refetchAnalytics}
-            tintColor={colors.lavender}
-            colors={[colors.lavender]}
-          />
-        }
       >
         <View className="h-20" />
 

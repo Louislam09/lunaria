@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { useCyclePredictions } from '@/hooks/useCyclePredictions';
 import { DailyLogsService } from '@/services/dataService';
+import { useDailyLogs } from '@/hooks/useReactiveData';
 import { colors } from '@/utils/colors';
 import { getCycleDay } from '@/utils/predictions';
 import { router, Stack } from 'expo-router';
@@ -222,13 +223,14 @@ function MonthSection({ group, groupIndex, lastPeriodStart }: { group: GroupedLo
 export default function HistoryScreen() {
   const { user, isAuthenticated, localUserId } = useAuth();
   const { data, isLoading: onboardingLoading, isComplete } = useOnboarding();
-  const [logs, setLogs] = useState<DailyLog[]>([]);
   const [filter, setFilter] = useState<FilterType>('all');
-  const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const { lastPeriodStart } = useCyclePredictions(data);
 
   const userId = isAuthenticated && user ? user.id : localUserId;
+
+  // Use reactive hook - automatically updates when logs change
+  const logs = useDailyLogs(userId || '');
 
   // Redirect to onboarding if not complete
   useEffect(() => {
@@ -237,42 +239,14 @@ export default function HistoryScreen() {
     }
   }, [onboardingLoading, isComplete]);
 
-  useEffect(() => {
-    if (userId) {
-      loadLogs();
-    } else {
-      setIsLoading(false);
-    }
-  }, [userId]);
-
-  const loadLogs = async (isRefresh = false) => {
-    if (!userId) {
-      setIsLoading(false);
-      return;
-    }
-
-    if (isRefresh) {
-      setRefreshing(true);
-    } else {
-      setIsLoading(true);
-    }
-
-    try {
-      const allLogs = await DailyLogsService.getAll(userId);
-      setLogs(allLogs);
-    } catch (error) {
-      console.error('Failed to load logs:', error);
-    } finally {
-      setIsLoading(false);
-      setRefreshing(false);
-    }
+  const onRefresh = async () => {
+    // Refresh is handled automatically by reactive hook, but we can show loading state
+    setRefreshing(true);
+    // Small delay to show refresh animation
+    setTimeout(() => setRefreshing(false), 500);
   };
 
-  const onRefresh = () => {
-    loadLogs(true);
-  };
-
-  // Group logs by month
+  // Group logs by month (logs are now reactive)
   const groupedLogs = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);

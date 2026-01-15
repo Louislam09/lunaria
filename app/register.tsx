@@ -4,6 +4,7 @@ import { useAlert } from "@/context/AlertContext";
 import { useAuth } from "@/context/AuthContext";
 import { useOnboarding } from "@/context/OnboardingContext";
 import { DailyLogsService } from "@/services/dataService";
+import { useDailyLogByDate } from "@/hooks/useReactiveData";
 import { colors } from "@/utils/colors";
 import { formatDate } from "@/utils/dates";
 import { getCycleDay } from "@/utils/predictions";
@@ -159,34 +160,35 @@ export default function RegisterScreen() {
     }
   }, [params.date]);
 
-  // Load existing log for selected date
-  useEffect(() => {
-    const userId = isAuthenticated && user ? user.id : localUserId;
-    if (userId) {
-      loadExistingLog(userId);
-    }
-  }, [selectedDate, isAuthenticated, user, localUserId]);
+  // Use reactive hook to get log for selected date - automatically updates when data changes
+  const userId = isAuthenticated && user ? user.id : localUserId;
+  const dateStr = selectedDate.toISOString().split('T')[0];
+  const existingLog = useDailyLogByDate(userId || '', dateStr);
+  const isEditMode = !!existingLog;
 
-  const loadExistingLog = async (userId: string) => {
-    try {
-      const dateStr = selectedDate.toISOString().split('T')[0];
-      const existing = await DailyLogsService.getByDate(userId, dateStr);
-      if (existing) {
-        setFlow(existing.flow ? (existing.flow as Flow) : undefined);
-        setMoods(existing.mood ? existing.mood.split(',') as Moods[] : []);
-        setSymptoms(existing.symptoms);
-        setNotes(existing.notes);
+  // Sync form state with reactive log data only when date changes
+  // Use a ref to track the last date we loaded to prevent overwriting user input
+  const lastLoadedDateRef = useRef<string>('');
+
+  useEffect(() => {
+    // Only sync if the date has actually changed (user navigated to a different date)
+    if (dateStr !== lastLoadedDateRef.current) {
+      lastLoadedDateRef.current = dateStr;
+
+      if (existingLog) {
+        setFlow(existingLog.flow ? (existingLog.flow as Flow) : undefined);
+        setMoods(existingLog.mood ? existingLog.mood.split(',') as Moods[] : []);
+        setSymptoms(existingLog.symptoms);
+        setNotes(existingLog.notes);
       } else {
-        // Reset to empty
+        // Reset to empty if no log exists
         setFlow(undefined);
         setMoods([]);
         setSymptoms([]);
         setNotes("");
       }
-    } catch (error) {
-      console.error('Failed to load existing log:', error);
     }
-  };
+  }, [dateStr, existingLog]);
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
@@ -291,17 +293,28 @@ export default function RegisterScreen() {
     try {
       const dateStr = selectedDate.toISOString().split('T')[0];
 
-      // Normal save (not a new period)
-      await DailyLogsService.save({
-        user_id: userId,
-        date: dateStr,
-        symptoms: symptoms,
-        flow: flow || '',
-        mood: moods.join(','),
-        notes: notes,
-      });
+      if (existingLog && existingLog.id) {
+        // Update existing log
+        await DailyLogsService.update(existingLog.id, {
+          symptoms: symptoms,
+          flow: flow || '',
+          mood: moods.join(','),
+          notes: notes,
+        });
+        alertSuccess('Actualizado', 'Registro actualizado correctamente.');
+      } else {
+        // Create new log
+        await DailyLogsService.save({
+          user_id: userId,
+          date: dateStr,
+          symptoms: symptoms,
+          flow: flow || '',
+          mood: moods.join(','),
+          notes: notes,
+        });
+        alertSuccess('Guardado', 'Registro guardado correctamente.');
+      }
 
-      alertSuccess('Guardado', 'Registro guardado correctamente.');
       router.back();
     } catch (error: any) {
       console.error('Save failed:', error);
@@ -337,7 +350,12 @@ export default function RegisterScreen() {
             <Text className="text-sm font-bold uppercase tracking-wider text-primary">
               Día {getCycleDay(data.lastPeriodStart || selectedDate)} del ciclo
             </Text>
-            {selectedDate.toDateString() !== new Date().toDateString() && (
+            {isEditMode && (
+              <Text className="text-xs text-primary font-medium mt-1">
+                Editando registro existente
+              </Text>
+            )}
+            {!isEditMode && selectedDate.toDateString() !== new Date().toDateString() && (
               <Text className="text-xs text-text-muted mt-1">
                 Toca para ir a hoy
               </Text>
@@ -513,7 +531,7 @@ export default function RegisterScreen() {
               <>
                 <MyIcon name="Check" size={20} className="text-white" />
                 <Text className="text-white font-bold text-base">
-                  Guardar Registro
+                  {isEditMode ? 'Actualizar Registro' : 'Guardar Registro'}
                 </Text>
               </>
             )}

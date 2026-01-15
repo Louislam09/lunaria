@@ -1,4 +1,10 @@
-import { getDatabase } from './database';
+import { getStore } from './database';
+import {
+  intToBool,
+  boolToInt,
+  parseJsonArray,
+  stringifyJsonArray,
+} from '@/utils/dbHelpers';
 
 // Daily Logs Service
 export const DailyLogsService = {
@@ -12,41 +18,37 @@ export const DailyLogsService = {
     mood: string;
     notes: string;
   }): Promise<string> {
-    const db = await getDatabase();
+    const store = getStore();
     const id = log.id || `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    await db.runAsync(
-      `INSERT OR REPLACE INTO daily_logs 
-       (id, user_id, date, symptoms, flow, mood, notes, synced, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 0, CURRENT_TIMESTAMP)`,
-      [
-        id,
-        log.user_id,
-        log.date,
-        JSON.stringify(log.symptoms || []),
-        log.flow,
-        log.mood,
-        log.notes,
-      ]
-    );
+    // Save log to daily_logs table
+    store.setRow('daily_logs', id, {
+      user_id: log.user_id,
+      date: log.date,
+      symptoms: stringifyJsonArray(log.symptoms),
+      flow: log.flow || null,
+      mood: log.mood || null,
+      notes: log.notes || null,
+      synced: 0,
+      updated_at: new Date().toISOString(),
+    });
 
     // Queue for sync
-    await db.runAsync(
-      `INSERT INTO sync_queue (id, table_name, record_id, operation, data)
-       VALUES (?, 'daily_logs', ?, 'create', ?)`,
-      [
-        `sync_${id}`,
-        id,
-        JSON.stringify({
-          user: log.user_id,
-          date: log.date,
-          symptoms: log.symptoms,
-          flow: log.flow,
-          mood: log.mood,
-          notes: log.notes,
-        }),
-      ]
-    );
+    const syncQueueId = `sync_${id}`;
+    store.setRow('sync_queue', syncQueueId, {
+      table_name: 'daily_logs',
+      record_id: id,
+      operation: 'create',
+      data: JSON.stringify({
+        user: log.user_id,
+        date: log.date,
+        symptoms: log.symptoms,
+        flow: log.flow,
+        mood: log.mood,
+        notes: log.notes,
+      }),
+      created_at: new Date().toISOString(),
+    });
 
     return id;
   },
@@ -58,48 +60,40 @@ export const DailyLogsService = {
     mood: string;
     notes: string;
   }>): Promise<void> {
-    const db = await getDatabase();
+    const store = getStore();
 
     // Get existing log
-    const existing = await db.getFirstAsync<{
-      user_id: string;
-      date: string;
-      symptoms: string;
-      flow: string;
-      mood: string;
-      notes: string;
-    }>(`SELECT * FROM daily_logs WHERE id = ?`, [id]);
-
+    const existing = store.getRow('daily_logs', id);
     if (!existing) throw new Error('Log not found');
 
     const updated = {
-      symptoms: updates.symptoms || JSON.parse(existing.symptoms || '[]'),
-      flow: updates.flow || existing.flow,
-      mood: updates.mood || existing.mood,
-      notes: updates.notes !== undefined ? updates.notes : existing.notes,
+      symptoms: updates.symptoms || parseJsonArray<string>(existing.symptoms as string),
+      flow: updates.flow !== undefined ? updates.flow : (existing.flow as string),
+      mood: updates.mood !== undefined ? updates.mood : (existing.mood as string),
+      notes: updates.notes !== undefined ? updates.notes : (existing.notes as string),
     };
 
-    await db.runAsync(
-      `UPDATE daily_logs 
-       SET symptoms = ?, flow = ?, mood = ?, notes = ?, synced = 0, updated_at = CURRENT_TIMESTAMP
-       WHERE id = ?`,
-      [JSON.stringify(updated.symptoms), updated.flow, updated.mood, updated.notes, id]
-    );
+    // Update log
+    store.setCell('daily_logs', id, 'symptoms', stringifyJsonArray(updated.symptoms));
+    store.setCell('daily_logs', id, 'flow', updated.flow);
+    store.setCell('daily_logs', id, 'mood', updated.mood);
+    store.setCell('daily_logs', id, 'notes', updated.notes);
+    store.setCell('daily_logs', id, 'synced', 0);
+    store.setCell('daily_logs', id, 'updated_at', new Date().toISOString());
 
     // Queue for sync
-    await db.runAsync(
-      `INSERT OR REPLACE INTO sync_queue (id, table_name, record_id, operation, data)
-       VALUES (?, 'daily_logs', ?, 'update', ?)`,
-      [
-        `sync_${id}`,
-        id,
-        JSON.stringify({
-          user: existing.user_id,
-          date: existing.date,
-          ...updated,
-        }),
-      ]
-    );
+    const syncQueueId = `sync_${id}`;
+    store.setRow('sync_queue', syncQueueId, {
+      table_name: 'daily_logs',
+      record_id: id,
+      operation: 'update',
+      data: JSON.stringify({
+        user: existing.user_id as string,
+        date: existing.date as string,
+        ...updated,
+      }),
+      created_at: new Date().toISOString(),
+    });
   },
 
   // Get all logs for user
@@ -113,23 +107,25 @@ export const DailyLogsService = {
     synced: boolean;
     updated_at: string;
   }>> {
-    const db = await getDatabase();
-    const result = await db.getAllAsync<{
-      id: string;
-      date: string;
-      symptoms: string;
-      flow: string;
-      mood: string;
-      notes: string;
-      synced: number;
-      updated_at: string;
-    }>(`SELECT * FROM daily_logs WHERE user_id = ? ORDER BY date DESC`, [userId]);
+    const store = getStore();
+    const table = store.getTable('daily_logs');
 
-    return result.map((row) => ({
-      ...row,
-      symptoms: JSON.parse(row.symptoms || '[]'),
-      synced: Boolean(row.synced),
-    }));
+    // Filter by user_id and sort by date DESC
+    const logs = Object.entries(table)
+      .filter(([_, row]) => row.user_id === userId)
+      .map(([id, row]) => ({
+        id,
+        date: row.date as string,
+        symptoms: parseJsonArray<string>(row.symptoms as string),
+        flow: row.flow as string,
+        mood: row.mood as string,
+        notes: row.notes as string,
+        synced: intToBool(row.synced as number),
+        updated_at: row.updated_at as string,
+      }))
+      .sort((a, b) => b.date.localeCompare(a.date));
+
+    return logs;
   },
 
   // Get log for specific date
@@ -143,38 +139,43 @@ export const DailyLogsService = {
     synced: boolean;
     updated_at: string;
   } | null> {
-    const db = await getDatabase();
-    const result = await db.getFirstAsync<{
-      id: string;
-      date: string;
-      symptoms: string;
-      flow: string;
-      mood: string;
-      notes: string;
-      synced: number;
-      updated_at: string;
-    }>(`SELECT * FROM daily_logs WHERE user_id = ? AND date = ?`, [userId, date]);
+    const store = getStore();
+    const table = store.getTable('daily_logs');
 
-    if (!result) return null;
+    // Find log matching user_id and date
+    const entry = Object.entries(table).find(
+      ([_, row]) => row.user_id === userId && row.date === date
+    );
 
+    if (!entry) return null;
+
+    const [id, row] = entry;
     return {
-      ...result,
-      symptoms: JSON.parse(result.symptoms || '[]'),
-      synced: Boolean(result.synced),
+      id,
+      date: row.date as string,
+      symptoms: parseJsonArray<string>(row.symptoms as string),
+      flow: row.flow as string,
+      mood: row.mood as string,
+      notes: row.notes as string,
+      synced: intToBool(row.synced as number),
+      updated_at: row.updated_at as string,
     };
   },
 
   // Delete log
   async delete(id: string): Promise<void> {
-    const db = await getDatabase();
-    await db.runAsync(`DELETE FROM daily_logs WHERE id = ?`, [id]);
+    const store = getStore();
+    store.delRow('daily_logs', id);
 
     // Queue delete for sync
-    await db.runAsync(
-      `INSERT INTO sync_queue (id, table_name, record_id, operation, data)
-       VALUES (?, 'daily_logs', ?, 'delete', NULL)`,
-      [`sync_delete_${id}`, id]
-    );
+    const syncQueueId = `sync_delete_${id}`;
+    store.setRow('sync_queue', syncQueueId, {
+      table_name: 'daily_logs',
+      record_id: id,
+      operation: 'delete',
+      data: null,
+      created_at: new Date().toISOString(),
+    });
   },
 };
 
@@ -197,57 +198,51 @@ export const ProfilesService = {
     contraceptive_method?: string;
     wants_pregnancy?: boolean;
   }): Promise<string> {
-    const db = await getDatabase();
+    const store = getStore();
     const id = profile.id || `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    await db.runAsync(
-      `INSERT OR REPLACE INTO profiles 
-       (id, user_id, name, birth_date, cycle_type, average_cycle_length,
-        cycle_range_min, cycle_range_max, period_length, has_pcos,
-        pcos_symptoms, pcos_treatment, contraceptive_method, wants_pregnancy, synced, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, CURRENT_TIMESTAMP)`,
-      [
-        id,
-        profile.user_id,
-        profile.name,
-        profile.birth_date,
-        profile.cycle_type,
-        profile.average_cycle_length,
-        profile.cycle_range_min,
-        profile.cycle_range_max,
-        profile.period_length,
-        profile.has_pcos ? 1 : 0,
-        JSON.stringify(profile.pcos_symptoms || []),
-        JSON.stringify(profile.pcos_treatment || []),
-        profile.contraceptive_method,
-        profile.wants_pregnancy ? 1 : 0,
-      ]
-    );
+    // Save profile
+    store.setRow('profiles', id, {
+      user_id: profile.user_id,
+      name: profile.name || null,
+      birth_date: profile.birth_date || null,
+      cycle_type: profile.cycle_type || null,
+      average_cycle_length: profile.average_cycle_length || null,
+      cycle_range_min: profile.cycle_range_min || null,
+      cycle_range_max: profile.cycle_range_max || null,
+      period_length: profile.period_length || null,
+      has_pcos: boolToInt(profile.has_pcos),
+      pcos_symptoms: stringifyJsonArray(profile.pcos_symptoms),
+      pcos_treatment: stringifyJsonArray(profile.pcos_treatment),
+      contraceptive_method: profile.contraceptive_method || null,
+      wants_pregnancy: profile.wants_pregnancy !== undefined ? boolToInt(profile.wants_pregnancy) : null,
+      synced: 0,
+      updated_at: new Date().toISOString(),
+    });
 
     // Queue for sync
-    await db.runAsync(
-      `INSERT OR REPLACE INTO sync_queue (id, table_name, record_id, operation, data)
-       VALUES (?, 'profiles', ?, 'create', ?)`,
-      [
-        `sync_${id}`,
-        id,
-        JSON.stringify({
-          user: profile.user_id,
-          name: profile.name,
-          birthDate: profile.birth_date,
-          cycleType: profile.cycle_type,
-          averageCycleLength: profile.average_cycle_length,
-          cycleRangeMin: profile.cycle_range_min,
-          cycleRangeMax: profile.cycle_range_max,
-          averagePeriodLength: profile.period_length,
-          hasPCOS: profile.has_pcos,
-          pcosSymptoms: profile.pcos_symptoms,
-          pcosTreatment: profile.pcos_treatment,
-          contraceptiveMethod: profile.contraceptive_method,
-          wantsPregnancy: profile.wants_pregnancy,
-        }),
-      ]
-    );
+    const syncQueueId = `sync_${id}`;
+    store.setRow('sync_queue', syncQueueId, {
+      table_name: 'profiles',
+      record_id: id,
+      operation: 'create',
+      data: JSON.stringify({
+        user: profile.user_id,
+        name: profile.name,
+        birthDate: profile.birth_date,
+        cycleType: profile.cycle_type,
+        averageCycleLength: profile.average_cycle_length,
+        cycleRangeMin: profile.cycle_range_min,
+        cycleRangeMax: profile.cycle_range_max,
+        averagePeriodLength: profile.period_length,
+        hasPCOS: profile.has_pcos,
+        pcosSymptoms: profile.pcos_symptoms,
+        pcosTreatment: profile.pcos_treatment,
+        contraceptiveMethod: profile.contraceptive_method,
+        wantsPregnancy: profile.wants_pregnancy,
+      }),
+      created_at: new Date().toISOString(),
+    });
 
     return id;
   },
@@ -270,34 +265,33 @@ export const ProfilesService = {
     wants_pregnancy: boolean | null;
     synced: boolean;
   } | null> {
-    const db = await getDatabase();
-    const result = await db.getFirstAsync<{
-      id: string;
-      user_id: string;
-      name: string | null;
-      birth_date: string | null;
-      cycle_type: string | null;
-      average_cycle_length: number | null;
-      cycle_range_min: number | null;
-      cycle_range_max: number | null;
-      period_length: number | null;
-      has_pcos: number;
-      pcos_symptoms: string;
-      pcos_treatment: string;
-      contraceptive_method: string | null;
-      wants_pregnancy: number | null;
-      synced: number;
-    }>(`SELECT * FROM profiles WHERE user_id = ?`, [userId]);
+    const store = getStore();
+    const table = store.getTable('profiles');
 
-    if (!result) return null;
+    // Find profile matching user_id
+    const entry = Object.entries(table).find(
+      ([_, row]) => row.user_id === userId
+    );
 
+    if (!entry) return null;
+
+    const [id, row] = entry;
     return {
-      ...result,
-      has_pcos: Boolean(result.has_pcos),
-      pcos_symptoms: JSON.parse(result.pcos_symptoms || '[]'),
-      pcos_treatment: JSON.parse(result.pcos_treatment || '[]'),
-      wants_pregnancy: result.wants_pregnancy !== null ? Boolean(result.wants_pregnancy) : null,
-      synced: Boolean(result.synced),
+      id,
+      user_id: row.user_id as string,
+      name: row.name as string | null,
+      birth_date: row.birth_date as string | null,
+      cycle_type: row.cycle_type as string | null,
+      average_cycle_length: row.average_cycle_length as number | null,
+      cycle_range_min: row.cycle_range_min as number | null,
+      cycle_range_max: row.cycle_range_max as number | null,
+      period_length: row.period_length as number | null,
+      has_pcos: intToBool(row.has_pcos as number),
+      pcos_symptoms: parseJsonArray<string>(row.pcos_symptoms as string),
+      pcos_treatment: parseJsonArray<string>(row.pcos_treatment as string),
+      contraceptive_method: row.contraceptive_method as string | null,
+      wants_pregnancy: row.wants_pregnancy !== null ? intToBool(row.wants_pregnancy as number) : null,
+      synced: intToBool(row.synced as number),
     };
   },
 };
@@ -312,31 +306,33 @@ export const CyclesService = {
     end_date?: string;
     delay?: number;
   }): Promise<string> {
-    const db = await getDatabase();
+    const store = getStore();
     const id = cycle.id || `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    await db.runAsync(
-      `INSERT OR REPLACE INTO cycles 
-       (id, user_id, start_date, end_date, delay, synced, updated_at)
-       VALUES (?, ?, ?, ?, ?, 0, CURRENT_TIMESTAMP)`,
-      [id, cycle.user_id, cycle.start_date, cycle.end_date, cycle.delay || 0]
-    );
+    // Save cycle
+    store.setRow('cycles', id, {
+      user_id: cycle.user_id,
+      start_date: cycle.start_date,
+      end_date: cycle.end_date || null,
+      delay: cycle.delay || 0,
+      synced: 0,
+      updated_at: new Date().toISOString(),
+    });
 
     // Queue for sync
-    await db.runAsync(
-      `INSERT OR REPLACE INTO sync_queue (id, table_name, record_id, operation, data)
-       VALUES (?, 'cycles', ?, 'create', ?)`,
-      [
-        `sync_${id}`,
-        id,
-        JSON.stringify({
-          user: cycle.user_id,
-          startDate: cycle.start_date,
-          endDate: cycle.end_date,
-          delay: cycle.delay || 0,
-        }),
-      ]
-    );
+    const syncQueueId = `sync_${id}`;
+    store.setRow('sync_queue', syncQueueId, {
+      table_name: 'cycles',
+      record_id: id,
+      operation: 'create',
+      data: JSON.stringify({
+        user: cycle.user_id,
+        startDate: cycle.start_date,
+        endDate: cycle.end_date,
+        delay: cycle.delay || 0,
+      }),
+      created_at: new Date().toISOString(),
+    });
 
     return id;
   },
@@ -349,20 +345,22 @@ export const CyclesService = {
     delay: number;
     synced: boolean;
   }>> {
-    const db = await getDatabase();
-    const result = await db.getAllAsync<{
-      id: string;
-      start_date: string;
-      end_date: string | null;
-      delay: number;
-      synced: number;
-    }>(`SELECT * FROM cycles WHERE user_id = ? ORDER BY start_date DESC`, [userId]);
+    const store = getStore();
+    const table = store.getTable('cycles');
 
-    return result.map((row) => ({
-      ...row,
-      delay: row.delay || 0,
-      synced: Boolean(row.synced),
-    }));
+    // Filter by user_id and sort by start_date DESC
+    const cycles = Object.entries(table)
+      .filter(([_, row]) => row.user_id === userId)
+      .map(([id, row]) => ({
+        id,
+        start_date: row.start_date as string,
+        end_date: row.end_date as string | null,
+        delay: (row.delay as number) || 0,
+        synced: intToBool(row.synced as number),
+      }))
+      .sort((a, b) => b.start_date.localeCompare(a.start_date));
+
+    return cycles;
   },
 
   // Get cycle by start date
@@ -373,53 +371,53 @@ export const CyclesService = {
     delay: number;
     synced: boolean;
   } | null> {
-    const db = await getDatabase();
-    const result = await db.getFirstAsync<{
-      id: string;
-      start_date: string;
-      end_date: string | null;
-      delay: number;
-      synced: number;
-    }>(`SELECT * FROM cycles WHERE user_id = ? AND start_date = ?`, [userId, startDate]);
+    const store = getStore();
+    const table = store.getTable('cycles');
 
-    if (!result) return null;
+    // Find cycle matching user_id and start_date
+    const entry = Object.entries(table).find(
+      ([_, row]) => row.user_id === userId && row.start_date === startDate
+    );
 
+    if (!entry) return null;
+
+    const [id, row] = entry;
     return {
-      ...result,
-      delay: result.delay || 0,
-      synced: Boolean(result.synced),
+      id,
+      start_date: row.start_date as string,
+      end_date: row.end_date as string | null,
+      delay: (row.delay as number) || 0,
+      synced: intToBool(row.synced as number),
     };
   },
 
   // Mark delay on a cycle (creates cycle if doesn't exist)
   async markDelay(userId: string, predictedStartDate: string, delayDays: number): Promise<string> {
-    const db = await getDatabase();
-    
     // Check if cycle already exists for this predicted date
     const existing = await this.getByStartDate(userId, predictedStartDate);
-    
+
     if (existing) {
+      const store = getStore();
+
       // Update existing cycle with delay
-      await db.runAsync(
-        `UPDATE cycles SET delay = ?, synced = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-        [delayDays, existing.id]
-      );
+      store.setCell('cycles', existing.id, 'delay', delayDays);
+      store.setCell('cycles', existing.id, 'synced', 0);
+      store.setCell('cycles', existing.id, 'updated_at', new Date().toISOString());
 
       // Queue for sync
-      await db.runAsync(
-        `INSERT OR REPLACE INTO sync_queue (id, table_name, record_id, operation, data)
-         VALUES (?, 'cycles', ?, 'update', ?)`,
-        [
-          `sync_${existing.id}`,
-          existing.id,
-          JSON.stringify({
-            user: userId,
-            startDate: existing.start_date,
-            endDate: existing.end_date,
-            delay: delayDays,
-          }),
-        ]
-      );
+      const syncQueueId = `sync_${existing.id}`;
+      store.setRow('sync_queue', syncQueueId, {
+        table_name: 'cycles',
+        record_id: existing.id,
+        operation: 'update',
+        data: JSON.stringify({
+          user: userId,
+          startDate: existing.start_date,
+          endDate: existing.end_date,
+          delay: delayDays,
+        }),
+        created_at: new Date().toISOString(),
+      });
 
       return existing.id;
     } else {
@@ -435,43 +433,42 @@ export const CyclesService = {
 
   // Mark period end - updates the most recent cycle without end_date
   async markPeriodEnd(userId: string, endDate: string, startDate?: string): Promise<string> {
-    const db = await getDatabase();
-    
+    const store = getStore();
+    const table = store.getTable('cycles');
+
     // Find the most recent cycle without an end_date
-    const cyclesWithoutEnd = await db.getAllAsync<{
-      id: string;
-      start_date: string;
-      end_date: string | null;
-      delay: number;
-      synced: number;
-    }>(
-      `SELECT * FROM cycles WHERE user_id = ? AND end_date IS NULL ORDER BY start_date DESC LIMIT 1`,
-      [userId]
-    );
+    const cyclesWithoutEnd = Object.entries(table)
+      .filter(([_, row]) => row.user_id === userId && !row.end_date)
+      .map(([id, row]) => ({
+        id,
+        start_date: row.start_date as string,
+        end_date: row.end_date as string | null,
+        delay: (row.delay as number) || 0,
+        synced: intToBool(row.synced as number),
+      }))
+      .sort((a, b) => b.start_date.localeCompare(a.start_date));
 
     if (cyclesWithoutEnd.length > 0) {
       // Update existing cycle with end_date
       const cycle = cyclesWithoutEnd[0];
-      await db.runAsync(
-        `UPDATE cycles SET end_date = ?, synced = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-        [endDate, cycle.id]
-      );
+      store.setCell('cycles', cycle.id, 'end_date', endDate);
+      store.setCell('cycles', cycle.id, 'synced', 0);
+      store.setCell('cycles', cycle.id, 'updated_at', new Date().toISOString());
 
       // Queue for sync
-      await db.runAsync(
-        `INSERT OR REPLACE INTO sync_queue (id, table_name, record_id, operation, data)
-         VALUES (?, 'cycles', ?, 'update', ?)`,
-        [
-          `sync_${cycle.id}`,
-          cycle.id,
-          JSON.stringify({
-            user: userId,
-            startDate: cycle.start_date,
-            endDate: endDate,
-            delay: cycle.delay || 0,
-          }),
-        ]
-      );
+      const syncQueueId = `sync_${cycle.id}`;
+      store.setRow('sync_queue', syncQueueId, {
+        table_name: 'cycles',
+        record_id: cycle.id,
+        operation: 'update',
+        data: JSON.stringify({
+          user: userId,
+          startDate: cycle.start_date,
+          endDate: endDate,
+          delay: cycle.delay,
+        }),
+        created_at: new Date().toISOString(),
+      });
 
       return cycle.id;
     } else if (startDate) {
@@ -487,4 +484,3 @@ export const CyclesService = {
     }
   },
 };
-

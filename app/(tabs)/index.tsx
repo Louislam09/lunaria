@@ -13,6 +13,7 @@ import { useCyclePredictions } from '@/hooks/useCyclePredictions';
 import { usePeriodConfirmation } from '@/hooks/usePeriodConfirmation';
 import { useNotificationManager } from '@/hooks/useNotificationManager';
 import { CyclesService } from '@/services/dataService';
+import { useCycleByStartDate } from '@/hooks/useReactiveData';
 import { getAllScheduledNotifications } from '@/services/notifications';
 import { getReadNotifications } from '@/services/readNotifications';
 import { colors } from '@/utils/colors';
@@ -56,45 +57,25 @@ export default function HomeScreen() {
   const [scheduledNotifications, setScheduledNotifications] = useState<any[]>([]);
   const [readNotifications, setReadNotifications] = useState<Set<string>>(new Set());
   const confirmationShownRef = useRef(false);
-  const [currentDelay, setCurrentDelay] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+
+  const userId = isAuthenticated && user ? user.id : localUserId;
+
+  // Use reactive hook to get cycle delay - automatically updates when data changes
+  const predictedDateStr = predictedDate
+    ? new Date(predictedDate).toISOString().split('T')[0]
+    : null;
+  const cycle = useCycleByStartDate(userId || '', predictedDateStr || '');
+  const currentDelay = cycle?.delay && cycle.delay > 0 ? cycle.delay : null;
+
+  // Also get cycle for the predicted date (used in confirmation handler)
+  const existingCycleForPrediction = useCycleByStartDate(userId || '', predictedDateStr || '');
 
   // Load scheduled notifications and read status for unread count
   useEffect(() => {
     loadScheduledNotifications();
     loadReadNotifications();
-    loadCurrentDelay();
   }, []);
-
-  // Load current delay if period is delayed
-  const loadCurrentDelay = async () => {
-    if (!predictedDate || !data.lastPeriodStart) return;
-
-    const userId = isAuthenticated && user ? user.id : localUserId;
-    if (!userId) return;
-
-    try {
-      const predictedDateStr = new Date(predictedDate);
-      predictedDateStr.setHours(0, 0, 0, 0);
-      const dateStr = predictedDateStr.toISOString().split('T')[0];
-
-      const cycle = await CyclesService.getByStartDate(userId, dateStr);
-      if (cycle && cycle.delay > 0) {
-        setCurrentDelay(cycle.delay);
-      } else {
-        setCurrentDelay(null);
-      }
-    } catch (error) {
-      console.error('Error loading current delay:', error);
-    }
-  };
-
-  // Reload delay when predicted date changes
-  useEffect(() => {
-    if (predictedDate) {
-      loadCurrentDelay();
-    }
-  }, [predictedDate]);
 
   // Check for period confirmation when component mounts or data changes
   useEffect(() => {
@@ -123,9 +104,9 @@ export default function HomeScreen() {
     predictedDateObj.setHours(0, 0, 0, 0);
     const daysDelay = Math.floor((today.getTime() - predictedDateObj.getTime()) / (1000 * 60 * 60 * 24));
 
-    // Check if there's already a delay recorded
+    // Check if there's already a delay recorded (use reactive value from hook)
     const predictedDateStr = predictedDateObj.toISOString().split('T')[0];
-    const existingCycle = await CyclesService.getByStartDate(userId, predictedDateStr);
+    const existingCycle = existingCycleForPrediction;
     const hasExistingDelay = existingCycle && existingCycle.delay > 0;
 
     // Build message based on whether delay already exists
@@ -145,10 +126,8 @@ export default function HomeScreen() {
             // User says NO - it's a delay (retraso)
             try {
               // Mark delay on cycle (will update if already exists)
+              // UI will automatically update via reactive hook
               await CyclesService.markDelay(userId, predictedDateStr, daysDelay);
-
-              // Reload delay to update UI
-              await loadCurrentDelay();
 
               alertSuccess(
                 'Retraso registrado',
@@ -203,7 +182,7 @@ export default function HomeScreen() {
       // Reload data
       await loadScheduledNotifications();
       await loadReadNotifications();
-      await loadCurrentDelay();
+      // currentDelay is now reactive - no need to reload manually
       await checkConfirmation();
 
       // Check for app updates if enabled

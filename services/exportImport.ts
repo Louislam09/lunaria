@@ -1,7 +1,8 @@
-import { getDatabase } from './database';
+import { getStore } from './database';
 import { File, Paths } from 'expo-file-system';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
+import { parseJsonArray, intToBool, boolToInt } from '@/utils/dbHelpers';
 
 export interface ExportData {
   version: string;
@@ -13,35 +14,64 @@ export interface ExportData {
 
 // Export all user data to JSON
 export async function exportData(userId: string): Promise<string> {
-  const db = await getDatabase();
+  const store = getStore();
 
-  // Fetch all data
-  const [profiles, logs, cycles] = await Promise.all([
-    db.getAllAsync(`SELECT * FROM profiles WHERE user_id = ?`, [userId]),
-    db.getAllAsync(`SELECT * FROM daily_logs WHERE user_id = ?`, [userId]),
-    db.getAllAsync(`SELECT * FROM cycles WHERE user_id = ?`, [userId]),
-  ]);
+  // Fetch all data from TinyBase
+  const profilesTable = store.getTable('profiles');
+  const logsTable = store.getTable('daily_logs');
+  const cyclesTable = store.getTable('cycles');
+
+  // Filter by user_id and transform data
+  const profiles = Object.entries(profilesTable)
+    .filter(([_, row]) => row.user_id === userId)
+    .map(([id, row]) => ({
+      id,
+      user_id: row.user_id,
+      name: row.name,
+      birth_date: row.birth_date,
+      cycle_type: row.cycle_type,
+      average_cycle_length: row.average_cycle_length,
+      cycle_range_min: row.cycle_range_min,
+      cycle_range_max: row.cycle_range_max,
+      period_length: row.period_length,
+      has_pcos: intToBool(row.has_pcos as number),
+      pcos_symptoms: parseJsonArray<string>(row.pcos_symptoms as string),
+      pcos_treatment: parseJsonArray<string>(row.pcos_treatment as string),
+      contraceptive_method: row.contraceptive_method,
+      wants_pregnancy: row.wants_pregnancy !== null ? intToBool(row.wants_pregnancy as number) : null,
+    }));
+
+  const daily_logs = Object.entries(logsTable)
+    .filter(([_, row]) => row.user_id === userId)
+    .map(([id, row]) => ({
+      id,
+      user_id: row.user_id,
+      date: row.date,
+      symptoms: parseJsonArray<string>(row.symptoms as string),
+      flow: row.flow,
+      mood: row.mood,
+      notes: row.notes,
+      synced: intToBool(row.synced as number),
+    }));
+
+  const cycles = Object.entries(cyclesTable)
+    .filter(([_, row]) => row.user_id === userId)
+    .map(([id, row]) => ({
+      id,
+      user_id: row.user_id,
+      start_date: row.start_date,
+      end_date: row.end_date,
+      delay: row.delay || 0,
+      synced: intToBool(row.synced as number),
+    }));
 
   // Transform data
   const exportData: ExportData = {
     version: '1.0.0',
     exportDate: new Date().toISOString(),
-    profiles: profiles.map((p: any) => ({
-      ...p,
-      pcos_symptoms: JSON.parse(p.pcos_symptoms || '[]'),
-      pcos_treatment: JSON.parse(p.pcos_treatment || '[]'),
-      has_pcos: Boolean(p.has_pcos),
-      wants_pregnancy: p.wants_pregnancy !== null ? Boolean(p.wants_pregnancy) : null,
-    })),
-    daily_logs: logs.map((l: any) => ({
-      ...l,
-      symptoms: JSON.parse(l.symptoms || '[]'),
-      synced: Boolean(l.synced),
-    })),
-    cycles: cycles.map((c: any) => ({
-      ...c,
-      synced: Boolean(c.synced),
-    })),
+    profiles,
+    daily_logs,
+    cycles,
   };
 
   const jsonString = JSON.stringify(exportData, null, 2);
@@ -99,36 +129,31 @@ export async function importData(userId: string): Promise<{ imported: number; er
       throw new Error('Formato de archivo inválido');
     }
 
-    const db = await getDatabase();
+    const store = getStore();
     let imported = 0;
     let errors = 0;
 
     // Import profiles
     for (const profile of importData.profiles) {
       try {
-        await db.runAsync(
-          `INSERT OR REPLACE INTO profiles 
-           (id, user_id, name, birth_date, cycle_type, average_cycle_length,
-            cycle_range_min, cycle_range_max, period_length, has_pcos,
-            pcos_symptoms, pcos_treatment, contraceptive_method, wants_pregnancy, synced, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, CURRENT_TIMESTAMP)`,
-          [
-            profile.id || `imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            userId,
-            profile.name,
-            profile.birth_date,
-            profile.cycle_type,
-            profile.average_cycle_length,
-            profile.cycle_range_min,
-            profile.cycle_range_max,
-            profile.period_length,
-            profile.has_pcos ? 1 : 0,
-            JSON.stringify(profile.pcos_symptoms || []),
-            JSON.stringify(profile.pcos_treatment || []),
-            profile.contraceptive_method,
-            profile.wants_pregnancy ? 1 : 0,
-          ]
-        );
+        const id = profile.id || `imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        store.setRow('profiles', id, {
+          user_id: userId,
+          name: profile.name || null,
+          birth_date: profile.birth_date || null,
+          cycle_type: profile.cycle_type || null,
+          average_cycle_length: profile.average_cycle_length || null,
+          cycle_range_min: profile.cycle_range_min || null,
+          cycle_range_max: profile.cycle_range_max || null,
+          period_length: profile.period_length || null,
+          has_pcos: boolToInt(profile.has_pcos),
+          pcos_symptoms: JSON.stringify(profile.pcos_symptoms || []),
+          pcos_treatment: JSON.stringify(profile.pcos_treatment || []),
+          contraceptive_method: profile.contraceptive_method || null,
+          wants_pregnancy: profile.wants_pregnancy !== undefined ? boolToInt(profile.wants_pregnancy) : null,
+          synced: 0,
+          updated_at: new Date().toISOString(),
+        });
         imported++;
       } catch (error) {
         console.error('Failed to import profile:', error);
@@ -139,20 +164,17 @@ export async function importData(userId: string): Promise<{ imported: number; er
     // Import daily logs
     for (const log of importData.daily_logs) {
       try {
-        await db.runAsync(
-          `INSERT OR REPLACE INTO daily_logs 
-           (id, user_id, date, symptoms, flow, mood, notes, synced, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, 0, CURRENT_TIMESTAMP)`,
-          [
-            log.id || `imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            userId,
-            log.date,
-            JSON.stringify(log.symptoms || []),
-            log.flow,
-            log.mood,
-            log.notes,
-          ]
-        );
+        const id = log.id || `imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        store.setRow('daily_logs', id, {
+          user_id: userId,
+          date: log.date,
+          symptoms: JSON.stringify(log.symptoms || []),
+          flow: log.flow || null,
+          mood: log.mood || null,
+          notes: log.notes || null,
+          synced: 0,
+          updated_at: new Date().toISOString(),
+        });
         imported++;
       } catch (error) {
         console.error('Failed to import log:', error);
@@ -163,18 +185,15 @@ export async function importData(userId: string): Promise<{ imported: number; er
     // Import cycles
     for (const cycle of importData.cycles) {
       try {
-        await db.runAsync(
-          `INSERT OR REPLACE INTO cycles 
-           (id, user_id, start_date, end_date, delay, synced, updated_at)
-           VALUES (?, ?, ?, ?, ?, 0, CURRENT_TIMESTAMP)`,
-          [
-            cycle.id || `imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            userId,
-            cycle.start_date,
-            cycle.end_date,
-            cycle.delay || 0,
-          ]
-        );
+        const id = cycle.id || `imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        store.setRow('cycles', id, {
+          user_id: userId,
+          start_date: cycle.start_date,
+          end_date: cycle.end_date || null,
+          delay: cycle.delay || 0,
+          synced: 0,
+          updated_at: new Date().toISOString(),
+        });
         imported++;
       } catch (error) {
         console.error('Failed to import cycle:', error);
@@ -187,4 +206,3 @@ export async function importData(userId: string): Promise<{ imported: number; er
     throw new Error(error.message || 'Error al importar datos');
   }
 }
-

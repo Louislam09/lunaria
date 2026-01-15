@@ -1,7 +1,7 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useOnboarding } from '@/context/OnboardingContext';
-import { DailyLogsService, CyclesService } from '@/services/dataService';
+import { useDailyLogs, useCycles } from '@/hooks/useReactiveData';
 import { getAllPeriods } from '@/utils/periodHistory';
 import {
   calculateCycleStatistics,
@@ -37,40 +37,15 @@ export interface AnalyticsData {
 export function useAnalytics(): AnalyticsData {
   const { user, isAuthenticated, localUserId } = useAuth();
   const { data, isLoading: onboardingLoading } = useOnboarding();
-  const [logs, setLogs] = useState<any[]>([]);
-  const [cycles, setCycles] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const userId = isAuthenticated && user ? user.id : localUserId;
 
-  // Load data function
-  const loadData = useCallback(async () => {
-    if (!userId || onboardingLoading) return;
+  // Use reactive hooks - automatically updates when data changes
+  const logs = useDailyLogs(userId || '');
+  const cycles = useCycles(userId || '');
 
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const [logsData, cyclesData] = await Promise.all([
-        DailyLogsService.getAll(userId),
-        CyclesService.getAll(userId),
-      ]);
-
-      setLogs(logsData);
-      setCycles(cyclesData);
-    } catch (err: any) {
-      console.error('Error loading analytics data:', err);
-      setError(err.message || 'Error al cargar los datos');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userId, onboardingLoading]);
-
-  // Load data on mount and when dependencies change
-  useEffect(() => {
-    loadData();
-  }, []);
+  const isLoading = onboardingLoading;
+  const error = null; // Reactive hooks handle errors internally
 
   // Calculate analytics
   const analytics = useMemo(() => {
@@ -183,6 +158,9 @@ export function useAnalytics(): AnalyticsData {
 
   return {
     ...analytics,
-    refetch: loadData,
+    refetch: async () => {
+      // No-op - data is automatically reactive
+      // This maintains API compatibility
+    },
   };
 }

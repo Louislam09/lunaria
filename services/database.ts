@@ -1,13 +1,20 @@
 import * as SQLite from 'expo-sqlite';
+import { createStore, type Store } from 'tinybase';
+import { createExpoSqlitePersister, type ExpoSqlitePersister } from 'tinybase/persisters/persister-expo-sqlite';
 
 let db: SQLite.SQLiteDatabase | null = null;
+let store: Store | null = null;
+let persister: ExpoSqlitePersister | null = null;
 
 export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
-  if (db) return db;
+  if (db && store && persister) {
+    return db;
+  }
 
+  // Initialize SQLite database
   db = await SQLite.openDatabaseAsync('lunaria.db');
 
-  // Create tables
+  // Create tables (required for TinyBase tabular mode)
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS profiles (
       id TEXT PRIMARY KEY,
@@ -98,6 +105,36 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
     `INSERT OR IGNORE INTO sync_settings (key, value) VALUES ('sync_frequency', 'daily')`
   );
 
+  // Create TinyBase store
+  store = createStore();
+
+  // Create persister with tabular mapping
+  persister = createExpoSqlitePersister(store, db, {
+    mode: 'tabular',
+    tables: {
+      load: {
+        profiles: { tableId: 'profiles', rowIdColumnName: 'id' },
+        daily_logs: { tableId: 'daily_logs', rowIdColumnName: 'id' },
+        cycles: { tableId: 'cycles', rowIdColumnName: 'id' },
+        sync_queue: { tableId: 'sync_queue', rowIdColumnName: 'id' },
+        sync_settings: { tableId: 'sync_settings', rowIdColumnName: 'key' },
+      },
+      save: {
+        profiles: { tableName: 'profiles', rowIdColumnName: 'id' },
+        daily_logs: { tableName: 'daily_logs', rowIdColumnName: 'id' },
+        cycles: { tableName: 'cycles', rowIdColumnName: 'id' },
+        sync_queue: { tableName: 'sync_queue', rowIdColumnName: 'id' },
+        sync_settings: { tableName: 'sync_settings', rowIdColumnName: 'key' },
+      },
+    },
+  });
+
+  // Load existing data from SQLite into TinyBase store
+  await persister.load();
+
+  // Start auto-save to persist changes automatically
+  persister.startAutoSave();
+
   return db;
 }
 
@@ -108,3 +145,16 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
   return db;
 }
 
+export function getStore(): Store {
+  if (!store) {
+    throw new Error('Store not initialized. Call initDatabase() first.');
+  }
+  return store;
+}
+
+export function getPersister(): ExpoSqlitePersister {
+  if (!persister) {
+    throw new Error('Persister not initialized. Call initDatabase() first.');
+  }
+  return persister;
+}

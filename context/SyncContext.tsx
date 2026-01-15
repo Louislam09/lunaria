@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { getSyncStatus, performSync, SyncFrequency, setSyncFrequency as setSyncFrequencyService, shouldSync } from '@/services/syncService';
 import { useAuth } from './AuthContext';
-import { initDatabase } from '@/services/database';
+import { initDatabase, getPersister } from '@/services/database';
 
 interface SyncContextType {
   lastSyncTime: Date | null;
@@ -25,10 +25,20 @@ export function SyncProvider({ children }: { children: ReactNode }) {
 
   // Initialize database on mount
   useEffect(() => {
-    initDatabase().then(() => {
+    const initialize = async () => {
+      await initDatabase();
+      // Ensure persister auto-load is started (for detecting external DB changes)
+      try {
+        const persister = getPersister();
+        persister.startAutoLoad();
+      } catch (error) {
+        // Persister might not be ready yet, but that's okay
+        console.warn('Could not start auto-load:', error);
+      }
       setIsInitialized(true);
       refreshStatus();
-    });
+    };
+    initialize();
   }, []);
 
   // Refresh sync status

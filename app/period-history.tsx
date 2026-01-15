@@ -1,25 +1,37 @@
 import MyIcon from '@/components/ui/Icon';
 import { useAuth } from '@/context/AuthContext';
 import { useOnboarding } from '@/context/OnboardingContext';
-import { CyclesService, DailyLogsService } from '@/services/dataService';
+import { useDailyLogs, useCycles } from '@/hooks/useReactiveData';
 import { colors } from '@/utils/colors';
 import { formatDate } from '@/utils/dates';
 import { getAllPeriods, PeriodHistoryItem } from '@/utils/periodHistory';
 import { router, Stack } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function PeriodHistoryScreen() {
   const { user, isAuthenticated, localUserId } = useAuth();
   const { data, isLoading: onboardingLoading, isComplete } = useOnboarding();
-  const [periods, setPeriods] = useState<PeriodHistoryItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const insets = useSafeAreaInsets();
 
   const userId = isAuthenticated && user ? user.id : localUserId;
   const { averageCycleLength = 28 } = data;
+
+  // Use reactive hooks - automatically updates when data changes
+  const logs = useDailyLogs(userId || '');
+  const cycles = useCycles(userId || '');
+
+  // Calculate periods reactively
+  const periods = useMemo(() => {
+    if (!userId) return [];
+
+    const lastPeriodStart = data.lastPeriodStart ? new Date(data.lastPeriodStart) : undefined;
+    return getAllPeriods(logs, cycles, averageCycleLength, lastPeriodStart);
+  }, [logs, cycles, data.lastPeriodStart, averageCycleLength, userId]);
+
+  const isLoading = onboardingLoading;
 
   // Redirect to onboarding if not complete
   useEffect(() => {
@@ -28,45 +40,11 @@ export default function PeriodHistoryScreen() {
     }
   }, [onboardingLoading, isComplete]);
 
-  useEffect(() => {
-    if (userId) {
-      loadPeriods();
-    } else {
-      setIsLoading(false);
-    }
-  }, [userId, data.lastPeriodStart, data.averageCycleLength]);
-
-  const loadPeriods = async (isRefresh = false) => {
-    if (!userId) {
-      setIsLoading(false);
-      return;
-    }
-
-    if (isRefresh) {
-      setRefreshing(true);
-    } else {
-      setIsLoading(true);
-    }
-
-    try {
-      const [logs, cycles] = await Promise.all([
-        DailyLogsService.getAll(userId),
-        CyclesService.getAll(userId)
-      ]);
-
-      const lastPeriodStart = data.lastPeriodStart ? new Date(data.lastPeriodStart) : undefined;
-      const allPeriods = getAllPeriods(logs, cycles, averageCycleLength, lastPeriodStart);
-      setPeriods(allPeriods);
-    } catch (error) {
-      console.error('Failed to load period history:', error);
-    } finally {
-      setIsLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  const onRefresh = () => {
-    loadPeriods(true);
+  const onRefresh = async () => {
+    // Refresh is handled automatically by reactive hook, but we can show loading state
+    setRefreshing(true);
+    // Small delay to show refresh animation
+    setTimeout(() => setRefreshing(false), 500);
   };
 
   const handlePeriodPress = (period: PeriodHistoryItem) => {

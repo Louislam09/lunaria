@@ -4,14 +4,14 @@ import MyIcon from "@/components/ui/Icon"
 import { useAuth } from "@/context/AuthContext"
 import { useAlert } from "@/context/AlertContext"
 import { useOnboarding } from "@/context/OnboardingContext"
-import { DailyLogsService, CyclesService } from "@/services/dataService"
+import { useDailyLogs, useCycles } from "@/hooks/useReactiveData"
 import { formatDate } from "@/utils/dates"
 import { getAvatarSource } from "@/utils/avatar"
 import { getAllPeriods } from "@/utils/periodHistory"
 import Constants from 'expo-constants'
 import { differenceInYears } from 'date-fns'
 import { router, Stack } from "expo-router"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { ScrollView, Text, TouchableOpacity, View } from "react-native"
 import { MyImage } from "@/components/ui"
 import * as ImagePicker from 'expo-image-picker'
@@ -29,7 +29,6 @@ export default function ProfileScreen() {
     const { data, reset, updateData } = useOnboarding()
     const { user, logout, isAuthenticated, localUserId } = useAuth()
     const { alertError, alertSuccess, alertWarning, confirm, actionSheet } = useAlert()
-    const [cycleHistory, setCycleHistory] = useState<CycleHistory[]>([])
     const [plan, setPlan] = useState<'premium' | 'free'>('free')
     const [isPickingImage, setIsPickingImage] = useState(false)
     const userName = data.name || user?.name || 'Usuario'
@@ -38,51 +37,37 @@ export default function ProfileScreen() {
 
     const userId = isAuthenticated && user ? user.id : localUserId
 
+    // Use reactive hooks - automatically updates when data changes
+    const logs = useDailyLogs(userId || '')
+    const cycles = useCycles(userId || '')
+
     // Calculate age from birthdate
     const age = data.birthDate ? differenceInYears(new Date(), new Date(data.birthDate)) : null
     const birthDateFormatted = data.birthDate ? formatDate(data.birthDate, 'birthday') : '-'
-    // Load cycle history
-    useEffect(() => {
-        if (userId) {
-            loadCycleHistory()
+
+    // Calculate cycle history reactively
+    const cycleHistory = useMemo(() => {
+        if (!userId) return []
+
+        const lastPeriodStart = data.lastPeriodStart ? new Date(data.lastPeriodStart) : undefined
+        const allPeriods = getAllPeriods(logs, cycles, averageCycleLength, lastPeriodStart)
+
+        if (allPeriods.length === 0) {
+            return []
         }
-    }, [userId])
 
-    const loadCycleHistory = async () => {
-        if (!userId) return
+        // Get last 2 periods for profile display
+        const recentPeriods = allPeriods.slice(0, 2) // Already sorted newest first
 
-        try {
-            // Get all logs and cycles
-            const [logs, cycles] = await Promise.all([
-                DailyLogsService.getAll(userId),
-                CyclesService.getAll(userId)
-            ])
-
-            const lastPeriodStart = data.lastPeriodStart ? new Date(data.lastPeriodStart) : undefined
-            const allPeriods = getAllPeriods(logs, cycles, averageCycleLength, lastPeriodStart)
-
-            if (allPeriods.length === 0) {
-                setCycleHistory([])
-                return
-            }
-
-            // Get last 2 periods for profile display
-            const recentPeriods = allPeriods.slice(0, 2) // Already sorted newest first
-
-            // Convert to CycleHistory format for compatibility
-            const cyclesHistory: CycleHistory[] = recentPeriods.map(period => ({
-                start_date: period.startDate,
-                end_date: period.endDate,
-                month: period.month,
-                duration: period.cycleLength || averageCycleLength,
-                delay: period.delay
-            }))
-
-            setCycleHistory(cyclesHistory)
-        } catch (error) {
-            console.error('Failed to load cycle history:', error)
-        }
-    }
+        // Convert to CycleHistory format for compatibility
+        return recentPeriods.map(period => ({
+            start_date: period.startDate,
+            end_date: period.endDate,
+            month: period.month,
+            duration: period.cycleLength || averageCycleLength,
+            delay: period.delay
+        }))
+    }, [logs, cycles, data.lastPeriodStart, averageCycleLength, userId])
 
     const handleLogout = async () => {
         confirm(
