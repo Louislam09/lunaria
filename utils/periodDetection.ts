@@ -5,6 +5,15 @@ export type ActivePeriod = {
   endDate: string;
   lastFlowDate: string;
   isActive: boolean;
+  isComplete?: boolean;
+  suggestedEndDate?: string;
+};
+
+export type PeriodFromLogs = {
+  startDate: string;
+  endDate: string;
+  isComplete: boolean;
+  suggestedEndDate: string;
 };
 
 /**
@@ -22,6 +31,83 @@ function isValidPeriodFlow(flow: string | null | undefined): boolean {
 }
 
 /**
+ * Detecta un periodo desde los logs diarios a partir de una fecha de inicio
+ * Escanea TODOS los datos de flujo, no limitado por la longitud predicha
+ * Maneja períodos más largos que los predichos: continúa escaneando hasta 2+ días consecutivos sin flujo
+ */
+export async function getPeriodFromLogs(
+  userId: string,
+  startDate: Date
+): Promise<PeriodFromLogs | null> {
+  try {
+    const allLogs = await DailyLogsService.getAll(userId);
+    
+    if (!allLogs || allLogs.length === 0) {
+      return null;
+    }
+
+    const startDateNormalized = new Date(startDate);
+    startDateNormalized.setHours(0, 0, 0, 0);
+
+    // Filtrar logs desde startDate hasta hoy
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+
+    const relevantLogs = allLogs
+      .filter(log => {
+        const logDate = new Date(log.date);
+        logDate.setHours(0, 0, 0, 0);
+        return logDate >= startDateNormalized && logDate <= today;
+      })
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    if (relevantLogs.length === 0) {
+      return null;
+    }
+
+    // Encontrar secuencia de días con flujo
+    const periodDays: Array<{ date: string; flow: string }> = [];
+    let lastFlowDate: string | null = null;
+    let consecutiveDaysWithoutFlow = 0;
+
+    for (let i = 0; i < relevantLogs.length; i++) {
+      const log = relevantLogs[i];
+      const hasFlow = isValidPeriodFlow(log.flow);
+
+      if (hasFlow) {
+        periodDays.push({ date: log.date, flow: log.flow });
+        lastFlowDate = log.date;
+        consecutiveDaysWithoutFlow = 0;
+      } else {
+        consecutiveDaysWithoutFlow++;
+        // Si hay 2+ días consecutivos sin flujo, el periodo ha terminado
+        if (consecutiveDaysWithoutFlow >= 2 && lastFlowDate) {
+          break;
+        }
+      }
+    }
+
+    if (periodDays.length === 0 || !lastFlowDate) {
+      return null;
+    }
+
+    const startDateStr = periodDays[0].date;
+    const endDateStr = lastFlowDate;
+    const isComplete = consecutiveDaysWithoutFlow >= 2;
+
+    return {
+      startDate: startDateStr,
+      endDate: endDateStr,
+      isComplete,
+      suggestedEndDate: endDateStr,
+    };
+  } catch (error) {
+    console.error('Error detecting period from logs:', error);
+    return null;
+  }
+}
+
+/**
  * Detecta si hay un periodo activo basado en los logs diarios
  * Un periodo activo es una secuencia de días con flujo donde:
  * - Hay días consecutivos con flujo (máximo 1 día sin flujo entre días con flujo)
@@ -32,68 +118,18 @@ export async function getActivePeriod(
   lastPeriodStart: Date
 ): Promise<ActivePeriod | null> {
   try {
-    // Obtener todos los logs del usuario
-    const allLogs = await DailyLogsService.getAll(userId);
+    // Usar getPeriodFromLogs para detectar el periodo actual
+    const period = await getPeriodFromLogs(userId, lastPeriodStart);
     
-    if (!allLogs || allLogs.length === 0) {
+    if (!period) {
       return null;
     }
 
-    // Filtrar logs desde lastPeriodStart hasta hoy
     const today = new Date();
     today.setHours(23, 59, 59, 999);
     
-    const lastPeriodStartDate = new Date(lastPeriodStart);
-    lastPeriodStartDate.setHours(0, 0, 0, 0);
-
-    const relevantLogs = allLogs
-      .filter(log => {
-        const logDate = new Date(log.date);
-        logDate.setHours(0, 0, 0, 0);
-        return logDate >= lastPeriodStartDate && logDate <= today;
-      })
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-    if (relevantLogs.length === 0) {
-      return null;
-    }
-
-    // Encontrar secuencia de días con flujo
-    const periodDays: Array<{ date: string; flow: string }> = [];
-    let currentSequenceStart: string | null = null;
-    let lastFlowDate: string | null = null;
-
-    for (let i = 0; i < relevantLogs.length; i++) {
-      const log = relevantLogs[i];
-      const hasFlow = isValidPeriodFlow(log.flow);
-
-      if (hasFlow) {
-        if (!currentSequenceStart) {
-          currentSequenceStart = log.date;
-        }
-        periodDays.push({ date: log.date, flow: log.flow });
-        lastFlowDate = log.date;
-      } else {
-        // Si hay un día sin flujo, verificar si la secuencia continúa
-        // Solo romper la secuencia si hay más de 1 día consecutivo sin flujo
-        if (currentSequenceStart && i < relevantLogs.length - 1) {
-          const nextLog = relevantLogs[i + 1];
-          const nextHasFlow = isValidPeriodFlow(nextLog.flow);
-          
-          if (!nextHasFlow) {
-            // Hay 2 días consecutivos sin flujo, terminar secuencia
-            currentSequenceStart = null;
-          }
-        }
-      }
-    }
-
-    if (periodDays.length === 0 || !lastFlowDate) {
-      return null;
-    }
-
     // Verificar si el periodo es activo (último flujo dentro de últimos 7 días)
-    const lastFlowDateObj = new Date(lastFlowDate);
+    const lastFlowDateObj = new Date(period.endDate);
     lastFlowDateObj.setHours(0, 0, 0, 0);
     const sevenDaysAgo = new Date(today);
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -101,18 +137,13 @@ export async function getActivePeriod(
 
     const isActive = lastFlowDateObj >= sevenDaysAgo;
 
-    if (!isActive) {
-      return null;
-    }
-
-    const startDate = periodDays[0].date;
-    const endDate = lastFlowDate;
-
     return {
-      startDate,
-      endDate,
-      lastFlowDate,
-      isActive: true,
+      startDate: period.startDate,
+      endDate: period.endDate,
+      lastFlowDate: period.endDate,
+      isActive,
+      isComplete: period.isComplete,
+      suggestedEndDate: period.suggestedEndDate,
     };
   } catch (error) {
     console.error('Error detecting active period:', error);

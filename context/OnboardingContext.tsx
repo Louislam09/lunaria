@@ -16,6 +16,7 @@ export type OnboardingData = {
   birthDate: Date;
 
   lastPeriodStart: Date;
+  lastPeriodEnd?: Date;
   cycleType: 'regular' | 'irregular';
 
   averageCycleLength?: number;
@@ -78,6 +79,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         // Convert date strings back to Date objects
         if (parsed.birthDate) parsed.birthDate = new Date(parsed.birthDate);
         if (parsed.lastPeriodStart) parsed.lastPeriodStart = new Date(parsed.lastPeriodStart);
+        if (parsed.lastPeriodEnd) parsed.lastPeriodEnd = new Date(parsed.lastPeriodEnd);
         setData(parsed);
       }
 

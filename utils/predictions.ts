@@ -1,5 +1,6 @@
 export type PredictionInput = {
   lastPeriodStart: Date;
+  lastPeriodEnd?: Date;
   cycleType: 'regular' | 'irregular';
   averageCycleLength?: number;
   cycleRangeMin?: number;
@@ -17,58 +18,102 @@ export type NextPeriodResult = {
  * Calcula la fecha del próximo período
  */
 export function getNextPeriodDate(input: PredictionInput): NextPeriodResult {
-  const { lastPeriodStart, cycleType, averageCycleLength, cycleRangeMin, cycleRangeMax } = input;
+  const { lastPeriodStart, lastPeriodEnd, cycleType, averageCycleLength, cycleRangeMin, cycleRangeMax } = input;
 
-  if (cycleType === 'regular' && averageCycleLength) {
-    // Regular: fecha exacta
-    const nextPeriod = new Date(lastPeriodStart);
-    nextPeriod.setDate(nextPeriod.getDate() + averageCycleLength);
+  // Si lastPeriodEnd existe, usar la longitud real del ciclo para la predicción
+  let actualCycleLength: number | undefined;
+  let baseDate = lastPeriodStart;
 
-    return {
-      date: nextPeriod,
-      precision: 'high',
-    };
+  if (lastPeriodEnd) {
+    const start = new Date(lastPeriodStart);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(lastPeriodEnd);
+    end.setHours(0, 0, 0, 0);
+    
+    // Calcular longitud real del ciclo: días entre inicio y fin + 1
+    const diffTime = end.getTime() - start.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    actualCycleLength = diffDays + 1;
+    
+    // Usar lastPeriodEnd como base para la siguiente predicción
+    baseDate = lastPeriodEnd;
+  }
+
+  if (cycleType === 'regular') {
+    // Usar longitud real del ciclo si está disponible, sino usar averageCycleLength
+    const cycleLength = actualCycleLength || averageCycleLength;
+    
+    if (cycleLength) {
+      const nextPeriod = new Date(baseDate);
+      nextPeriod.setDate(nextPeriod.getDate() + cycleLength);
+
+      return {
+        date: nextPeriod,
+        precision: actualCycleLength ? 'high' : 'high',
+      };
+    }
   } else if (cycleType === 'irregular' && cycleRangeMin && cycleRangeMax) {
-    // Irregular: rango
-    const minDate = new Date(lastPeriodStart);
-    minDate.setDate(minDate.getDate() + cycleRangeMin);
+    // Si tenemos longitud real, ajustar el rango basado en ella
+    let minDays = cycleRangeMin;
+    let maxDays = cycleRangeMax;
+    
+    if (actualCycleLength) {
+      // Ajustar rango basado en longitud real (±20% del ciclo real)
+      const variance = Math.max(2, Math.round(actualCycleLength * 0.2));
+      minDays = Math.max(cycleRangeMin, actualCycleLength - variance);
+      maxDays = Math.min(cycleRangeMax, actualCycleLength + variance);
+    }
 
-    const maxDate = new Date(lastPeriodStart);
-    maxDate.setDate(maxDate.getDate() + cycleRangeMax);
+    const minDate = new Date(baseDate);
+    minDate.setDate(minDate.getDate() + minDays);
+
+    const maxDate = new Date(baseDate);
+    maxDate.setDate(maxDate.getDate() + maxDays);
 
     // Para irregular, usar el promedio del rango como fecha estimada
-    const avgDays = Math.round((cycleRangeMin + cycleRangeMax) / 2);
-    const estimatedDate = new Date(lastPeriodStart);
+    const avgDays = Math.round((minDays + maxDays) / 2);
+    const estimatedDate = new Date(baseDate);
     estimatedDate.setDate(estimatedDate.getDate() + avgDays);
 
     return {
       date: estimatedDate,
       range: { start: minDate, end: maxDate },
-      precision: 'low',
+      precision: actualCycleLength ? 'high' : 'low',
     };
   }
 
-  // Fallback: usar 28 días si no hay datos
-  const fallbackDate = new Date(lastPeriodStart);
-  fallbackDate.setDate(fallbackDate.getDate() + 28);
+  // Fallback: usar 28 días si no hay datos, o longitud real si está disponible
+  const fallbackDays = actualCycleLength || 28;
+  const fallbackDate = new Date(baseDate);
+  fallbackDate.setDate(fallbackDate.getDate() + fallbackDays);
 
   return {
     date: fallbackDate,
-    precision: 'low',
+    precision: actualCycleLength ? 'high' : 'low',
   };
 }
 
 /**
  * Calcula el día actual del ciclo
  */
-export function getCycleDay(lastPeriodStart: Date, today: Date = new Date()): number {
+export function getCycleDay(lastPeriodStart: Date, today: Date = new Date(), lastPeriodEnd?: Date): number {
   const todayNormalized = new Date(today);
   todayNormalized.setHours(0, 0, 0, 0);
 
-  const lastPeriod = new Date(lastPeriodStart);
-  lastPeriod.setHours(0, 0, 0, 0);
+  let baseDate = new Date(lastPeriodStart);
+  baseDate.setHours(0, 0, 0, 0);
 
-  const diffTime = todayNormalized.getTime() - lastPeriod.getTime();
+  // Si lastPeriodEnd existe y hoy es después del fin del periodo, calcular desde el fin
+  if (lastPeriodEnd) {
+    const endDate = new Date(lastPeriodEnd);
+    endDate.setHours(0, 0, 0, 0);
+    
+    if (todayNormalized > endDate) {
+      baseDate = endDate;
+    }
+  }
+
+  const diffTime = todayNormalized.getTime() - baseDate.getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
   return diffDays + 1;

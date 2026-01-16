@@ -32,6 +32,7 @@ export function useCyclePredictions(data: Partial<OnboardingData>): CyclePredict
   // Prepare prediction input
   const predictionInput = useMemo(() => ({
     lastPeriodStart: data.lastPeriodStart!,
+    lastPeriodEnd: data.lastPeriodEnd,
     cycleType: data.cycleType!,
     averageCycleLength: data.averageCycleLength,
     cycleRangeMin: data.cycleRangeMin,
@@ -39,6 +40,7 @@ export function useCyclePredictions(data: Partial<OnboardingData>): CyclePredict
     periodLength: data.periodLength!,
   }), [
     data.lastPeriodStart,
+    data.lastPeriodEnd,
     data.cycleType,
     data.averageCycleLength,
     data.cycleRangeMin,
@@ -48,9 +50,22 @@ export function useCyclePredictions(data: Partial<OnboardingData>): CyclePredict
 
   // Get predictions
   const nextPeriodResult = useMemo(() => getNextPeriodDate(predictionInput), [predictionInput]);
-  const cycleDay = useMemo(() => getCycleDay(data.lastPeriodStart!), [data.lastPeriodStart]);
+  const cycleDay = useMemo(() => getCycleDay(data.lastPeriodStart!, new Date(), data.lastPeriodEnd), [data.lastPeriodStart, data.lastPeriodEnd]);
 
   const cycleLength = useMemo(() => {
+    // Si lastPeriodEnd existe, calcular la longitud real del ciclo
+    if (data.lastPeriodStart && data.lastPeriodEnd) {
+      const start = new Date(data.lastPeriodStart);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(data.lastPeriodEnd);
+      end.setHours(0, 0, 0, 0);
+      
+      const diffTime = end.getTime() - start.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays + 1;
+    }
+    
+    // Si no hay lastPeriodEnd, usar valores predichos
     if (data.cycleType === 'regular' && data.averageCycleLength) {
       return data.averageCycleLength;
     }
@@ -58,16 +73,17 @@ export function useCyclePredictions(data: Partial<OnboardingData>): CyclePredict
       return Math.round((data.cycleRangeMin + data.cycleRangeMax) / 2);
     }
     return 28; // fallback
-  }, [data.cycleType, data.averageCycleLength, data.cycleRangeMin, data.cycleRangeMax]);
+  }, [data.lastPeriodStart, data.lastPeriodEnd, data.cycleType, data.averageCycleLength, data.cycleRangeMin, data.cycleRangeMax]);
 
   const phase = useMemo(() => getCyclePhase(cycleDay, cycleLength), [cycleDay, cycleLength]);
 
   const fertileWindow = useMemo(() => {
-    if (data.cycleType === 'regular' && data.averageCycleLength) {
-      return getFertileWindow(data.averageCycleLength);
+    // Usar cycleLength calculado (que puede ser real o predicho)
+    if (data.cycleType === 'regular' && cycleLength) {
+      return getFertileWindow(cycleLength);
     }
     return null;
-  }, [data.cycleType, data.averageCycleLength]);
+  }, [data.cycleType, cycleLength]);
 
   // Calculate days until next period
   const daysUntilPeriod = useMemo(() => getDaysUntil(nextPeriodResult.date), [nextPeriodResult.date]);

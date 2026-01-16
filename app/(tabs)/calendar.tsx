@@ -6,11 +6,13 @@ import { useCyclePredictions } from '@/hooks/useCyclePredictions';
 import { useAuth } from '@/context/AuthContext';
 import { useAlert } from '@/context/AlertContext';
 import { CyclesService } from '@/services/dataService';
-import { getActivePeriod, ActivePeriod } from '@/utils/periodDetection';
+import { getActivePeriod, getPeriodFromLogs, ActivePeriod } from '@/utils/periodDetection';
 import { getCycleDay } from '@/utils/predictions';
 import { formatDate } from '@/utils/dates';
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { useDailyLogs } from '@/hooks/useReactiveData';
+import { usePeriodButtons } from '@/hooks/usePeriodButtons';
 import { Platform, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Calendar, CalendarUtils, LocaleConfig } from 'react-native-calendars';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -90,13 +92,107 @@ const MyCalendar = styled(Calendar, {
 
 export default function CalendarScreen() {
   const insets = useSafeAreaInsets();
-  const { data, isLoading, isComplete } = useOnboarding();
+  const { data, isLoading, isComplete, updateData } = useOnboarding();
   const { user, isAuthenticated, localUserId } = useAuth();
-  const { alertSuccess, alertError } = useAlert();
+  const { alertSuccess, alertError, confirm } = useAlert();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selected, setSelected] = useState(CalendarUtils.getCalendarDateString(new Date()));
   const [activePeriod, setActivePeriod] = useState<ActivePeriod | null>(null);
   const [isMarkingEnd, setIsMarkingEnd] = useState(false);
+  const [actualPeriod, setActualPeriod] = useState<{ startDate: string; endDate: string } | null>(null);
+  const [suggestedPeriodEnd, setSuggestedPeriodEnd] = useState<{ date: string; showDialog: boolean } | null>(null);
+  const lastSuggestedDateRef = React.useRef<string | null>(null);
+
+  const userId = isAuthenticated && user ? user.id : localUserId;
+
+  // Get daily logs reactively
+  const dailyLogs = useDailyLogs(userId || '');
+
+  // Detect actual period from flow data
+  useEffect(() => {
+    const detectActualPeriod = async () => {
+      if (!userId || !data.lastPeriodStart) return;
+
+      try {
+        const period = await getPeriodFromLogs(userId, new Date(data.lastPeriodStart));
+        if (period) {
+          setActualPeriod({
+            startDate: period.startDate,
+            endDate: period.endDate,
+          });
+        } else {
+          setActualPeriod(null);
+        }
+      } catch (error) {
+        console.error('Error detecting actual period:', error);
+        setActualPeriod(null);
+      }
+    };
+
+    detectActualPeriod();
+  }, [userId, data.lastPeriodStart, dailyLogs]);
+
+  // Suggest period end when detected (require confirmation)
+  useEffect(() => {
+    const checkPeriodEnd = async () => {
+      if (!userId || !data.lastPeriodStart || data.lastPeriodEnd) {
+        // Reset suggestion if period has ended
+        if (suggestedPeriodEnd) {
+          setSuggestedPeriodEnd(null);
+        }
+        return;
+      }
+
+      try {
+        const period = await getPeriodFromLogs(userId, new Date(data.lastPeriodStart));
+
+        // If period is complete (2+ days without flow) and not yet marked as ended
+        if (period && period.isComplete && period.suggestedEndDate) {
+          // Only suggest if we haven't shown this suggestion yet for this date
+          if (lastSuggestedDateRef.current !== period.suggestedEndDate) {
+            lastSuggestedDateRef.current = period.suggestedEndDate;
+            const endDate = new Date(period.suggestedEndDate);
+            const endDateFormatted = formatDate(endDate, 'long');
+
+            // Show confirmation dialog
+            confirm(
+              '¿Tu periodo terminó?',
+              `Tu periodo parece haber terminado el ${endDateFormatted}. ¿Marcar como finalizado?`,
+              async () => {
+                // User confirmed - mark period as ended
+                await handleMarkPeriodEnd(endDate);
+                setSuggestedPeriodEnd(null);
+                lastSuggestedDateRef.current = null;
+              },
+              () => {
+                // User cancelled - dismiss suggestion
+                setSuggestedPeriodEnd(null);
+                // Don't reset ref so we don't show again for same date
+              }
+            );
+
+            setSuggestedPeriodEnd({
+              date: period.suggestedEndDate,
+              showDialog: false, // Dialog already shown
+            });
+          }
+        } else {
+          // Reset suggestion if period is no longer complete
+          if (suggestedPeriodEnd) {
+            setSuggestedPeriodEnd(null);
+          }
+          // Reset ref if period is not complete
+          if (period && !period.isComplete) {
+            lastSuggestedDateRef.current = null;
+          }
+        }
+      } catch (error) {
+        console.error('Error checking period end:', error);
+      }
+    };
+
+    checkPeriodEnd();
+  }, [userId, data.lastPeriodStart, data.lastPeriodEnd, dailyLogs]);
 
   const today = useMemo(() => {
     const d = new Date();
@@ -136,8 +232,8 @@ export default function CalendarScreen() {
   }, [data.lastPeriodStart, isComplete, isAuthenticated, user, localUserId]);
 
   // Handle marking period end
-  const handleMarkPeriodEnd = async () => {
-    if (!activePeriod || isMarkingEnd) return;
+  const handleMarkPeriodEnd = useCallback(async (endDate?: Date) => {
+    if (isMarkingEnd) return;
 
     const userId = isAuthenticated && user ? user.id : localUserId;
     if (!userId) {
@@ -145,39 +241,85 @@ export default function CalendarScreen() {
       return;
     }
 
-    setIsMarkingEnd(true);
-    try {
-      // Use today's date or the last flow date as end date
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const endDateStr = today.toISOString().split('T')[0];
+    // Show confirmation dialog
+    confirm(
+      'Marcar fin del periodo',
+      '¿Estás segura de que quieres marcar el fin de tu periodo? Esta acción actualizará tu ciclo.',
+      async () => {
+        setIsMarkingEnd(true);
+        try {
+          // Use provided end date, or today's date, or detect from flow data
+          let endDateToUse: Date;
 
-      await CyclesService.markPeriodEnd(userId, endDateStr, activePeriod.startDate);
+          if (endDate) {
+            endDateToUse = endDate;
+          } else {
+            // Try to detect from flow data
+            const period = await getPeriodFromLogs(userId, new Date(data.lastPeriodStart || new Date()));
+            if (period && period.suggestedEndDate) {
+              endDateToUse = new Date(period.suggestedEndDate);
+            } else {
+              endDateToUse = new Date();
+            }
+          }
 
-      alertSuccess(
-        'Periodo finalizado',
-        `Se ha marcado el fin de tu periodo. El ciclo se ha actualizado correctamente.`
-      );
+          endDateToUse.setHours(0, 0, 0, 0);
+          const endDateStr = endDateToUse.toISOString().split('T')[0];
+          const startDate = activePeriod?.startDate || data.lastPeriodStart?.toISOString().split('T')[0];
 
-      // Reload active period to update UI
-      const period = await getActivePeriod(userId, new Date(data.lastPeriodStart));
-      setActivePeriod(period);
-    } catch (error: any) {
-      console.error('Error marking period end:', error);
-      alertError('Error', error.message || 'No se pudo marcar el fin del periodo. Intenta más tarde.');
-    } finally {
-      setIsMarkingEnd(false);
-    }
-  };
+          if (!startDate) {
+            throw new Error('No se pudo determinar la fecha de inicio del periodo.');
+          }
+
+          await CyclesService.markPeriodEnd(userId, endDateStr, startDate);
+
+          // Calculate actual period length
+          const startDateObj = new Date(startDate);
+          startDateObj.setHours(0, 0, 0, 0);
+          const actualLength = Math.floor((endDateToUse.getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+          // Update lastPeriodEnd in user profile
+          await updateData({ lastPeriodEnd: endDateToUse });
+
+          // Adapt periodLength if actual differs significantly (2+ days)
+          let message = 'Se ha marcado el fin de tu periodo. El ciclo se ha actualizado correctamente.';
+          if (data.periodLength && Math.abs(actualLength - data.periodLength) >= 2) {
+            await updateData({ periodLength: actualLength });
+            message = `Periodo finalizado. La duración del periodo se ha actualizado a ${actualLength} días basado en tus datos reales.`;
+          }
+
+          alertSuccess('Periodo finalizado', message);
+
+          // Reload active period to update UI
+          const period = await getActivePeriod(userId, new Date(data.lastPeriodStart || new Date()));
+          setActivePeriod(period);
+        } catch (error: any) {
+          console.error('Error marking period end:', error);
+          alertError('Error', error.message || 'No se pudo marcar el fin del periodo. Intenta más tarde.');
+        } finally {
+          setIsMarkingEnd(false);
+        }
+      }
+    );
+  }, [isMarkingEnd, isAuthenticated, user, localUserId, data.lastPeriodStart, data.periodLength, activePeriod, updateData, alertSuccess, alertError, confirm]);
 
   // Get cycle predictions from hook
   const cyclePredictions = useCyclePredictions(data);
+
+  // Get period buttons using custom hook
+  const periodButtons = usePeriodButtons({
+    data,
+    actualPeriod,
+    dailyLogs,
+    isMarkingEnd,
+    onMarkPeriodEnd: () => handleMarkPeriodEnd(),
+  });
 
   // Calculations
   const cycleData = useMemo(() => {
     if (!data.lastPeriodStart || !data.cycleType || !data.periodLength) return null;
 
-    const cycleDay = getCycleDay(new Date(data.lastPeriodStart), today);
+    const cycleDay = getCycleDay(new Date(data.lastPeriodStart), today, data.lastPeriodEnd);
 
     const ovulationDate = data.cycleType === 'regular' && data.averageCycleLength
       ? (() => {
@@ -213,99 +355,199 @@ export default function CalendarScreen() {
       }
     };
 
-    // 1. Current Period
-    const start = new Date(data.lastPeriodStart);
-    for (let i = 0; i < periodLen; i++) {
-      const d = new Date(start);
-      d.setDate(d.getDate() + i);
-      const dateStr = d.toISOString().split('T')[0];
-      const isFirst = i === 0;
-      const isLast = i === periodLen - 1;
+    // Helper function to check if flow indicates period
+    const isValidPeriodFlow = (flow: string | null | undefined): boolean => {
+      if (!flow) return false;
+      const flowLower = flow.toLowerCase();
+      return flowLower === 'leve' ||
+        flowLower === 'medio' ||
+        flowLower === 'alto' ||
+        flowLower === 'mancha' ||
+        flowLower === 'abundante';
+    };
 
-      if (isFirst) {
-        // First date: solid circular background with white text
-        marked[dateStr] = {
-          startingDay: true,
-          color: colors.period + "66",
-          textColor: 'white',
-          selected: true,
-        };
-        marked[dateStr].customContainerStyle = {
-          ...marked[dateStr].customContainerStyle,
-          backgroundColor: colors.period,
-          borderRadius: 18,
-          elevation: 4,
-        };
-      } else if (isLast) {
-        // Last date: solid circular background with white text
-        marked[dateStr] = {
-          endingDay: true,
-          color: colors.period + "66",
-          textColor: 'white',
-          selected: true,
-        };
-        marked[dateStr].customContainerStyle = {
-          ...marked[dateStr].customContainerStyle,
-          backgroundColor: colors.period,
-          borderRadius: 18,
-          elevation: 4,
-        };
-      } else {
-        // Middle dates: light pink rectangular background with lighter pink text
-        marked[dateStr] = {
-          color: colors.period + "33",
-          customTextStyle: {
-            fontWeight: '500',
-            color: '#fb778bC',
-          },
-        };
+    // Priority 1: Show actual logged period from flow data
+    if (actualPeriod) {
+      const startDate = new Date(actualPeriod.startDate);
+      const endDate = new Date(actualPeriod.endDate);
+
+      // Get all dates with flow between start and end
+      const periodDaysWithFlow: string[] = [];
+      const currentDate = new Date(startDate);
+
+      while (currentDate <= endDate) {
+        const dateStr = currentDate.toISOString().split('T')[0];
+        const log = dailyLogs.find(l => l.date === dateStr);
+
+        if (log && isValidPeriodFlow(log.flow)) {
+          periodDaysWithFlow.push(dateStr);
+        }
+
+        currentDate.setDate(currentDate.getDate() + 1);
       }
-    }
 
-    // 2. Next Period Prediction
-    const nextStart = new Date(cycleData.nextPeriodResult.date);
-    for (let i = 0; i < periodLen; i++) {
-      const d = new Date(nextStart);
-      d.setDate(d.getDate() + i);
-      const dateStr = d.toISOString().split('T')[0];
-      const isFirst = i === 0;
-      const isLast = i === periodLen - 1;
+      // Mark all days with actual flow data
+      periodDaysWithFlow.forEach((dateStr, index) => {
+        const isFirst = index === 0;
+        const isLast = index === periodDaysWithFlow.length - 1;
 
-      if (!marked[dateStr]) {
         if (isFirst) {
           marked[dateStr] = {
             startingDay: true,
-            color: colors.period + "30",
+            color: colors.period + "66",
             textColor: 'white',
             selected: true,
           };
           marked[dateStr].customContainerStyle = {
             ...marked[dateStr].customContainerStyle,
-            backgroundColor: colors.period + "60",
+            backgroundColor: colors.period,
             borderRadius: 18,
             elevation: 4,
           };
         } else if (isLast) {
           marked[dateStr] = {
             endingDay: true,
-            color: colors.period + "30",
+            color: colors.period + "66",
             textColor: 'white',
             selected: true,
           };
           marked[dateStr].customContainerStyle = {
             ...marked[dateStr].customContainerStyle,
-            backgroundColor: colors.period + "60",
+            backgroundColor: colors.period,
             borderRadius: 18,
             elevation: 4,
           };
         } else {
           marked[dateStr] = {
-            color: colors.period + '15',
-            textColor: colors.period,
+            color: colors.period + "33",
             customTextStyle: {
-              opacity: 0.7,
+              fontWeight: '500',
+              color: '#fb778bC',
             },
           };
+        }
+      });
+    } else {
+      // Fallback: Show predicted current period if no actual data
+      const start = new Date(data.lastPeriodStart);
+      for (let i = 0; i < periodLen; i++) {
+        const d = new Date(start);
+        d.setDate(d.getDate() + i);
+        const dateStr = d.toISOString().split('T')[0];
+        const isFirst = i === 0;
+        const isLast = i === periodLen - 1;
+
+        if (isFirst) {
+          marked[dateStr] = {
+            startingDay: true,
+            color: colors.period + "66",
+            textColor: 'white',
+            selected: true,
+          };
+          marked[dateStr].customContainerStyle = {
+            ...marked[dateStr].customContainerStyle,
+            backgroundColor: colors.period,
+            borderRadius: 18,
+            elevation: 4,
+          };
+        } else if (isLast) {
+          marked[dateStr] = {
+            endingDay: true,
+            color: colors.period + "66",
+            textColor: 'white',
+            selected: true,
+          };
+          marked[dateStr].customContainerStyle = {
+            ...marked[dateStr].customContainerStyle,
+            backgroundColor: colors.period,
+            borderRadius: 18,
+            elevation: 4,
+          };
+        } else {
+          marked[dateStr] = {
+            color: colors.period + "33",
+            customTextStyle: {
+              fontWeight: '500',
+              color: '#fb778bC',
+            },
+          };
+        }
+      }
+    }
+
+    // Priority 2: Show predicted period ONLY if no actual period exists for those dates
+    const nextStart = new Date(cycleData.nextPeriodResult.date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const nextStartNormalized = new Date(nextStart);
+    nextStartNormalized.setHours(0, 0, 0, 0);
+
+    // Only show prediction if:
+    // - No lastPeriodEnd exists (period hasn't ended yet)
+    // - Predicted date is in the future
+    // - No actual flow data exists for predicted period dates
+    const shouldShowPrediction = !data.lastPeriodEnd && nextStartNormalized >= today;
+
+    if (shouldShowPrediction) {
+      // Check if any predicted dates have actual flow data
+      let hasActualFlowInPrediction = false;
+      for (let i = 0; i < periodLen; i++) {
+        const d = new Date(nextStart);
+        d.setDate(d.getDate() + i);
+        const dateStr = d.toISOString().split('T')[0];
+        const log = dailyLogs.find(l => l.date === dateStr);
+        if (log && isValidPeriodFlow(log.flow)) {
+          hasActualFlowInPrediction = true;
+          break;
+        }
+      }
+
+      // Only show prediction if no actual flow exists
+      if (!hasActualFlowInPrediction) {
+        for (let i = 0; i < periodLen; i++) {
+          const d = new Date(nextStart);
+          d.setDate(d.getDate() + i);
+          const dateStr = d.toISOString().split('T')[0];
+          const isFirst = i === 0;
+          const isLast = i === periodLen - 1;
+
+          if (!marked[dateStr]) {
+            if (isFirst) {
+              marked[dateStr] = {
+                startingDay: true,
+                color: colors.period + "30",
+                textColor: 'white',
+                selected: true,
+              };
+              marked[dateStr].customContainerStyle = {
+                ...marked[dateStr].customContainerStyle,
+                backgroundColor: colors.period + "60",
+                borderRadius: 18,
+                elevation: 4,
+              };
+            } else if (isLast) {
+              marked[dateStr] = {
+                endingDay: true,
+                color: colors.period + "30",
+                textColor: 'white',
+                selected: true,
+              };
+              marked[dateStr].customContainerStyle = {
+                ...marked[dateStr].customContainerStyle,
+                backgroundColor: colors.period + "60",
+                borderRadius: 18,
+                elevation: 4,
+              };
+            } else {
+              marked[dateStr] = {
+                color: colors.period + '15',
+                textColor: colors.period,
+                customTextStyle: {
+                  opacity: 0.7,
+                },
+              };
+            }
+          }
         }
       }
     }
@@ -389,7 +631,7 @@ export default function CalendarScreen() {
     }
 
     return marked;
-  }, [cycleData, data, selected]);
+  }, [cycleData, data, selected, actualPeriod, dailyLogs]);
 
 
   const getPhaseDisplay = (phase: string) => {
@@ -529,38 +771,9 @@ export default function CalendarScreen() {
 
         {/* ───── FAB ───── */}
         <View className="mt-6 mb-10 gap-3">
-          {activePeriod?.isActive ? (
-            <Pressable
-              onPress={handleMarkPeriodEnd}
-              disabled={isMarkingEnd}
-              className={`py-4 rounded-2xl ${isMarkingEnd ? 'bg-gray-400' : 'bg-rose-600'} items-center justify-center flex-row shadow-lg active:opacity-90`}
-            >
-              {isMarkingEnd ? (
-                <>
-                  <MyIcon name="Loader" size={20} className="text-white" />
-                  <Text className="ml-2 text-white font-bold text-lg">
-                    Marcando...
-                  </Text>
-                </>
-              ) : (
-                <>
-                  <MyIcon name="Check" size={20} className="text-white" />
-                  <Text className="ml-2 text-white font-bold text-lg">
-                    Marcar Fin del Periodo
-                  </Text>
-                </>
-              )}
-            </Pressable>
-          ) : null}
-          <Pressable
-            onPress={() => router.push('/register')}
-            className="py-4 rounded-2xl bg-primary items-center justify-center flex-row shadow-lg active:opacity-90"
-          >
-            <MyIcon name="Droplet" size={20} className="text-white" />
-            <Text className="ml-2 text-white font-bold text-lg">
-              Registrar Periodo
-            </Text>
-          </Pressable>
+          {periodButtons.markEndButton}
+          {periodButtons.startButton}
+          {periodButtons.registerButton}
         </View>
       </ScrollView>
     </View>
