@@ -16,7 +16,12 @@ export function TrendChart({ data, type, title }: TrendChartProps) {
       <View className="bg-white rounded-3xl p-5 border border-gray-100 shadow-md">
         <Text className="text-lg font-bold text-text-primary mb-4">{title}</Text>
         <View className="h-48 items-center justify-center">
-          <Text className="text-text-muted">No hay datos suficientes para mostrar</Text>
+          <Text className="text-text-muted text-center">
+            No hay datos suficientes para mostrar.{'\n'}
+            {type === 'cycle' 
+              ? 'Registra más periodos para ver la tendencia de duración del ciclo.'
+              : 'Registra más periodos para ver la tendencia de duración del periodo.'}
+          </Text>
         </View>
       </View>
     );
@@ -24,19 +29,24 @@ export function TrendChart({ data, type, title }: TrendChartProps) {
 
   const screenWidth = Dimensions.get('window').width - 64; // Account for padding
 
+  // For single data point, duplicate it to make chart visible
+  const chartDataPoints = data.length === 1 
+    ? [data[0], data[0]] 
+    : data;
+
   // Prepare chart data
   const chartData = {
-    labels: data.map((item, index) => {
+    labels: chartDataPoints.map((item, index) => {
       // Show only first, middle, and last labels to avoid crowding
-      if (data.length <= 3) return formatDate(new Date(item.date), 'short');
-      if (index === 0 || index === Math.floor(data.length / 2) || index === data.length - 1) {
+      if (chartDataPoints.length <= 3) return formatDate(new Date(item.date), 'short');
+      if (index === 0 || index === Math.floor(chartDataPoints.length / 2) || index === chartDataPoints.length - 1) {
         return formatDate(new Date(item.date), 'short');
       }
       return '';
     }),
     datasets: [
       {
-        data: data.map(item => type === 'cycle' ? item.cycleLength : item.periodDuration),
+        data: chartDataPoints.map(item => type === 'cycle' ? item.cycleLength : item.periodDuration),
         color: (opacity = 1) => colors.lavender,
         strokeWidth: 2,
       },

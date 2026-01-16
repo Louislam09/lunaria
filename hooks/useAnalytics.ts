@@ -101,7 +101,7 @@ export function useAnalytics(): AnalyticsData {
       );
 
       // Get trends
-      const cycleTrends = getCycleTrendData(periods);
+      const cycleTrends = getCycleTrendData(periods, averageCycleLength);
       const periodDurationTrends = getPeriodDurationTrend(periods);
 
       // Detect patterns

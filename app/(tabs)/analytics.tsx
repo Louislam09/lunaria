@@ -66,7 +66,12 @@ export default function AnalyticsScreen() {
     );
   }
 
-  const hasData = analytics.cycleTrends.length > 0 || analytics.symptomFrequency.length > 0;
+  // Check if we have any data to display
+  const hasData = analytics.cycleTrends.length > 0 ||
+    analytics.symptomFrequency.length > 0 ||
+    analytics.periodDurationTrends.length > 0 ||
+    analytics.symptomPatterns.length > 0 ||
+    analytics.moodFrequency.length > 0;
 
   return (
     <View className="flex-1 bg-background">
@@ -100,12 +105,10 @@ export default function AnalyticsScreen() {
             {/* Cycle Statistics */}
             <CycleStatsCard stats={analytics.cycleStats} />
 
-            {/* Pattern Insights */}
-            {analytics.symptomPatterns.length > 0 && (
-              <View className="mt-6">
-                <PatternInsightCard patterns={analytics.symptomPatterns} />
-              </View>
-            )}
+            {/* Pattern Insights - Always show, component handles empty state */}
+            <View className="mt-6">
+              <PatternInsightCard patterns={analytics.symptomPatterns} />
+            </View>
 
             {/* Symptom Frequency */}
             {analytics.symptomFrequency.length > 0 && (
@@ -121,16 +124,14 @@ export default function AnalyticsScreen() {
               </View>
             )}
 
-            {/* Cycle Length Trend */}
-            {analytics.cycleTrends.length > 0 && (
-              <View className="mt-6">
-                <TrendChart
-                  data={analytics.cycleTrends}
-                  type="cycle"
-                  title="Tendencia de Duración del Ciclo"
-                />
-              </View>
-            )}
+            {/* Cycle Length Trend - Always show, component handles empty state */}
+            <View className="mt-6">
+              <TrendChart
+                data={analytics.cycleTrends}
+                type="cycle"
+                title="Tendencia de Duración del Ciclo"
+              />
+            </View>
 
             {/* Period Duration Trend */}
             {analytics.periodDurationTrends.length > 0 && (

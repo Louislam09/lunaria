@@ -254,12 +254,16 @@ export function analyzeMoodFrequency(
 /**
  * Get cycle trend data for charting
  */
-export function getCycleTrendData(periods: PeriodHistoryItem[]): CycleTrendData[] {
+export function getCycleTrendData(periods: PeriodHistoryItem[], averageCycleLength: number = 28): CycleTrendData[] {
+  if (periods.length === 0) {
+    return [];
+  }
+
+  // If we have periods but no cycleLength calculated, use averageCycleLength as fallback
   return periods
-    .filter(p => p.cycleLength !== undefined)
     .map(p => ({
       date: p.startDate,
-      cycleLength: p.cycleLength!,
+      cycleLength: p.cycleLength ?? averageCycleLength,
       periodDuration: p.duration,
     }))
     .reverse(); // Oldest first for chart
